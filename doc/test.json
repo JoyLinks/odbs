@@ -1,0 +1,827 @@
+{
+	"BooleanObjects": [],
+	"BooleanValues": [],
+	"ByteObjects": [],
+	"ByteValues": [],
+	"CharValues": [],
+	"CharacterObjects": [],
+	"DateObjects": [],
+	"DecimalObjects": [],
+	"DoubleObjects": [],
+	"DoubleValues": [],
+	"EntityBases": [],
+	"EntityEmpties": [],
+	"EnumCodeTexts": [],
+	"EnumCodes": [],
+	"EnumNatives": [],
+	"EnumTexts": [],
+	"FloatObjects": [],
+	"FloatValues": [],
+	"IntValues": [],
+	"IntegerObjects": [],
+	"LocalDateObjects": [],
+	"LocalDateTimeObjects": [],
+	"LocalTimeObjects": [],
+	"LongObjects": [],
+	"LongValues": [],
+	"ShortObjects": [],
+	"ShortValues": [],
+	"StringObjects": []
+} {
+	"BooleanObjects": [false, true],
+	"ByteObjects": [4, -128, 127],
+	"CharacterObjects": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "￿"],
+	"DateObjects": ["2023-07-28 08:38:57"],
+	"DecimalObjects": [0, 10, 1],
+	"DoubleObjects": [179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000, 100.002,
+		0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049
+	],
+	"EntityBases": [{
+		"BooleanObject": false,
+		"BooleanValue": false,
+		"ByteObject": -128,
+		"ByteValue": -128,
+		"CharValue": "",
+		"CharacterObject": "",
+		"DateObject": "2023-07-28 08:38:58",
+		"DecimalObject": 0,
+		"DoubleObject": 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049,
+		"DoubleValue": 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049,
+		"EnumCodeTexts": {
+			"value": 2,
+			"name": "RECORD",
+			"text": "记录"
+		},
+		"EnumCodes": {
+			"value": 2,
+			"name": "RECORD"
+		},
+		"EnumNative": {
+			"value": 0,
+			"name": "RECORD"
+		},
+		"EnumTexts": {
+			"value": 0,
+			"name": "RECORD",
+			"text": "记录"
+		},
+		"FloatObject": 0.000000000000000000000000000000000000000000001401298464324817,
+		"FloatValue": 0.000000000000000000000000000000000000000000001401298464324817,
+		"IntValue": -2147483648,
+		"IntegerObject": -2147483648,
+		"LocalDateObject": "-999999999-01-01",
+		"LocalDateTimeObject": "-999999999-01-01 00:00:00",
+		"LocalTimeObject": "00:00:00",
+		"LongObject": -9223372036854775808,
+		"LongValue": -9223372036854775808,
+		"ShortObject": -32768,
+		"ShortValue": -32768,
+		"StringObject": ""
+	}, {
+		"BooleanObject": null,
+		"BooleanValue": false,
+		"ByteObject": null,
+		"ByteValue": 0,
+		"CharValue": "",
+		"CharacterObject": null,
+		"DateObject": null,
+		"DecimalObject": null,
+		"DoubleObject": null,
+		"DoubleValue": 0,
+		"EnumCodeTexts": null,
+		"EnumCodes": null,
+		"EnumNative": null,
+		"EnumTexts": null,
+		"FloatObject": null,
+		"FloatValue": 0,
+		"IntValue": 0,
+		"IntegerObject": null,
+		"LocalDateObject": null,
+		"LocalDateTimeObject": null,
+		"LocalTimeObject": null,
+		"LongObject": null,
+		"LongValue": 0,
+		"ShortObject": null,
+		"ShortValue": 0,
+		"StringObject": null
+	}, {
+		"BooleanObject": false,
+		"BooleanValue": true,
+		"ByteObject": 127,
+		"ByteValue": 127,
+		"CharValue": "￿",
+		"CharacterObject": "￿",
+		"DateObject": "2023-07-28 08:38:58",
+		"DecimalObject": 10,
+		"DoubleObject": 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+		"DoubleValue": 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+		"EnumCodeTexts": {
+			"value": 8,
+			"name": "DANGER",
+			"text": "严重"
+		},
+		"EnumCodes": {
+			"value": 8,
+			"name": "DANGER"
+		},
+		"EnumNative": {
+			"value": 3,
+			"name": "DANGER"
+		},
+		"EnumTexts": {
+			"value": 3,
+			"name": "DANGER",
+			"text": "严重"
+		},
+		"FloatObject": 340282346638528860000000000000000000000,
+		"FloatValue": 340282346638528860000000000000000000000,
+		"IntValue": 2147483647,
+		"IntegerObject": 2147483647,
+		"LocalDateObject": "+999999999-12-31",
+		"LocalDateTimeObject": "+999999999-12-31 23:59:59",
+		"LocalTimeObject": "23:59:59",
+		"LongObject": 9223372036854775807,
+		"LongValue": 9223372036854775807,
+		"ShortObject": 32767,
+		"ShortValue": 32767,
+		"StringObject": "1234567890"
+	}],
+	"EntityEmpties": [{}, {}, {}],
+	"EnumCodeTexts": [{
+		"value": 6,
+		"name": "WARNING",
+		"text": "警告"
+	}, {
+		"value": 4,
+		"name": "NOTICE",
+		"text": "通知"
+	}, {
+		"value": 2,
+		"name": "RECORD",
+		"text": "记录"
+	}, {
+		"value": 8,
+		"name": "DANGER",
+		"text": "严重"
+	}],
+	"EnumCodes": [{
+		"value": 6,
+		"name": "WARNING"
+	}, {
+		"value": 2,
+		"name": "RECORD"
+	}, {
+		"value": 4,
+		"name": "NOTICE"
+	}, {
+		"value": 8,
+		"name": "DANGER"
+	}],
+	"EnumNatives": [{
+		"value": 0,
+		"name": "RECORD"
+	}, {
+		"value": 1,
+		"name": "NOTICE"
+	}, {
+		"value": 2,
+		"name": "WARNING"
+	}, {
+		"value": 3,
+		"name": "DANGER"
+	}],
+	"EnumTexts": [{
+		"value": 1,
+		"name": "NOTICE",
+		"text": "通知"
+	}, {
+		"value": 2,
+		"name": "WARNING",
+		"text": "警告"
+	}, {
+		"value": 3,
+		"name": "DANGER",
+		"text": "严重"
+	}, {
+		"value": 0,
+		"name": "RECORD",
+		"text": "记录"
+	}],
+	"FloatObjects": [340282346638528860000000000000000000000, 0.000000000000000000000000000000000000000000001401298464324817, 100.00199890136719],
+	"IntegerObjects": [-2147483648, 2147483647, 100],
+	"LocalDateObjects": ["2023-07-28", "-999999999-01-01", "+999999999-12-31"],
+	"LocalDateTimeObjects": ["-999999999-01-01 00:00:00", "2023-07-28 08:38:57", "+999999999-12-31 23:59:59"],
+	"LocalTimeObjects": ["00:00:00", "23:59:59", "08:38:57"],
+	"LongObjects": [-9223372036854775808, 9223372036854775807, 1000],
+	"ShortObjects": [-120, -32768, 32767],
+	"StringObjects": ["", "中华人民共和国"]
+} {
+	"BooleanObjects": null,
+	"ByteObjects": null,
+	"CharacterObjects": null,
+	"DateObjects": null,
+	"DecimalObjects": null,
+	"DoubleObjects": null,
+	"EntityBases": null,
+	"EntityEmpties": null,
+	"EnumCodeTexts": null,
+	"EnumCodes": null,
+	"EnumNatives": null,
+	"EnumTexts": null,
+	"FloatObjects": null,
+	"IntegerObjects": null,
+	"LocalDateObjects": null,
+	"LocalDateTimeObjects": null,
+	"LocalTimeObjects": null,
+	"LongObjects": null,
+	"ShortObjects": null,
+	"StringObjects": null
+}
+[] {}
+
+{
+	"BooleanObjects": [],
+	"ByteObjects": [],
+	"CharacterObjects": [],
+	"DateObjects": [],
+	"DecimalObjects": [],
+	"DoubleObjects": [],
+	"EntityBases": [],
+	"EntityEmpties": [],
+	"EnumCodeTexts": [],
+	"EnumCodes": [],
+	"EnumNatives": [],
+	"EnumTexts": [],
+	"FloatObjects": [],
+	"IntegerObjects": [],
+	"LocalDateObjects": [],
+	"LocalDateTimeObjects": [],
+	"LocalTimeObjects": [],
+	"LongObjects": [],
+	"ShortObjects": [],
+	"StringObjects": []
+} {
+	"BooleanObject": false,
+	"BooleanValue": false,
+	"ByteObject": -128,
+	"ByteValue": -128,
+	"CharValue": "",
+	"CharacterObject": "",
+	"DateObject": "2023-07-28 08:38:58",
+	"DecimalObject": 0,
+	"DoubleObject": 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049,
+	"DoubleValue": 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049,
+	"EnumCodeTexts": {
+		"value": 2,
+		"name": "RECORD",
+		"text": "记录"
+	},
+	"EnumCodes": {
+		"value": 2,
+		"name": "RECORD"
+	},
+	"EnumNative": {
+		"value": 0,
+		"name": "RECORD"
+	},
+	"EnumTexts": {
+		"value": 0,
+		"name": "RECORD",
+		"text": "记录"
+	},
+	"FloatObject": 0.000000000000000000000000000000000000000000001401298464324817,
+	"FloatValue": 0.000000000000000000000000000000000000000000001401298464324817,
+	"IntValue": -2147483648,
+	"IntegerObject": -2147483648,
+	"LocalDateObject": "-999999999-01-01",
+	"LocalDateTimeObject": "-999999999-01-01 00:00:00",
+	"LocalTimeObject": "00:00:00",
+	"LongObject": -9223372036854775808,
+	"LongValue": -9223372036854775808,
+	"ShortObject": -32768,
+	"ShortValue": -32768,
+	"StringObject": ""
+} {
+	"BooleanObjects": [false, true],
+	"BooleanValues": [true, false],
+	"ByteObjects": [4, -128, 127],
+	"ByteValues": [0, 1, 2, 3, 4, -128, 127],
+	"CharValues": ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"],
+	"CharacterObjects": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "￿"],
+	"DateObjects": ["2023-07-28 08:38:57", "2023-07-28 08:38:57", "2023-07-28 08:38:57"],
+	"DecimalObjects": [1, 0, 10],
+	"DoubleObjects": [100.002, 4.9E-324, 1.7976931348623157E308],
+	"DoubleValues": [100.002, 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049,
+		179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+	],
+	"EntityBases": [{
+		"BooleanObject": null,
+		"BooleanValue": false,
+		"ByteObject": null,
+		"ByteValue": 0,
+		"CharValue": "",
+		"CharacterObject": null,
+		"DateObject": null,
+		"DecimalObject": null,
+		"DoubleObject": null,
+		"DoubleValue": 0,
+		"EnumCodeTexts": null,
+		"EnumCodes": null,
+		"EnumNative": null,
+		"EnumTexts": null,
+		"FloatObject": null,
+		"FloatValue": 0,
+		"IntValue": 0,
+		"IntegerObject": null,
+		"LocalDateObject": null,
+		"LocalDateTimeObject": null,
+		"LocalTimeObject": null,
+		"LongObject": null,
+		"LongValue": 0,
+		"ShortObject": null,
+		"ShortValue": 0,
+		"StringObject": null
+	}, {
+		"BooleanObject": false,
+		"BooleanValue": false,
+		"ByteObject": -128,
+		"ByteValue": -128,
+		"CharValue": "",
+		"CharacterObject": "",
+		"DateObject": "2023-07-28 08:38:58",
+		"DecimalObject": 0,
+		"DoubleObject": 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049,
+		"DoubleValue": 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049,
+		"EnumCodeTexts": {
+			"value": 2,
+			"name": "RECORD",
+			"text": "记录"
+		},
+		"EnumCodes": {
+			"value": 2,
+			"name": "RECORD"
+		},
+		"EnumNative": {
+			"value": 0,
+			"name": "RECORD"
+		},
+		"EnumTexts": {
+			"value": 0,
+			"name": "RECORD",
+			"text": "记录"
+		},
+		"FloatObject": 0.000000000000000000000000000000000000000000001401298464324817,
+		"FloatValue": 0.000000000000000000000000000000000000000000001401298464324817,
+		"IntValue": -2147483648,
+		"IntegerObject": -2147483648,
+		"LocalDateObject": "-999999999-01-01",
+		"LocalDateTimeObject": "-999999999-01-01 00:00:00",
+		"LocalTimeObject": "00:00:00",
+		"LongObject": -9223372036854775808,
+		"LongValue": -9223372036854775808,
+		"ShortObject": -32768,
+		"ShortValue": -32768,
+		"StringObject": ""
+	}, {
+		"BooleanObject": false,
+		"BooleanValue": true,
+		"ByteObject": 127,
+		"ByteValue": 127,
+		"CharValue": "￿",
+		"CharacterObject": "￿",
+		"DateObject": "2023-07-28 08:38:58",
+		"DecimalObject": 10,
+		"DoubleObject": 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+		"DoubleValue": 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+		"EnumCodeTexts": {
+			"value": 8,
+			"name": "DANGER",
+			"text": "严重"
+		},
+		"EnumCodes": {
+			"value": 8,
+			"name": "DANGER"
+		},
+		"EnumNative": {
+			"value": 3,
+			"name": "DANGER"
+		},
+		"EnumTexts": {
+			"value": 3,
+			"name": "DANGER",
+			"text": "严重"
+		},
+		"FloatObject": 340282346638528860000000000000000000000,
+		"FloatValue": 340282346638528860000000000000000000000,
+		"IntValue": 2147483647,
+		"IntegerObject": 2147483647,
+		"LocalDateObject": "+999999999-12-31",
+		"LocalDateTimeObject": "+999999999-12-31 23:59:59",
+		"LocalTimeObject": "23:59:59",
+		"LongObject": 9223372036854775807,
+		"LongValue": 9223372036854775807,
+		"ShortObject": 32767,
+		"ShortValue": 32767,
+		"StringObject": "1234567890"
+	}],
+	"EntityEmpties": [{}, {}],
+	"EnumCodeTexts": [{
+		"value": 2,
+		"name": "RECORD",
+		"text": "记录"
+	}, {
+		"value": 4,
+		"name": "NOTICE",
+		"text": "通知"
+	}, {
+		"value": 6,
+		"name": "WARNING",
+		"text": "警告"
+	}, {
+		"value": 8,
+		"name": "DANGER",
+		"text": "严重"
+	}],
+	"EnumCodes": [{
+		"value": 2,
+		"name": "RECORD"
+	}, {
+		"value": 4,
+		"name": "NOTICE"
+	}, {
+		"value": 6,
+		"name": "WARNING"
+	}, {
+		"value": 8,
+		"name": "DANGER"
+	}],
+	"EnumNatives": [{
+		"value": 0,
+		"name": "RECORD"
+	}, {
+		"value": 1,
+		"name": "NOTICE"
+	}, {
+		"value": 2,
+		"name": "WARNING"
+	}, {
+		"value": 3,
+		"name": "DANGER"
+	}],
+	"EnumTexts": [{
+		"value": 0,
+		"name": "RECORD",
+		"text": "记录"
+	}, {
+		"value": 1,
+		"name": "NOTICE",
+		"text": "通知"
+	}, {
+		"value": 2,
+		"name": "WARNING",
+		"text": "警告"
+	}, {
+		"value": 3,
+		"name": "DANGER",
+		"text": "严重"
+	}],
+	"FloatObjects": [100.002, 1.4E-45, 3.4028235E38],
+	"FloatValues": [100.00199890136719, 0.000000000000000000000000000000000000000000001401298464324817, 340282346638528860000000000000000000000],
+	"IntValues": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, -2147483648, 2147483647],
+	"IntegerObjects": [100, -2147483648, 2147483647],
+	"LocalDateObjects": ["2023-07-28", "-999999999-01-01", "+999999999-12-31"],
+	"LocalDateTimeObjects": ["2023-07-28 08:38:57", "-999999999-01-01 00:00:00", "+999999999-12-31 23:59:59"],
+	"LocalTimeObjects": ["08:38:57", "00:00:00", "23:59:59"],
+	"LongObjects": [1000, -9223372036854775808, 9223372036854775807],
+	"LongValues": [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, -9223372036854775808, 9223372036854775807],
+	"ShortObjects": [-120, -32768, 32767],
+	"ShortValues": [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, -32768, 32767],
+	"StringObjects": ["", "中华人民共和国"]
+} {
+	"BooleanObjects": null,
+	"ByteObjects": null,
+	"CharacterObjects": null,
+	"DateObjects": null,
+	"DecimalObjects": null,
+	"DoubleObjects": null,
+	"EntityBases": null,
+	"EntityEmpties": null,
+	"EnumCodeTexts": null,
+	"EnumCodes": null,
+	"EnumNatives": null,
+	"EnumTexts": null,
+	"FloatObjects": null,
+	"IntegerObjects": null,
+	"LocalDateObjects": null,
+	"LocalDateTimeObjects": null,
+	"LocalTimeObjects": null,
+	"LongObjects": null,
+	"ShortObjects": null,
+	"StringObjects": null
+} {
+	"BooleanObjects": null,
+	"BooleanValues": null,
+	"ByteObjects": null,
+	"ByteValues": null,
+	"CharValues": null,
+	"CharacterObjects": null,
+	"DateObjects": null,
+	"DecimalObjects": null,
+	"DoubleObjects": null,
+	"DoubleValues": null,
+	"EntityBases": null,
+	"EntityEmpties": null,
+	"EnumCodeTexts": null,
+	"EnumCodes": null,
+	"EnumNatives": null,
+	"EnumTexts": null,
+	"FloatObjects": null,
+	"FloatValues": null,
+	"IntValues": null,
+	"IntegerObjects": null,
+	"LocalDateObjects": null,
+	"LocalDateTimeObjects": null,
+	"LocalTimeObjects": null,
+	"LongObjects": null,
+	"LongValues": null,
+	"ShortObjects": null,
+	"ShortValues": null,
+	"StringObjects": null
+} {
+	"BooleanObject": false,
+	"BooleanValue": true,
+	"ByteObject": 127,
+	"ByteValue": 127,
+	"CharValue": "￿",
+	"CharacterObject": "￿",
+	"DateObject": "2023-07-28 08:38:58",
+	"DecimalObject": 10,
+	"DoubleObject": 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+	"DoubleValue": 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+	"EnumCodeTexts": {
+		"value": 8,
+		"name": "DANGER",
+		"text": "严重"
+	},
+	"EnumCodes": {
+		"value": 8,
+		"name": "DANGER"
+	},
+	"EnumNative": {
+		"value": 3,
+		"name": "DANGER"
+	},
+	"EnumTexts": {
+		"value": 3,
+		"name": "DANGER",
+		"text": "严重"
+	},
+	"FloatObject": 340282346638528860000000000000000000000,
+	"FloatValue": 340282346638528860000000000000000000000,
+	"IntValue": 2147483647,
+	"IntegerObject": 2147483647,
+	"LocalDateObject": "+999999999-12-31",
+	"LocalDateTimeObject": "+999999999-12-31 23:59:59",
+	"LocalTimeObject": "23:59:59",
+	"LongObject": 9223372036854775807,
+	"LongValue": 9223372036854775807,
+	"ShortObject": 32767,
+	"ShortValue": 32767,
+	"StringObject": "1234567890"
+} {
+	"BooleanObject": null,
+	"BooleanValue": false,
+	"ByteObject": null,
+	"ByteValue": 0,
+	"CharValue": "",
+	"CharacterObject": null,
+	"DateObject": null,
+	"DecimalObject": null,
+	"DoubleObject": null,
+	"DoubleValue": 0,
+	"EnumCodeTexts": null,
+	"EnumCodes": null,
+	"EnumNative": null,
+	"EnumTexts": null,
+	"FloatObject": null,
+	"FloatValue": 0,
+	"IntValue": 0,
+	"IntegerObject": null,
+	"LocalDateObject": null,
+	"LocalDateTimeObject": null,
+	"LocalTimeObject": null,
+	"LongObject": null,
+	"LongValue": 0,
+	"ShortObject": null,
+	"ShortValue": 0,
+	"StringObject": null
+} {
+	"BooleanObjects": [false, true],
+	"ByteObjects": [4, -128, 127],
+	"CharacterObjects": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "￿"],
+	"DateObjects": ["2023-07-28 08:38:57", "2023-07-28 08:38:57", "2023-07-28 08:38:57"],
+	"DecimalObjects": [1, 0, 10],
+	"DoubleObjects": [100.002, 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049,
+		179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+	],
+	"EntityBases": [{
+		"BooleanObject": null,
+		"BooleanValue": false,
+		"ByteObject": null,
+		"ByteValue": 0,
+		"CharValue": "",
+		"CharacterObject": null,
+		"DateObject": null,
+		"DecimalObject": null,
+		"DoubleObject": null,
+		"DoubleValue": 0,
+		"EnumCodeTexts": null,
+		"EnumCodes": null,
+		"EnumNative": null,
+		"EnumTexts": null,
+		"FloatObject": null,
+		"FloatValue": 0,
+		"IntValue": 0,
+		"IntegerObject": null,
+		"LocalDateObject": null,
+		"LocalDateTimeObject": null,
+		"LocalTimeObject": null,
+		"LongObject": null,
+		"LongValue": 0,
+		"ShortObject": null,
+		"ShortValue": 0,
+		"StringObject": null
+	}, {
+		"BooleanObject": false,
+		"BooleanValue": false,
+		"ByteObject": -128,
+		"ByteValue": -128,
+		"CharValue": "",
+		"CharacterObject": "",
+		"DateObject": "2023-07-28 08:38:58",
+		"DecimalObject": 0,
+		"DoubleObject": 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049,
+		"DoubleValue": 0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049,
+		"EnumCodeTexts": {
+			"value": 2,
+			"name": "RECORD",
+			"text": "记录"
+		},
+		"EnumCodes": {
+			"value": 2,
+			"name": "RECORD"
+		},
+		"EnumNative": {
+			"value": 0,
+			"name": "RECORD"
+		},
+		"EnumTexts": {
+			"value": 0,
+			"name": "RECORD",
+			"text": "记录"
+		},
+		"FloatObject": 0.000000000000000000000000000000000000000000001401298464324817,
+		"FloatValue": 0.000000000000000000000000000000000000000000001401298464324817,
+		"IntValue": -2147483648,
+		"IntegerObject": -2147483648,
+		"LocalDateObject": "-999999999-01-01",
+		"LocalDateTimeObject": "-999999999-01-01 00:00:00",
+		"LocalTimeObject": "00:00:00",
+		"LongObject": -9223372036854775808,
+		"LongValue": -9223372036854775808,
+		"ShortObject": -32768,
+		"ShortValue": -32768,
+		"StringObject": ""
+	}, {
+		"BooleanObject": false,
+		"BooleanValue": true,
+		"ByteObject": 127,
+		"ByteValue": 127,
+		"CharValue": "￿",
+		"CharacterObject": "￿",
+		"DateObject": "2023-07-28 08:38:58",
+		"DecimalObject": 10,
+		"DoubleObject": 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+		"DoubleValue": 179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+		"EnumCodeTexts": {
+			"value": 8,
+			"name": "DANGER",
+			"text": "严重"
+		},
+		"EnumCodes": {
+			"value": 8,
+			"name": "DANGER"
+		},
+		"EnumNative": {
+			"value": 3,
+			"name": "DANGER"
+		},
+		"EnumTexts": {
+			"value": 3,
+			"name": "DANGER",
+			"text": "严重"
+		},
+		"FloatObject": 340282346638528860000000000000000000000,
+		"FloatValue": 340282346638528860000000000000000000000,
+		"IntValue": 2147483647,
+		"IntegerObject": 2147483647,
+		"LocalDateObject": "+999999999-12-31",
+		"LocalDateTimeObject": "+999999999-12-31 23:59:59",
+		"LocalTimeObject": "23:59:59",
+		"LongObject": 9223372036854775807,
+		"LongValue": 9223372036854775807,
+		"ShortObject": 32767,
+		"ShortValue": 32767,
+		"StringObject": "1234567890"
+	}],
+	"EntityEmpties": [{}, {}, {}],
+	"EnumCodeTexts": [{
+		"value": 2,
+		"name": "RECORD",
+		"text": "记录"
+	}, {
+		"value": 4,
+		"name": "NOTICE",
+		"text": "通知"
+	}, {
+		"value": 6,
+		"name": "WARNING",
+		"text": "警告"
+	}, {
+		"value": 8,
+		"name": "DANGER",
+		"text": "严重"
+	}],
+	"EnumCodes": [{
+		"value": 2,
+		"name": "RECORD"
+	}, {
+		"value": 4,
+		"name": "NOTICE"
+	}, {
+		"value": 6,
+		"name": "WARNING"
+	}, {
+		"value": 8,
+		"name": "DANGER"
+	}],
+	"EnumNatives": [{
+		"value": 0,
+		"name": "RECORD"
+	}, {
+		"value": 1,
+		"name": "NOTICE"
+	}, {
+		"value": 2,
+		"name": "WARNING"
+	}, {
+		"value": 3,
+		"name": "DANGER"
+	}],
+	"EnumTexts": [{
+		"value": 0,
+		"name": "RECORD",
+		"text": "记录"
+	}, {
+		"value": 1,
+		"name": "NOTICE",
+		"text": "通知"
+	}, {
+		"value": 2,
+		"name": "WARNING",
+		"text": "警告"
+	}, {
+		"value": 3,
+		"name": "DANGER",
+		"text": "严重"
+	}],
+	"FloatObjects": [100.00199890136719, 0.000000000000000000000000000000000000000000001401298464324817, 340282346638528860000000000000000000000],
+	"IntegerObjects": [100, -2147483648, 2147483647],
+	"LocalDateObjects": ["2023-07-28", "-999999999-01-01", "+999999999-12-31"],
+	"LocalDateTimeObjects": ["2023-07-28 08:38:57", "-999999999-01-01 00:00:00", "+999999999-12-31 23:59:59"],
+	"LocalTimeObjects": ["08:38:57", "00:00:00", "23:59:59"],
+	"LongObjects": [1000, -9223372036854775808, 9223372036854775807],
+	"ShortObjects": [-120, -32768, 32767],
+	"StringObjects": ["", "中华人民共和国"]
+} {
+	"BooleanObjects": [],
+	"ByteObjects": [],
+	"CharacterObjects": [],
+	"DateObjects": [],
+	"DecimalObjects": [],
+	"DoubleObjects": [],
+	"EntityBases": [],
+	"EntityEmpties": [],
+	"EnumCodeTexts": [],
+	"EnumCodes": [],
+	"EnumNatives": [],
+	"EnumTexts": [],
+	"FloatObjects": [],
+	"IntegerObjects": [],
+	"LocalDateObjects": [],
+	"LocalDateTimeObjects": [],
+	"LocalTimeObjects": [],
+	"LongObjects": [],
+	"ShortObjects": [],
+	"StringObjects": []
+}
