@@ -349,4 +349,58 @@ class TestODBSJson extends TestODBS {
 		target = (EntityList) JSON.readEntity(target, reader);
 		EntityList.assertEntity(source, target);
 	}
+
+	@Test
+	void testMapNullValues() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityMap source = EntityMap.createNullValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		print(new ByteArrayInputStream(output.toByteArray()));
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityMap target = new EntityMap();
+		target = (EntityMap) JSON.readEntity(target, reader);
+		EntityMap.assertEntity(source, target);
+	}
+
+	@Test
+	void testMapEmptyValues() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityMap source = EntityMap.createEmptyValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		print(new ByteArrayInputStream(output.toByteArray()));
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityMap target = new EntityMap();
+		target = (EntityMap) JSON.readEntity(target, reader);
+		EntityMap.assertEntity(source, target);
+	}
+
+	@Test
+	void testMapNormalValues() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityMap source = EntityMap.createNormalValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		print(new ByteArrayInputStream(output.toByteArray()));
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityMap target = new EntityMap();
+		target = (EntityMap) JSON.readEntity(target, reader);
+		EntityMap.assertEntity(source, target);
+	}
 }

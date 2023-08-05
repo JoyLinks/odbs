@@ -655,42 +655,49 @@ public final class ODBSJson {
 			if (ODBSTypes.isBase(type.value())) {
 				writer.writeTag(JSONCodec.OBJECT_BEGIN);
 				for (Map.Entry<?, ?> value : values.entrySet()) {
-					writeKey(type.value(), value.getKey(), writer);
+					writeKey(type.key(), value.getKey(), writer);
 					writeBase(type.value(), value.getValue(), writer);
+				}
+				writer.writeTag(JSONCodec.OBJECT_END);
+			} else if (ODBSTypes.isEnum(type.value())) {
+				writer.writeTag(JSONCodec.OBJECT_BEGIN);
+				for (Map.Entry<?, ?> value : values.entrySet()) {
+					writeKey(type.key(), value.getKey(), writer);
+					writeEnum(type.value(), value.getValue(), writer);
 				}
 				writer.writeTag(JSONCodec.OBJECT_END);
 			} else if (ODBSTypes.isEntity(type.value())) {
 				writer.writeTag(JSONCodec.OBJECT_BEGIN);
 				for (Map.Entry<?, ?> value : values.entrySet()) {
-					writeKey(type.value(), value.getKey(), writer);
+					writeKey(type.key(), value.getKey(), writer);
 					writeEntity(type.value(), value.getValue(), writer);
 				}
 				writer.writeTag(JSONCodec.OBJECT_END);
 			} else if (ODBSTypes.isArray(type.value())) {
 				writer.writeTag(JSONCodec.OBJECT_BEGIN);
 				for (Map.Entry<?, ?> value : values.entrySet()) {
-					writeKey(type.value(), value.getKey(), writer);
+					writeKey(type.key(), value.getKey(), writer);
 					writeArray(type.further(), value.getValue(), writer);
 				}
 				writer.writeTag(JSONCodec.OBJECT_END);
 			} else if (ODBSTypes.isList(type.value())) {
 				writer.writeTag(JSONCodec.OBJECT_BEGIN);
 				for (Map.Entry<?, ?> value : values.entrySet()) {
-					writeKey(type.value(), value.getKey(), writer);
+					writeKey(type.key(), value.getKey(), writer);
 					writeList(type.further(), (List<?>) value.getValue(), writer);
 				}
 				writer.writeTag(JSONCodec.OBJECT_END);
 			} else if (ODBSTypes.isSet(type.value())) {
 				writer.writeTag(JSONCodec.OBJECT_BEGIN);
 				for (Map.Entry<?, ?> value : values.entrySet()) {
-					writeKey(type.value(), value.getKey(), writer);
+					writeKey(type.key(), value.getKey(), writer);
 					writeSet(type.further(), (Set<?>) value.getValue(), writer);
 				}
 				writer.writeTag(JSONCodec.OBJECT_END);
 			} else if (ODBSTypes.isMap(type.value())) {
 				writer.writeTag(JSONCodec.OBJECT_BEGIN);
 				for (Map.Entry<?, ?> value : values.entrySet()) {
-					writeKey(type.value(), value.getKey(), writer);
+					writeKey(type.key(), value.getKey(), writer);
 					writeMap(type.further(), (Map<?, ?>) value.getValue(), writer);
 				}
 				writer.writeTag(JSONCodec.OBJECT_END);

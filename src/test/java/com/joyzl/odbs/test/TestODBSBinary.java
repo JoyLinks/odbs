@@ -5,6 +5,9 @@
  */
 package com.joyzl.odbs.test;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -42,20 +45,24 @@ class TestODBSBinary extends TestODBS {
 
 	@Test
 	void testNull() throws IOException {
-		// final ByteArrayOutputStream output = new ByteArrayOutputStream();
-		// final BigEndianOutputStream writer = new
-		// BigEndianOutputStream(output);
-		//
-		// final EntityBase source = null;
-		// BINARY.writeEntity(source, writer);
-		//
-		// final ByteArrayInputStream input = new
-		// ByteArrayInputStream(output.toByteArray());
-		// final BigEndianInputStream reader = new BigEndianInputStream(input);
-		//
-		// final EntityBase target = new EntityBase();
-		// BINARY.readEntity(target, reader);
-		// assertEntity(source, target);
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final BigEndianOutputStream writer = new BigEndianOutputStream(output);
+
+		Exception e = null;
+		final EntityBase source = null;
+		try {
+			BINARY.writeEntity(source, writer);
+		} catch (Exception ex) {
+			e = ex;
+		}
+		assertNotNull(e);
+		assertTrue(e instanceof NullPointerException);
+
+		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
+		final BigEndianInputStream reader = new BigEndianInputStream(input);
+
+		final EntityBase target = new EntityBase();
+		BINARY.readEntity(target, reader);
 	}
 
 	@Test

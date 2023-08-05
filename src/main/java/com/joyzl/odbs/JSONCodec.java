@@ -58,7 +58,7 @@ final class JSONCodec {
 	private Writer writer;
 
 	/** 当前值是否有双引号包围 */
-	private boolean quotes;
+	private int quotes;
 	/** 当前索引位置 */
 	private int index;
 	/** 当前读取的字符 */
@@ -89,7 +89,7 @@ final class JSONCodec {
 	}
 
 	public boolean isNull() {
-		if (quotes) {
+		if (quotes > 0) {
 			// 区分null和"null"
 			return false;
 		}
@@ -148,12 +148,13 @@ final class JSONCodec {
 	}
 
 	/**
-	 * 读取键名，允许键名中存在空白和转义字符以及标识符之外的字符
+	 * 读取键名，有效字符串均为合法键
 	 */
 	public boolean readKey() throws IOException {
 		// JSON有效键永远是 ':'结束，没有键时可能的结束'}'
 		// 可能有双引号，可能没有
 		// 数组对象通过']'和'}'结束返回后可能会残留','
+		// "" "..."
 
 		if (lastIsStructure()) {
 			// 最后字符如果是结构字符须丢弃
@@ -164,6 +165,7 @@ final class JSONCodec {
 			sb.append((char) c);
 		}
 
+		quotes = 0;
 		while ((c = reader.read()) >= 0) {
 			index++;
 			if (Character.isWhitespace(c)) {
@@ -174,7 +176,7 @@ final class JSONCodec {
 					// 允许键中空白
 				}
 			} else if (c == JSONCodec.QUOTES) {
-				// 忽略双引号
+				quotes++;
 				continue;
 			} else if (c == JSONCodec.COMMA) {
 				if (sb.length() == 0) {
@@ -187,8 +189,14 @@ final class JSONCodec {
 				// 读取转义字符
 				c = readEscape(reader);
 			} else if (c == JSONCodec.COLON || c == JSONCodec.OBJECT_END) {
-				// 键名结束于冒号
-				return sb.length() > 0;
+				// 键名结束于冒号':'
+				if (quotes == 0) {
+					// 键名无双引号
+					return sb.length() > 0;
+				} else if (quotes >= 2) {
+					// 键名有双引号 ""/"..."
+					return true;
+				}
 			}
 			sb.append((char) c);
 		}
@@ -216,7 +224,8 @@ final class JSONCodec {
 			sb.setLength(0);
 			sb.append((char) c);
 		}
-		quotes = false;
+
+		quotes = 0;
 		while ((c = reader.read()) >= 0) {
 			index++;
 			if (Character.isWhitespace(c)) {
@@ -230,17 +239,17 @@ final class JSONCodec {
 			} else if (c == JSONCodec.QUOTES) {
 				// 如果值中出现双引号应转义
 				// 首尾双引号表示字符串值
-				quotes = true;
+				quotes++;
 				continue;
 			} else if (c == JSONCodec.ESCAPE) {
 				// 读取转义字符
 				c = readEscape(reader);
 			} else if (c == JSONCodec.COMMA) {
 				// 空字符串和有效字符返回成功
-				return quotes || sb.length() > 0;
+				return quotes == 2 || sb.length() > 0;
 			} else if (c == JSONCodec.ARRAY_END || c == JSONCodec.OBJECT_END) {
 				// 空字符串和有效字符返回成功
-				return quotes || sb.length() > 0;
+				return quotes == 2 || sb.length() > 0;
 			}
 			sb.append((char) c);
 		}
@@ -432,12 +441,11 @@ final class JSONCodec {
 		// 前后双引号
 		if (odbs_json.isQuotesKey()) {
 			writer.write(JSONCodec.QUOTES);
-			writer.write(key);
+			writeEscape(key);
 			writer.write(JSONCodec.QUOTES);
-			index += key.length() + 2;
+			index += 2;
 		} else {
-			writer.write(key);
-			index += key.length();
+			writeEscape(key);
 		}
 		writer.write(c = JSONCodec.COLON);
 		index++;
@@ -452,62 +460,8 @@ final class JSONCodec {
 			index++;
 		}
 
-		// 转义字符 '"'='\"'
-		// 转义 \" \\ \/ \b \f \n \r \t \u0000
 		writer.write(JSONCodec.QUOTES);
-		char a;
-		int length = value.length();
-		for (int i = 0; i < length; i++) {
-			switch (a = value.charAt(i)) {
-				case JSONCodec.QUOTE:
-				case JSONCodec.QUOTES:
-					writer.write(JSONCodec.ESCAPE);
-					writer.write(a);
-					index += 2;
-					break;
-				case '\\':
-					writer.write(JSONCodec.ESCAPE);
-					writer.write('\\');
-					index += 2;
-					break;
-				// case '/':
-				// 20200928 JSON.parse() 不支持 \/ 转义
-				// writer.write(JSONCodec.ESCAPE);
-				// writer.write('/');
-				// break;
-				case '\b':
-					writer.write(JSONCodec.ESCAPE);
-					writer.write('b');
-					index += 2;
-					break;
-				case '\f':
-					writer.write(JSONCodec.ESCAPE);
-					writer.write('f');
-					index += 2;
-					break;
-				case '\n':
-					writer.write(JSONCodec.ESCAPE);
-					writer.write('n');
-					index += 2;
-					break;
-				case '\r':
-					writer.write(JSONCodec.ESCAPE);
-					writer.write('r');
-					index += 2;
-					break;
-				case '\t':
-					writer.write(JSONCodec.ESCAPE);
-					writer.write('t');
-					index += 2;
-					break;
-				case 0:
-					// '\0' NUL 字符导致JSON 失败
-					break;
-				default:
-					writer.write(a);
-					index++;
-			}
-		}
+		writeEscape(value);
 		writer.write(c = JSONCodec.QUOTES);
 		index += 2;
 	}
@@ -516,7 +470,7 @@ final class JSONCodec {
 		if (c != JSONCodec.COLON && c != JSONCodec.ARRAY_BEGIN) {
 			// 值在键之后和数组开始时没有前逗号
 			// [1,2]
-			// {"key":"value","key":"value"}
+			// {"key":value,"key":value}
 			writer.write(JSONCodec.COMMA);
 			index++;
 		}
@@ -524,5 +478,57 @@ final class JSONCodec {
 		writer.write(value);
 		index++;
 		c = SPACE;
+	}
+
+	void writeEscape(String value) throws IOException {
+		// 转义字符 '"'='\"'
+		// 转义 \" \\ \/ \b \f \n \r \t \u0000
+
+		sb.setLength(0);
+		for (int i = 0; i < value.length(); i++) {
+			switch (c = value.charAt(i)) {
+				case JSONCodec.QUOTES:
+					sb.append(JSONCodec.ESCAPE);
+					sb.append('"');
+					break;
+				case '\\':
+					sb.append(JSONCodec.ESCAPE);
+					sb.append('\\');
+					break;
+				case '/':
+					// 20200928 JSON.parse() 不支持斜杠 '\/' 转义
+					sb.append(JSONCodec.ESCAPE);
+					sb.append('/');
+					break;
+				case '\b':
+					sb.append(JSONCodec.ESCAPE);
+					sb.append('b');
+					break;
+				case '\f':
+					sb.append(JSONCodec.ESCAPE);
+					sb.append('f');
+					break;
+				case '\n':
+					sb.append(JSONCodec.ESCAPE);
+					sb.append('n');
+					break;
+				case '\r':
+					sb.append(JSONCodec.ESCAPE);
+					sb.append('r');
+					break;
+				case '\t':
+					sb.append(JSONCodec.ESCAPE);
+					sb.append('t');
+					break;
+				case 0:
+					// '\0' NUL 字符导致JSON 失败
+					// 大部分运行环境视为字符结束，后续字符不再输出
+					break;
+				default:
+					sb.append((char) c);
+			}
+		}
+		writer.append(sb);
+		index += sb.length();
 	}
 }
