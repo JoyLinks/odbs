@@ -28,7 +28,7 @@ JSON规范参考：RFC4627, [www.json.org](https://www.json.org)
 <dependency>
 	<groupId>com.joyzl</groupId>
 	<artifactId>odbs</artifactId>
-	<version>2.1</version>
+	<version>2.2.1</version>
 </dependency>
 ```
 
