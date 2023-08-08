@@ -57,7 +57,7 @@ import com.joyzl.EnumCode;
  * 方法名不能使用中文,否则可能会导致签名校验失败。<br>
  * </p>
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2020年6月3日
  */
 public final class ODBS {

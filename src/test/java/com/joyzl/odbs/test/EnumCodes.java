@@ -5,7 +5,7 @@ import com.joyzl.EnumCode;
 /**
  * 自定义代码枚举
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2023年7月26日
  */
 public enum EnumCodes implements EnumCode {

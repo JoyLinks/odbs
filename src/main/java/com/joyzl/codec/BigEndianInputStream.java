@@ -3,7 +3,7 @@ package com.joyzl.codec;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class BigEndianInputStream extends InputStream implements BigEndianDataInput, BigEndianBCDInput {
+public class BigEndianInputStream extends InputStream implements BigEndianDataInput {
 
 	private final InputStream input;
 

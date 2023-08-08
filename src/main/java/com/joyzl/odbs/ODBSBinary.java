@@ -26,7 +26,7 @@ import com.joyzl.codec.DataOutput;
 /**
  * ODBS 二进制序列化/反序列化编码
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2020年6月12日
  */
 public final class ODBSBinary extends ODBSTypes {

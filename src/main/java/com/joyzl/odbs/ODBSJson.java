@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  * JSON规范 RFC4627 https://www.json.org
  * </p>
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2020年7月28日
  */
 public final class ODBSJson {

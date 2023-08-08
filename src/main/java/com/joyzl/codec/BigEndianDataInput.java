@@ -15,7 +15,7 @@ import java.math.BigDecimal;
  * +--+--+--+--+
  * </pre>
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2023年7月28日
  */
 public interface BigEndianDataInput extends DataInput {

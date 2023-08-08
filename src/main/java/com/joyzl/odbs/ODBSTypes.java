@@ -17,7 +17,7 @@ import java.util.Set;
 /**
  * 对象序列化支持的基础类型
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2020年6月3日
  */
 public class ODBSTypes {

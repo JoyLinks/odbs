@@ -17,7 +17,7 @@ import java.util.Date;
 /**
  * 具有数组的实体
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2023年7月27日
  */
 public class EntityArray {

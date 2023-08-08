@@ -18,7 +18,7 @@ import java.util.TreeSet;
 /**
  * 对象描述
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2020年6月3日
  */
 public final class ODBSDescription {

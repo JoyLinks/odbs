@@ -29,7 +29,7 @@ import java.util.jar.JarFile;
 /**
  * 对象反射相关辅助方法
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2020年6月3日
  */
 public final class ODBSReflect {

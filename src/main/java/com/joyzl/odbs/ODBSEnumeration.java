@@ -13,7 +13,7 @@ import com.joyzl.EnumText;
 /**
  * 枚举描述
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2020年6月6日
  */
 public final class ODBSEnumeration {

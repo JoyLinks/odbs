@@ -91,6 +91,24 @@ class TestODBSJson extends TestODBS {
 	}
 
 	@Test
+	void testHuman() {
+		// https://spec.json5.org/
+
+		// 根节点可以是任意类型。（JSON 原始标准 [4] 只容许 object 和 array 作为根节点，[1] 已放宽）
+		// 单行、多行注释
+		// 无引号的键（那么是否容许空格、冒号、转义符）
+		// 最后可加逗号
+		// 字符串（JSON 标准只能用双引号）
+		// 小数点为首的数字（JSON 标准中，小数点前必须有最少一个数字）
+		// 小数点后没有数字（JSON 标准中，小数点后必须有最少一个数字）
+		// 十六进制 0X 0x
+		// 二进制 0B 0b
+		// 八进制 0
+		// 无穷 Infinity/-Infinity
+		// NaN
+	}
+
+	@Test
 	void testNull() throws IOException, ParseException {
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 		final Writer writer = new OutputStreamWriter(output, "UTF-8");

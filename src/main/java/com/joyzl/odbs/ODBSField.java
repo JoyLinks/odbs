@@ -17,7 +17,7 @@ import java.util.Map;
  * 未来可改进为ReflectASM方案
  * </p>
  *
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2020年6月3日
  */
 public final class ODBSField {

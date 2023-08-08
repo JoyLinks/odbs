@@ -14,7 +14,7 @@ import java.io.IOException;
  * +--+--+--+--+
  * </pre>
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2023年7月28日
  */
 public interface LittleEndianDataInput extends DataInput {

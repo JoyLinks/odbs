@@ -10,7 +10,7 @@ import com.joyzl.EnumCodeText;
 /**
  * 自定义代码和文本枚举
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2023年7月26日
  */
 public enum EnumCodeTexts implements EnumCodeText {

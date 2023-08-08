@@ -11,7 +11,7 @@ import java.util.Arrays;
 /**
  * 枚举自定义代码
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2020年6月6日
  */
 public interface EnumCode {

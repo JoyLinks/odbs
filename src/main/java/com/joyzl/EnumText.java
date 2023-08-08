@@ -8,7 +8,7 @@ package com.joyzl;
 /**
  * 枚举自定义文本
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2020年6月6日
  */
 public interface EnumText {

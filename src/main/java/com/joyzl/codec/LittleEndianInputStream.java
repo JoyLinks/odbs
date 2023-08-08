@@ -3,7 +3,7 @@ package com.joyzl.codec;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class LittleEndianInputStream extends InputStream implements LittleEndianDataInput, LittleEndianBCDInput {
+public class LittleEndianInputStream extends InputStream implements LittleEndianDataInput {
 
 	private final InputStream input;
 

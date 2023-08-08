@@ -8,7 +8,7 @@ package com.joyzl.odbs;
 /**
  * 类型
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2020年8月6日
  */
 public final class ODBSType {

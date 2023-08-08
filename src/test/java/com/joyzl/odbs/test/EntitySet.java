@@ -19,7 +19,7 @@ import java.util.Set;
 /**
  * 具有集合的实体
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2023年7月27日
  */
 public class EntitySet {

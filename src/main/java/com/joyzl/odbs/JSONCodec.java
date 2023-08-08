@@ -15,7 +15,7 @@ import java.text.NumberFormat;
 /**
  * JSON 读取辅助类
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2020年8月22日
  */
 final class JSONCodec {
@@ -180,7 +180,7 @@ final class JSONCodec {
 				continue;
 			} else if (c == JSONCodec.COMMA) {
 				if (sb.length() == 0) {
-					// 忽略前的逗号
+					// 忽略键前逗号
 					continue;
 				} else {
 					// 允许键中逗号
@@ -244,12 +244,16 @@ final class JSONCodec {
 			} else if (c == JSONCodec.ESCAPE) {
 				// 读取转义字符
 				c = readEscape(reader);
-			} else if (c == JSONCodec.COMMA) {
-				// 空字符串和有效字符返回成功
-				return quotes == 2 || sb.length() > 0;
-			} else if (c == JSONCodec.ARRAY_END || c == JSONCodec.OBJECT_END) {
-				// 空字符串和有效字符返回成功
-				return quotes == 2 || sb.length() > 0;
+			} else if (c == JSONCodec.COMMA || c == JSONCodec.ARRAY_END || c == JSONCodec.OBJECT_END) {
+				if (quotes == 0) {
+					// 有效字符返回成功
+					return sb.length() > 0;
+				} else if (quotes >= 2) {
+					// 空字符串和有效字符返回成功
+					return true;
+				} else {
+					// 双引号之间的结束符
+				}
 			}
 			sb.append((char) c);
 		}

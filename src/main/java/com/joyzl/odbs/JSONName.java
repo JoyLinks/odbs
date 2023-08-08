@@ -8,7 +8,7 @@ package com.joyzl.odbs;
 /**
  * JSON键名格式
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2023年7月13日
  */
 public enum JSONName {

@@ -9,7 +9,7 @@ import java.time.LocalTime;
 import java.util.Date;
 
 /**
- * 数据编码为字节，大端序(BIG_ENDIAN)
+ * 数据编码为字节
  * 
  * <pre>
  * VALUE: 0x76543210
@@ -20,7 +20,7 @@ import java.util.Date;
  * +--+--+--+--+
  * </pre>
  * 
- * @author simon (ZhangXi TEL:13883833982)
+ * @author ZhangXi
  * @date 2023年7月28日
  */
 public interface DataOutput extends java.io.DataOutput {
