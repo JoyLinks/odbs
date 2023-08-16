@@ -6,6 +6,8 @@
 package com.joyzl.odbs.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,6 +18,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -36,8 +39,8 @@ class TestODBSJson extends TestODBS {
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 		JSON = new ODBSJson(odbs);
-		// JSON.setIgnoreNull(true);
-		JSON.setIgnoreNull(false);
+		JSON.setIgnoreNull(true);
+		// JSON.setIgnoreNull(false);
 	}
 
 	@AfterAll
@@ -207,6 +210,26 @@ class TestODBSJson extends TestODBS {
 	}
 
 	@Test
+	void testArray() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final Collection<EntityBase> sources = new ArrayList<>();
+		sources.add(EntityBase.createNullValue());
+		sources.add(EntityBase.createMinValue());
+		sources.add(EntityBase.createMaxValue());
+		JSON.writeEntity(sources, writer);
+		writer.flush();
+
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		Object targets = JSON.readEntity(EntityBase.class, reader);
+		assertInstanceOf(Collection.class, targets);
+		Assertions.assertEquals(sources, targets);
+	}
+
+	@Test
 	void testArrayNullValues() throws IOException, ParseException {
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 		final Writer writer = new OutputStreamWriter(output, "UTF-8");
@@ -258,6 +281,26 @@ class TestODBSJson extends TestODBS {
 		EntityArray target = new EntityArray();
 		target = (EntityArray) JSON.readEntity(target, reader);
 		EntityArray.assertEntity(source, target);
+	}
+
+	@Test
+	void testSet() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final Collection<EntitySet> sources = new ArrayList<>();
+		sources.add(EntitySet.createNullValue());
+		sources.add(EntitySet.createEmptyValue());
+		sources.add(EntitySet.createNormalValue());
+		JSON.writeEntity(sources, writer);
+		writer.flush();
+
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		Object targets = JSON.readEntity(EntitySet.class, reader);
+		assertInstanceOf(Collection.class, targets);
+		// assertEquals(sources, targets);
 	}
 
 	@Test
@@ -315,6 +358,26 @@ class TestODBSJson extends TestODBS {
 	}
 
 	@Test
+	void testList() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final Collection<EntityList> sources = new ArrayList<>();
+		sources.add(EntityList.createNullValue());
+		sources.add(EntityList.createEmptyValue());
+		sources.add(EntityList.createNormalValue());
+		JSON.writeEntity(sources, writer);
+		writer.flush();
+
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		Object targets = JSON.readEntity(EntityList.class, reader);
+		assertInstanceOf(Collection.class, targets);
+		// assertEquals(sources, targets);
+	}
+
+	@Test
 	void testListNullValues() throws IOException, ParseException {
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 		final Writer writer = new OutputStreamWriter(output, "UTF-8");
@@ -369,6 +432,26 @@ class TestODBSJson extends TestODBS {
 	}
 
 	@Test
+	void testMap() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final Collection<EntityMap> sources = new ArrayList<>();
+		sources.add(EntityMap.createNullValue());
+		sources.add(EntityMap.createEmptyValue());
+		sources.add(EntityMap.createNormalValue());
+		JSON.writeEntity(sources, writer);
+		writer.flush();
+
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		Object targets = JSON.readEntity(EntityMap.class, reader);
+		assertInstanceOf(Collection.class, targets);
+		// assertEquals(sources, targets);
+	}
+
+	@Test
 	void testMapNullValues() throws IOException, ParseException {
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 		final Writer writer = new OutputStreamWriter(output, "UTF-8");
@@ -420,5 +503,92 @@ class TestODBSJson extends TestODBS {
 		EntityMap target = new EntityMap();
 		target = (EntityMap) JSON.readEntity(target, reader);
 		EntityMap.assertEntity(source, target);
+	}
+
+	@Test
+	void testBaseIgnores() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityBase source = EntityBase.createMinValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		// {"Username":"13883062895","Password":"200ceb26807d6bf99fd6f4f0d1ca54d4","Employee":"238253448244322"}
+
+		EntityEmpty target = new EntityEmpty();
+		target = (EntityEmpty) JSON.readEntity(target, reader);
+		assertNotNull(target);
+	}
+
+	@Test
+	void testArrayIgnores() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityArray source = EntityArray.createNormalValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityEmpty target = new EntityEmpty();
+		target = (EntityEmpty) JSON.readEntity(target, reader);
+		assertNotNull(target);
+	}
+
+	@Test
+	void testSetIgnores() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntitySet source = EntitySet.createNormalValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityEmpty target = new EntityEmpty();
+		target = (EntityEmpty) JSON.readEntity(target, reader);
+		assertNotNull(target);
+	}
+
+	@Test
+	void testListIgnores() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityList source = EntityList.createNormalValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityEmpty target = new EntityEmpty();
+		target = (EntityEmpty) JSON.readEntity(target, reader);
+		assertNotNull(target);
+	}
+
+	@Test
+	void testMapIgnores() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityMap source = EntityMap.createNormalValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityEmpty target = new EntityEmpty();
+		target = (EntityEmpty) JSON.readEntity(target, reader);
+		assertNotNull(target);
 	}
 }

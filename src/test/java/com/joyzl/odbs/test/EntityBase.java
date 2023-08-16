@@ -141,7 +141,7 @@ public class EntityBase {
 		entity.setLongObject(Long.valueOf(Long.MAX_VALUE));
 		entity.setFloatObject(Float.valueOf(Float.MAX_VALUE));
 		entity.setDoubleObject(Double.valueOf(Double.MAX_VALUE));
-		entity.setStringObject("1234567890");
+		entity.setStringObject("1234567890[{ABCDEFG]}:");
 		entity.setDateObject(new Date());
 		entity.setLocalDateObject(LocalDate.MAX);
 		entity.setLocalTimeObject(LocalTime.MAX);

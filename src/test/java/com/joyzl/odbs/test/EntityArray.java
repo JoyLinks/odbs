@@ -40,7 +40,7 @@ public class EntityArray {
 	static final Float[] FLOAT_OBJECTS = new Float[] { 100.002F, Float.MIN_VALUE, Float.MAX_VALUE };
 	static final Double[] DOUBLE_OBJECTS = new Double[] { 100.002D, Double.MIN_VALUE, Double.MAX_VALUE };
 
-	static final String[] STRING_OBJECTS = new String[] { "", "中华人民共和国" };
+	static final String[] STRING_OBJECTS = new String[] { "", "中华人民共和国" ,"123,[{ABC]}:"};
 	static final Date[] DATE_OBJECTS = new Date[] { new Date(), new Date(), new Date() };
 	static final LocalDate[] LOCALDATE_OBJECTS = new LocalDate[] { LocalDate.now(), LocalDate.MIN, LocalDate.MAX };
 	static final LocalTime[] LOCALTIME_OBJECTS = new LocalTime[] { LocalTime.now(), LocalTime.MIN, LocalTime.MAX };

@@ -160,12 +160,17 @@ final class JSONCodec {
 			// 最后字符如果是结构字符须丢弃
 			// 结构字符不能包括在键名中
 			sb.setLength(0);
+			quotes = 0;
 		} else {
 			sb.setLength(0);
-			sb.append((char) c);
+			if (c == JSONCodec.QUOTES) {
+				quotes = 1;
+			} else {
+				sb.append((char) c);
+				quotes = 0;
+			}
 		}
 
-		quotes = 0;
 		while ((c = reader.read()) >= 0) {
 			index++;
 			if (Character.isWhitespace(c)) {
@@ -220,12 +225,17 @@ final class JSONCodec {
 
 		if (lastIsStructure()) {
 			sb.setLength(0);
+			quotes = 0;
 		} else {
 			sb.setLength(0);
-			sb.append((char) c);
+			if (c == JSONCodec.QUOTES) {
+				quotes = 1;
+			} else {
+				sb.append((char) c);
+				quotes = 0;
+			}
 		}
 
-		quotes = 0;
 		while ((c = reader.read()) >= 0) {
 			index++;
 			if (Character.isWhitespace(c)) {
