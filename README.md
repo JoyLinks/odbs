@@ -17,6 +17,7 @@ ODBS会预先扫描对象定义，根据对象定义建立对象描述信息，�
 3. 支持基础类型：Boolean,Byte,Character,Short,Integer,Long,Float,Double,BigDecimal,Date,LocalTime,LocalDate,LocalDateTime,String；
 4. 支持枚举类型和自定义枚举类型：EnumCode,EnumText,EnumCodeText；
 5. 支持集合类型：Array,List,Set,Map；
+6. 无须在序列化实体对象中嵌入注解，遵循非常简单的规范即可。
 
 JSON规范参考：RFC4627, [www.json.org](https://www.json.org)
 
@@ -208,8 +209,8 @@ JSON序列化键名默认格式为大写字母开头驼峰格式 "UserName"，
 ##### 二进制序列化对集合的限制
 
 集合的泛型必须是明确的基本类型或实体对象类型并且位于被扫描的包中，
-例如：List<Entity>是可被正确序列化，但是List<Object>将无法执行序列化；
-集合的定义不应使用Collection<T>类型，应使用明确的Array、List、Set和Map；
+例如：List&#60;Entity&#62;是可被正确序列化，但是List&#60;Object&#62;将无法执行序列化；
+集合的定义不应使用Collection&#60;T&#62;类型，应使用明确的Array、List、Set和Map；
 当实体对象未默认实例化集合，此时无法准确确定集合类型时，默认采用ArrayList/HashSet/HashMap三种集合；
 在数组和集合中不能含有null元素值，这将导致序列化失败，这主要基于以下两点考虑：
 1. 在绝大部分应用场景中，数组和集合中的null元素并无实际意义；
@@ -220,5 +221,16 @@ Map集合的键类型不能使用Array/List/Set/Map作为Map集合的键类型�
 
 #### 参与贡献
 
-1. 张希 ZhangXi
-2. 中翌智联 www.joyzl.com
+中翌智联 www.joyzl.com
+
+华腾智联 www.huatens.com
+
+张希 ZhangXi
+
+
+---
+
+
+中国制造，智造中国
+
+Made in China, Intelligent China
