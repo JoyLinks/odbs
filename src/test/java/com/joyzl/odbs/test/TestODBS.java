@@ -7,6 +7,7 @@ package com.joyzl.odbs.test;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import com.joyzl.odbs.ODBS;
 
@@ -23,4 +24,11 @@ class TestODBS {
 	static void tearDownAfterClass() throws Exception {
 	}
 
+	@Test
+	void test() {
+	}
+
+	class EntityExtend extends EntityBase {
+		// 用于测试被继承的实体
+	}
 }

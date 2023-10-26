@@ -276,10 +276,16 @@ public final class ODBS {
 	 */
 	public final ODBSDescription findDesc(Class<?> clazz) {
 		if (clazz.isAnonymousClass()) {
+			// 匿名类支持
 			// class com.joyzl.test.odbs.Test$1.invoke();
 			return CLASSES.get(clazz.getSuperclass());
 		}
-		return CLASSES.get(clazz);
+		ODBSDescription description = CLASSES.get(clazz);
+		while (description == null && clazz != Object.class) {
+			// 支持被继承的实体，扩展的字段不会被序列化
+			description = CLASSES.get(clazz = clazz.getSuperclass());
+		}
+		return description;
 	}
 
 	/**

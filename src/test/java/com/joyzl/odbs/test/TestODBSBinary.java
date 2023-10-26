@@ -335,4 +335,21 @@ class TestODBSBinary extends TestODBS {
 		target = (EntityMap) BINARY.readEntity(target, reader);
 		EntityMap.assertEntity(source, target);
 	}
+
+	@Test
+	void testExtend() throws IOException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final BigEndianOutputStream writer = new BigEndianOutputStream(output);
+
+		EntityExtend entity = new EntityExtend();
+		BINARY.writeEntity(entity, writer);
+
+		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
+		final BigEndianInputStream reader = new BigEndianInputStream(input);
+
+		BINARY.readEntity(entity, reader);
+
+		// EXCEPTION
+		// BINARY.writeEntity("String", writer);
+	}
 }
