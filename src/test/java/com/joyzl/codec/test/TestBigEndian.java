@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Test;
 
 import com.joyzl.codec.BigEndianDataInput;
 import com.joyzl.codec.BigEndianDataOutput;
+import com.joyzl.codec.BigEndianInputStream;
+import com.joyzl.codec.BigEndianOutputStream;
 
 class TestBigEndian {
 
@@ -201,5 +203,24 @@ class TestBigEndian {
 		assertEquals(input.readVarlong(), Long.MAX_VALUE);
 
 		assertEquals(in.available(), 0);
+	}
+
+	@Test
+	void testStream() throws IOException {
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final BigEndianOutputStream output = new BigEndianOutputStream(out);
+		output.write(Byte.MIN_VALUE);
+		output.write(Byte.MAX_VALUE);
+		output.write(255);
+		output.close();
+		assertEquals(out.size(), 3);
+
+		final ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		final BigEndianInputStream input = new BigEndianInputStream(in);
+		assertEquals(input.readByte(), Byte.MIN_VALUE);
+		assertEquals(input.readByte(), Byte.MAX_VALUE);
+		assertEquals(input.read(), 255);
+		assertEquals(input.available(), 0);
+		input.close();
 	}
 }

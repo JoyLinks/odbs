@@ -20,6 +20,8 @@ import org.junit.jupiter.api.Test;
 
 import com.joyzl.codec.LittleEndianDataInput;
 import com.joyzl.codec.LittleEndianDataOutput;
+import com.joyzl.codec.LittleEndianInputStream;
+import com.joyzl.codec.LittleEndianOutputStream;
 
 class TestLittleEndian {
 
@@ -201,5 +203,24 @@ class TestLittleEndian {
 		assertEquals(input.readVarlong(), Long.MAX_VALUE);
 
 		assertEquals(in.available(), 0);
+	}
+
+	@Test
+	void testStream() throws IOException {
+		final ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final LittleEndianOutputStream output = new LittleEndianOutputStream(out);
+		output.write(Byte.MIN_VALUE);
+		output.write(Byte.MAX_VALUE);
+		output.write(255);
+		output.close();
+		assertEquals(out.size(), 3);
+
+		final ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+		final LittleEndianInputStream input = new LittleEndianInputStream(in);
+		assertEquals(input.readByte(), Byte.MIN_VALUE);
+		assertEquals(input.readByte(), Byte.MAX_VALUE);
+		assertEquals(input.read(), 255);
+		assertEquals(input.available(), 0);
+		input.close();
 	}
 }

@@ -33,11 +33,17 @@ public interface DataInput extends java.io.DataInput {
 	@Override
 	default void readFully(byte b[]) throws IOException {
 		// 阻塞直到读取所有字节
+		for (int index = 0; index < b.length; index++) {
+			b[index] = readByte();
+		}
 	}
 
 	@Override
 	default void readFully(byte b[], int off, int len) throws IOException {
 		// 阻塞直到读取所有字节
+		for (; len > 0; off++, len--) {
+			b[off] = readByte();
+		}
 	}
 
 	@Override
