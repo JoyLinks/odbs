@@ -96,6 +96,22 @@ public final class ODBS {
 	/**
 	 * 初始化定义用于序列化的实体类型
 	 * <p>
+	 * 通过Package指定实体包可提高工程代码可维护性
+	 * </p>
+	 * 
+	 * @see #initialize(String...)
+	 */
+	public final static ODBS initialize(Package... packages) {
+		final String[] names = new String[packages.length];
+		for (int index = 0; index < packages.length; index++) {
+			names[index] = packages[index].getName();
+		}
+		return initialize(names);
+	}
+
+	/**
+	 * 初始化定义用于序列化的实体类型
+	 * <p>
 	 * 将在指定的多个包中查找所有的对象类型定义，扫描对象的方法和类型建立类型描述。<br>
 	 * 确保指定的包中包含所有需要进行序列化的对象类型和枚举类型。<br>
 	 * ODBS序列化为了保证性能，不会对类的版本和差异进行任何检查，因此序列化和反序列化的包结构及类必须完全相同。<br>
@@ -132,7 +148,7 @@ public final class ODBS {
 		for (String packega : packages) {
 			List<Class<?>> cs = ODBSReflect.scanClass(packega);
 			for (Class<?> clazz : cs) {
-				if (ODBSDescription.check(clazz)) {
+				if (ODBSReflect.canSerialize(clazz)) {
 					if (clazz.isEnum()) {
 						enums.add(clazz);
 					} else {
@@ -192,7 +208,7 @@ public final class ODBS {
 		for (String packega : packages) {
 			List<Class<?>> cs = ODBSReflect.scanClass(packega);
 			for (Class<?> clazz : cs) {
-				if (ODBSDescription.check(clazz)) {
+				if (ODBSReflect.canSerialize(clazz)) {
 					ODBSDescription description = CLASSES.get(clazz.getSuperclass());
 					if (description != null) {
 						description.override(clazz);

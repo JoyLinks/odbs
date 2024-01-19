@@ -10,19 +10,19 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.module.ModuleReader;
 import java.lang.module.ResolvedModule;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -34,24 +34,101 @@ import java.util.jar.JarFile;
  */
 public final class ODBSReflect {
 
-	/** Java Resource 的路径分隔符 */
-	final static char PATH_SEPARATER = '/';
-	/** Java 命名空间分隔符 */
-	final static char NAME_SEPARATER = '.';
-
 	private ODBSReflect() {
 		// 禁止实例化
 	}
 
 	/**
-	 * 监测聚合值中是否包含指定值
-	 * 
-	 * @param source
-	 * @param value
-	 * @return
+	 * 检查类是否可用
 	 */
-	protected final static boolean contains(int source, int value) {
-		return (source & value) != 0;
+	public final static boolean canUsable(Class<?> clazz) {
+		if (clazz.isHidden()) {
+			// 隐藏类
+			return false;
+		}
+		if (clazz.isAnnotation()) {
+			// 注解类
+			return false;
+		}
+		if (clazz.isInterface()) {
+			// 接口
+			return false;
+		}
+		if (clazz.isMemberClass()) {
+			// 成员类(类中定义的类)
+			return false;
+		}
+		if (clazz.isLocalClass()) {
+			// 局部类(方法中定义的类)
+			return false;
+		}
+		if (clazz.isPrimitive()) {
+			// 基本类型 boolean, byte, char, short, int, long, float, double
+			return false;
+		}
+		if (clazz.isSynthetic()) {
+			// 编译器引入类
+			return false;
+		}
+		if (clazz.isAnonymousClass()) {
+			// 匿名类(缺失固定名称)
+			return false;
+		}
+		// clazz.isSealed();
+		return true;
+	}
+
+	/**
+	 * 检查指定类是否可访问并具有构造函数用于实例化
+	 */
+	public final static boolean canInstance(Class<?> clazz, Class<?>... argments) {
+		if (Modifier.isAbstract(clazz.getModifiers())) {
+			return false;
+		}
+		if (Modifier.isInterface(clazz.getModifiers())) {
+			return false;
+		}
+		if (Modifier.isNative(clazz.getModifiers())) {
+			return false;
+		}
+		if (Modifier.isPrivate(clazz.getModifiers())) {
+			return false;
+		}
+		if (Modifier.isProtected(clazz.getModifiers())) {
+			return false;
+		}
+		if (Modifier.isStatic(clazz.getModifiers())) {
+			return false;
+		}
+		if (Modifier.isSynchronized(clazz.getModifiers())) {
+			return false;
+		}
+		if (Modifier.isTransient(clazz.getModifiers())) {
+			return false;
+		}
+		try {
+			// 可访问的指定参构造函数
+			final Constructor<?> constructor = clazz.getConstructor(argments);
+			return Modifier.isPublic(constructor.getModifiers());
+		} catch (NoSuchMethodException | SecurityException e) {
+			return false;
+		}
+	}
+
+	/**
+	 * 检查源对象是否符合序列化要求
+	 * 
+	 * @see #canUsable(Class)
+	 * @see #canInstance(Class, Class...)
+	 */
+	public final static boolean canSerialize(Class<?> clazz) {
+		if (canUsable(clazz)) {
+			if (clazz.isEnum()) {
+				return Modifier.isPublic(clazz.getModifiers());
+			}
+			return canInstance(clazz);
+		}
+		return false;
 	}
 
 	/**
@@ -84,7 +161,7 @@ public final class ODBSReflect {
 	}
 
 	/**
-	 * 查找指定类型的指定注解
+	 * 查找指定类型的指定注解，将自动递归超类
 	 * 
 	 * @param o 实体实例
 	 * @param clazz 注解类型
@@ -227,230 +304,143 @@ public final class ODBSReflect {
 	}
 
 	/**
-	 * 搜索并返回指定模块/包中的类
-	 * 
-	 * @param name "sis.common" 模块/包名称
-	 * @return List<Class<?>>
+	 * 扫描指定模块/包中的所有类和资源
+	 */
+	public final static List<String> scan(String name) {
+		List<String> resources = scanModule(name);
+		if (resources == null || resources.isEmpty()) {
+			resources = scanPackage(name);
+		}
+		return resources;
+	}
+
+	/**
+	 * 扫描指定模块/包中的所有类和资源
 	 */
 	public final static List<Class<?>> scanClass(String name) {
-		final List<Class<?>> classes = new ArrayList<>();
-		// sis.common.action -> sis/common/action
-		final String path = name.replace(NAME_SEPARATER, PATH_SEPARATER);
-		final Optional<ResolvedModule> optional = ModuleLayer.boot().configuration().findModule(name);
-		if (optional == null || optional.isEmpty()) {
-			final Set<ResolvedModule> modules = ModuleLayer.boot().configuration().modules();
-			for (ResolvedModule module : modules) {
-				for (String packega : module.reference().descriptor().packages()) {
-					if (packega.equals(name)) {
-						scanClassFromModule(module, path, classes);
-						return classes;
+		final List<String> resources = scan(name);
+		if (resources != null) {
+			final List<Class<?>> classes = new ArrayList<>();
+			for (String resource : resources) {
+				if ("module-info.class".equalsIgnoreCase(resource)) {
+					continue;
+				}
+				if (resource.endsWith(".class")) {
+					resource = resource.substring(0, resource.length() - 6);
+					resource = resource.replace('/', '.');
+					try {
+						classes.add(Class.forName(resource));
+					} catch (Exception e) {
+						// 忽略此异常,不中断运行
+						// e.printStackTrace();
 					}
 				}
 			}
-
-			final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-			try {
-				URL url;
-				final Enumeration<URL> urls = loader.getResources(path);
-				while (urls.hasMoreElements()) {
-					url = urls.nextElement();
-					if (url == null) {
-						// 不应出现的情况
-					} else if ("file".equals(url.getProtocol())) {
-						// file:/D:/SmartIndustrySystem/sis-common/bin/sis/common
-						scanClassFromFile(new File(url.toURI()), name, classes);
-					} else if ("jar".equals(url.getProtocol())) {
-						// jar:file:/D:/SmartIndustrySystem/sis-network/lib/netty-all-4.1.22.Final.jar!/io/netty/buffer
-						scanClassFromJar(((JarURLConnection) url.openConnection()).getJarFile(), name, classes);
-					} else {
-						// jrt:/com.joyzl.common/com/joyzl/common/Reflecter.class
-						throw new RuntimeException("暂未处理的URL类型 " + url);
-					}
-				}
-			} catch (IOException | URISyntaxException ex) {
-				throw new RuntimeException(ex);
-			}
-		} else {
-			scanClassFromModule(optional.get(), path, classes);
+			return classes;
 		}
-		return classes;
+		return null;
 	}
 
-	private final static void scanClassFromJar(JarFile parent, String packega, List<Class<?>> classes) {
-		Enumeration<JarEntry> entries = parent.entries();
-		while (entries.hasMoreElements()) {
-			JarEntry entry = entries.nextElement();
-			if (!entry.isDirectory()) {
-				String name = entry.getName();
-				// sis/servo/action/CompanyCreate.class
-				if (name.startsWith(packega) && name.endsWith(".class")) {
-					// "sis/servo/action/CompanyCreate.class"->"sis.servo.action.CompanyCreate"
-					name = name.substring(0, name.length() - 6);
-					name = name.replace(PATH_SEPARATER, NAME_SEPARATER);
-					scanClassFromName(name, classes);
-				}
-			}
-		}
+	/**
+	 * 扫描指定模块中的所有类和资源
+	 * 
+	 * @see #scanModule(String)
+	 */
+	public final static List<String> scanModule(Module module) {
+		return scanModule(module.getName());
 	}
 
-	private final static void scanClassFromModule(ResolvedModule module, String path, List<Class<?>> classes) {
-		try (ModuleReader reader = module.reference().open()) {
-			reader.list().forEach(new Consumer<String>() {
-				@Override
-				public void accept(String name) {
-					// com/joyzl/scm/store/views/products/ProductWindow.class
-					if (name.endsWith("module-info.class") || name.endsWith("package-info.class")) {
-						// 过滤module-info名称
-					} else if (name.startsWith(path) && name.endsWith(".class")) {
-						// 转换名称为'.'分隔符，".class" 长度为 6
-						// "com/joyzl/scm/store/views/products/ProductWindow.class"->"com.joyzl.scm.store.views.products.ProductWindow"
-						name = name.substring(0, name.length() - 6);
-						name = name.replace(PATH_SEPARATER, NAME_SEPARATER);
-						scanClassFromName(name, classes);
-					}
+	/**
+	 * 扫描指定模块中的所有类和资源
+	 * 
+	 * @param module 模块名称例如"com.joyzl.odbs"
+	 * @return null/List&lt;String&gt;
+	 */
+	public final static List<String> scanModule(String module) {
+		final Optional<ResolvedModule> optional = ModuleLayer.boot().configuration().findModule(module);
+		if (optional.isEmpty()) {
+			return null;
+		}
+		final List<String> resources = new ArrayList<>();
+		try (ModuleReader reader = optional.get().reference().open()) {
+			String resource;
+			final Iterator<String> iterator = reader.list().iterator();
+			while (iterator.hasNext()) {
+				resource = iterator.next();
+				if (resource.endsWith("/")) {
+					continue;
 				}
-			});
+				resources.add(resource);
+			}
+			return resources;
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
 	}
 
 	/**
-	 * 搜索并返回指定包中的所有类
+	 * 扫描指定包中的所有类和资源
 	 * 
-	 * @param packega "sis.common"
-	 * @return List<Class<?>>
+	 * @see #scanModule(String)
 	 */
-	public final static List<Class<?>> scanClassFromPackage(String packega) {
-		List<Class<?>> classes = new ArrayList<>();
-		try {
-			// sis.common.action = sis/common/action
-			String packag_path = packega.replace('.', '/');
-			ClassLoader loader = Thread.currentThread().getContextClassLoader();
-			Enumeration<URL> urls = loader.getResources(packag_path);
-			while (urls.hasMoreElements()) {
-				URL url = urls.nextElement();
-				if ("file".equals(url.getProtocol())) {
-					// file:/D:/SmartIndustrySystem/sis-common/bin/sis/common
-					String path = URLDecoder.decode(url.getFile(), "UTF-8");
-					scanClassFromFile(new File(path), packega, classes);
-				} else if ("jar".equals(url.getProtocol())) {
-					// jar:file:/D:/SmartIndustrySystem/sis-network/lib/netty-all-4.1.22.Final.jar!/io/netty/buffer
-					JarFile jar = ((JarURLConnection) url.openConnection()).getJarFile();
-					scanClassFromFile(jar, packag_path, classes);
-				}
-			}
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
-		}
-		return classes;
+	public final static List<String> scanPackage(Package pkg) {
+		return scanPackage(pkg.getName());
 	}
 
 	/**
-	 * 搜索并返回指定包中的文件
+	 * 扫描指定包中的所有类和资源
 	 * 
-	 * @param packega "sis.common"
-	 * @return List<String>
+	 * @param module 包名称例如"com.joyzl.odbs"
+	 * @return null/List&lt;String&gt;
 	 */
-	public final static List<String> scanFileFromPackage(String packega, String extension) {
-		List<String> files = new ArrayList<>();
+	public final static List<String> scanPackage(String name) {
+		final String path = name.replace('.', '/');
 		try {
-			// sis.common.action = sis/common/action
-			String packag_path = packega.replace('.', '/');
-			ClassLoader loader = Thread.currentThread().getContextClassLoader();
-			Enumeration<URL> urls = loader.getResources(packag_path);
+			URL url;
+			final List<String> resources = new ArrayList<>();
+			final Enumeration<URL> urls = Thread.currentThread().getContextClassLoader().getResources(path);
 			while (urls.hasMoreElements()) {
-				URL url = urls.nextElement();
-				if ("file".equals(url.getProtocol())) {
-					// file:/D:/SmartIndustrySystem/sis-common/bin/sis/common
-					String path = URLDecoder.decode(url.getFile(), "UTF-8");
-					scanFileFromFile(new File(path), packega, files, extension);
-				} else if ("jar".equals(url.getProtocol())) {
-					// jar:file:/D:/SmartIndustrySystem/sis-network/lib/netty-all-4.1.22.Final.jar!/io/netty/buffer
-					JarFile jar = ((JarURLConnection) url.openConnection()).getJarFile();
-					scanFileFromFile(jar, packag_path, files, extension);
+				url = urls.nextElement();
+				if (url == null) {
+				} else if ("file".equalsIgnoreCase(url.getProtocol())) {
+					scanPackage(new File(url.toURI()), path, resources);
+				} else if ("jar".equalsIgnoreCase(url.getProtocol())) {
+					scanPackage(((JarURLConnection) url.openConnection()).getJarFile(), path, resources);
+				} else {
+					// jrt:/com.joyzl.common/com/joyzl/common/Reflecter.class
 				}
 			}
-		} catch (IOException ex) {
+			return resources;
+		} catch (IOException | URISyntaxException ex) {
 			throw new RuntimeException(ex);
 		}
-		return files;
 	}
 
-	private final static void scanClassFromFile(JarFile parent, String packega, List<Class<?>> classes) {
-		Enumeration<JarEntry> entries = parent.entries();
-		while (entries.hasMoreElements()) {
-			JarEntry entry = entries.nextElement();
-			if (!entry.isDirectory()) {
-				String name = entry.getName();
-				// sis/servo/action/CompanyCreate.class
-				if (name.startsWith(packega) && name.endsWith(".class")) {
-					// sis/servo/action/CompanyCreate.class=sis.servo.action.CompanyCreate
-					name = name.substring(0, name.length() - 6);
-					name = name.replace('/', '.');
-					scanClassFromName(name, classes);
-				}
-			}
-		}
-	}
-
-	private final static void scanFileFromFile(JarFile parent, String packega, List<String> files, String extension) {
-		Enumeration<JarEntry> entries = parent.entries();
-		while (entries.hasMoreElements()) {
-			JarEntry entry = entries.nextElement();
-			if (!entry.isDirectory()) {
-				String name = entry.getName();
-				// sis/servo/action/CompanyCreate.class
-				if (name.startsWith(packega) && name.endsWith(extension)) {
-					// sis/servo/action/CompanyCreate.class=sis.servo.action.CompanyCreate
-					name = name.substring(0, name.length() - extension.length());
-					name = name.replace('/', '.');
-					files.add(name);
-				}
-			}
-		}
-	}
-
-	private final static void scanClassFromFile(File parent, String packega, List<Class<?>> classes) {
+	/**
+	 * file:/D:/GitHub/odbs/target/test-classes/com/joyzl/
+	 */
+	private final static void scanPackage(File parent, String path, List<String> resources) {
 		if (parent.exists()) {
-			File[] files = parent.listFiles();
+			final File[] files = parent.listFiles();
 			for (File file : files) {
 				if (file.isDirectory()) {
-					scanClassFromFile(file, packega + '.' + file.getName(), classes);
+					scanPackage(file, path + "/" + file.getName(), resources);
 				} else {
-					String name = file.getName();
-					if (name.endsWith(".class")) {
-						name = name.substring(0, name.length() - 6);
-						scanClassFromName(packega + '.' + name, classes);
-					}
+					resources.add(path + "/" + file.getName());
 				}
 			}
 		}
 	}
 
-	private final static void scanFileFromFile(File parent, String packega, List<String> files, String extension) {
-		if (parent.exists()) {
-			File[] fs = parent.listFiles();
-			for (File file : fs) {
-				if (file.isDirectory()) {
-					scanFileFromFile(file, packega + '.' + file.getName(), files, extension);
-				} else {
-					String name = file.getName();
-					if (name.endsWith(extension)) {
-						name = name.substring(0, name.length() - extension.length());
-						files.add(packega + '.' + name);
-					}
-				}
+	private final static void scanPackage(JarFile parent, String path, List<String> resources) {
+		JarEntry entry;
+		final Enumeration<JarEntry> entries = parent.entries();
+		while (entries.hasMoreElements()) {
+			entry = entries.nextElement();
+			if (!entry.isDirectory()) {
+				// sis/servo/action/CompanyCreate.class
+				resources.add(entry.getName());
 			}
-		}
-	}
-
-	private final static void scanClassFromName(String name, List<Class<?>> classes) {
-		try {
-			classes.add(Class.forName(name));
-		} catch (Exception e) {
-			// 忽略此异常,不中断运行
-			e.printStackTrace();
 		}
 	}
 }

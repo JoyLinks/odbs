@@ -9,7 +9,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,82 +21,6 @@ import java.util.TreeSet;
  * @date 2020年6月3日
  */
 public final class ODBSDescription {
-
-	/**
-	 * 检查源对象是否符合序列化要求
-	 * 
-	 * @param clazz
-	 * @return true / false
-	 */
-	public final static boolean check(Class<?> clazz) {
-		if (clazz.isAnnotation()) {
-			// 注解类
-			return false;
-		}
-		if (clazz.isAnonymousClass()) {
-			// 匿名类
-			return false;
-		}
-		if (clazz.isInterface()) {
-			// 接口
-			return false;
-		}
-		if (clazz.isLocalClass()) {
-			// 局部类
-			return false;
-		}
-		if (clazz.isPrimitive()) {
-			// 基本类型 boolean, byte, char, short, int, long, float, double
-			return false;
-		}
-		if (clazz.isSynthetic()) {
-			// 编译器引入类
-			return false;
-		}
-		if (clazz.isMemberClass()) {
-			//
-			return false;
-		}
-
-		if (contains(clazz.getModifiers(), Modifier.ABSTRACT)) {
-			return false;
-		}
-		if (contains(clazz.getModifiers(), Modifier.INTERFACE)) {
-			return false;
-		}
-		if (contains(clazz.getModifiers(), Modifier.PRIVATE)) {
-			return false;
-		}
-		if (contains(clazz.getModifiers(), Modifier.NATIVE)) {
-			return false;
-		}
-		if (contains(clazz.getModifiers(), Modifier.PROTECTED)) {
-			return false;
-		}
-		if (contains(clazz.getModifiers(), Modifier.STATIC)) {
-			return false;
-		}
-
-		if (clazz.isEnum()) {
-			return true;
-		}
-
-		try {
-			if (clazz.getConstructor() == null) {
-				// 可访问(public)的无参构造函数
-				return false;
-			}
-		} catch (NoSuchMethodException | SecurityException e) {
-			return false;
-		}
-		return true;
-	}
-
-	static boolean contains(int source, int value) {
-		return (source & value) != 0;
-	}
-
-	////////////////////////////////////////////////////////////////////////////////
 
 	private final int INDEX;
 	private final String NAME;
