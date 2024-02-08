@@ -8,6 +8,7 @@ package com.joyzl.odbs;
 import java.lang.annotation.Annotation;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -423,5 +424,29 @@ public final class ODBS {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * 获取所有枚举描述
+	 * <p>
+	 * 修改返回的集合不会影响序列化工作
+	 * </p>
+	 * 
+	 * @return List<ODBSEnumeration>
+	 */
+	public final List<ODBSEnumeration> enumerations() {
+		return Arrays.asList(ENUMERATIONS);
+	}
+
+	/**
+	 * 获取所有对象描述
+	 * <p>
+	 * 修改返回的集合不会影响序列化工作
+	 * </p>
+	 * 
+	 * @return List<ODBSDescription>
+	 */
+	public final List<ODBSDescription> descriptions() {
+		return Arrays.asList(DESCRIPTIONS);
 	}
 }

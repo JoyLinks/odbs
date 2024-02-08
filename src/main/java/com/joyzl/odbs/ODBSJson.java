@@ -42,6 +42,9 @@ public final class ODBSJson {
 	private final ODBS odbs;
 
 	public ODBSJson(ODBS o) {
+		if (o == null) {
+			throw new NullPointerException("ODBS");
+		}
 		odbs = o;
 	}
 

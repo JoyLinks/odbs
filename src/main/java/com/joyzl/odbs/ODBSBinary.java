@@ -34,6 +34,9 @@ public final class ODBSBinary extends ODBSTypes {
 	private final ODBS odbs;
 
 	public ODBSBinary(ODBS o) {
+		if (o == null) {
+			throw new NullPointerException("ODBS");
+		}
 		odbs = o;
 	}
 

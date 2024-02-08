@@ -7,63 +7,16 @@ package com.joyzl.odbs;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Map;
 
 /**
  * 字段
- * <p>
- * 未来可改进为ReflectASM方案
- * </p>
  *
  * @author ZhangXi
  * @date 2020年6月3日
  */
 public final class ODBSField {
-
-	/**
-	 * 检查对象方法是否符合序列化要求
-	 *
-	 * @param method
-	 * @return true / false
-	 */
-	public final static boolean check(Method method) {
-		if (method.isBridge()) {
-			// 桥接方法
-			return false;
-		}
-		if (method.isDefault()) {
-			// 默认方法
-			return false;
-		}
-		if (method.isSynthetic()) {
-			// 编译器引入方法
-			return false;
-		}
-		if (method.isVarArgs()) {
-			// 可变参数
-			return false;
-		}
-
-		if ((method.getModifiers() & Modifier.PUBLIC) != 0) {
-			if (method.getParameterCount() > 1) {
-				// 参数过多
-				return false;
-			}
-
-			if (method.getName().startsWith("get") || method.getName().startsWith("is")) {
-				return method.getParameterCount() == 0;
-			} else if (method.getName().startsWith("set")) {
-				return method.getParameterCount() == 1;
-			} else {
-				return false;
-			}
-		}
-		return false;
-	}
-
-	////////////////////////////////////////////////////////////////////////////////
 
 	private final int INDEX;
 	private final String[] NAMES;
@@ -130,6 +83,7 @@ public final class ODBSField {
 
 	@SuppressWarnings("unchecked")
 	public final <T> T getValue(Object instence) {
+		// TODO 是否可改进为ReflectASM方案
 		try {
 			return (T) GETTER.invoke(instence);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
@@ -138,6 +92,7 @@ public final class ODBSField {
 	}
 
 	public final void setValue(Object instence, Object value) {
+		// TODO 是否可改进为ReflectASM方案
 		try {
 			SETTER.invoke(instence, value);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {

@@ -47,7 +47,7 @@ public final class ODBSDescription {
 		HashMap<String, Method> getter_setter = new HashMap<>();
 		Method[] methods = clazz.getMethods();
 		for (Method method : methods) {
-			if (ODBSField.check(method)) {
+			if (ODBSReflect.canSerialize(method)) {
 				getter_setter.put(method.getName().toLowerCase(), method);
 			}
 		}
@@ -64,6 +64,7 @@ public final class ODBSDescription {
 		});
 
 		Method setter = null, getter = null;
+		// TODO 同名类型匹配
 		for (Map.Entry<String, Method> entry : getter_setter.entrySet()) {
 			getter = entry.getValue();
 			if (entry.getKey().startsWith("get")) {

@@ -39,6 +39,13 @@ public final class ODBSReflect {
 	}
 
 	/**
+	 * 当前是否运行于模块模式(--m/--module启动模式)
+	 */
+	public static boolean isModule() {
+		return ODBSReflect.class.getModule().isNamed();
+	}
+
+	/**
 	 * 检查类是否可用
 	 */
 	public final static boolean canUsable(Class<?> clazz) {
@@ -116,7 +123,7 @@ public final class ODBSReflect {
 	}
 
 	/**
-	 * 检查源对象是否符合序列化要求
+	 * 检查类型是否符合ODBS序列化要求
 	 * 
 	 * @see #canUsable(Class)
 	 * @see #canInstance(Class, Class...)
@@ -127,6 +134,44 @@ public final class ODBSReflect {
 				return Modifier.isPublic(clazz.getModifiers());
 			}
 			return canInstance(clazz);
+		}
+		return false;
+	}
+
+	/**
+	 * 检查方法是否符合ODBS序列化要求
+	 */
+	public final static boolean canSerialize(Method method) {
+		if (method.isBridge()) {
+			// 桥接方法
+			return false;
+		}
+		if (method.isDefault()) {
+			// 默认方法
+			return false;
+		}
+		if (method.isSynthetic()) {
+			// 编译器引入方法
+			return false;
+		}
+		if (method.isVarArgs()) {
+			// 可变参数
+			return false;
+		}
+
+		if (Modifier.isPublic(method.getModifiers())) {
+			if (method.getParameterCount() > 1) {
+				// 参数过多
+				return false;
+			}
+
+			if (method.getName().startsWith("get") || method.getName().startsWith("is")) {
+				return method.getParameterCount() == 0;
+			} else if (method.getName().startsWith("set")) {
+				return method.getParameterCount() == 1;
+			} else {
+				return false;
+			}
 		}
 		return false;
 	}
@@ -347,7 +392,11 @@ public final class ODBSReflect {
 	 * @see #scanModule(String)
 	 */
 	public final static List<String> scanModule(Module module) {
-		return scanModule(module.getName());
+		if (module.isNamed()) {
+			return scanModule(module.getName());
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -439,7 +488,9 @@ public final class ODBSReflect {
 			entry = entries.nextElement();
 			if (!entry.isDirectory()) {
 				// sis/servo/action/CompanyCreate.class
-				resources.add(entry.getName());
+				if (entry.getName().startsWith(path)) {
+					resources.add(entry.getName());
+				}
 			}
 		}
 	}
