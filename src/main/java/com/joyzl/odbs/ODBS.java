@@ -298,7 +298,7 @@ public final class ODBS {
 			return CLASSES.get(clazz.getSuperclass());
 		}
 		ODBSDescription description = CLASSES.get(clazz);
-		while (description == null && clazz != Object.class) {
+		while (description == null && clazz != null && clazz != Object.class) {
 			// 支持被继承的实体，扩展的字段不会被序列化
 			description = CLASSES.get(clazz = clazz.getSuperclass());
 		}
