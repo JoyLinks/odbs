@@ -83,20 +83,20 @@ public final class ODBSField {
 
 	@SuppressWarnings("unchecked")
 	public final <T> T getValue(Object instence) {
-		// TODO 是否可改进为ReflectASM方案
+		// TODO 是否可改进为org.ow2.asm方案
 		try {
 			return (T) GETTER.invoke(instence);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException(instence.getClass() + "." + getName(), e);
 		}
 	}
 
 	public final void setValue(Object instence, Object value) {
-		// TODO 是否可改进为ReflectASM方案
+		// TODO 是否可改进为org.ow2.asm方案
 		try {
 			SETTER.invoke(instence, value);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new RuntimeException(getName(), e);
+			throw new RuntimeException(instence.getClass() + "." + getName() + ":" + value, e);
 		}
 	}
 
@@ -125,7 +125,7 @@ public final class ODBSField {
 			try {
 				SETTER.invoke(instence, defaultValue);
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new RuntimeException(e);
+				throw new RuntimeException(instence.getClass() + "." + getName(), e);
 			}
 		}
 	}
@@ -144,7 +144,7 @@ public final class ODBSField {
 			final Object value = GETTER.invoke(instence);
 			return value == null || value == defaultValue || value.equals(defaultValue);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException(instence.getClass() + "." + getName(), e);
 		}
 	}
 
