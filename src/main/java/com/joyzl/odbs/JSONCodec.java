@@ -245,7 +245,11 @@ final class JSONCodec {
 				} else {
 					// 值中空白保留
 				}
-				// 尾随空白无法判断
+				if (quotes == 2) {
+					// 尾随空白过滤
+					// 双引号已成对
+					continue;
+				}
 			} else if (c == JSONCodec.QUOTES) {
 				// 如果值中出现双引号应转义
 				// 首尾双引号表示字符串值

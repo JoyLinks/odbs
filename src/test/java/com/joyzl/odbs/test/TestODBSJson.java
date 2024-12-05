@@ -5,9 +5,11 @@
  */
 package com.joyzl.odbs.test;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,11 +18,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.Writer;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -591,4 +595,44 @@ class TestODBSJson extends TestODBS {
 		target = (EntityEmpty) JSON.readEntity(target, reader);
 		assertNotNull(target);
 	}
+
+	@Test
+	void testReadFormatted() throws IOException, ParseException {
+		StringReader reader = new StringReader("");
+		Object value = JSON.readEntity(EntityBase.class, reader);
+		assertNull(value);
+
+		reader = new StringReader("""
+				{
+				}
+				""");
+		value = JSON.readEntity(EntityBase.class, reader);
+		assertNotNull(value);
+
+		reader = new StringReader("""
+				[
+				]
+				""");
+		value = JSON.readEntity(EntityBase.class, reader);
+		assertNotNull(value);
+		assertTrue(value instanceof List);
+
+		reader = new StringReader("""
+				[
+				"AAAAAA",
+				"BBBBBBB N"
+				]
+				""");
+		value = JSON.readEntity(EntityBase.class, reader);
+		final List<?> list = (List<?>) value;
+		assertEquals(list.get(0), "AAAAAA");
+		assertEquals(list.get(1), "BBBBBBB N");
+
+		reader = new StringReader(FormattedJSON.FORAMTTED_JSON);
+		value = JSON.readEntity(EntityBase.class, reader);
+		assertNotNull(value);
+		EntityBase.assertEntity(EntityBase.createMinValue(), (EntityBase) value);
+
+	}
+
 }

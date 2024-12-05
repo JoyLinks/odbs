@@ -109,7 +109,7 @@ public class EntityBase {
 		entity.setFloatObject(Float.valueOf(Float.MIN_VALUE));
 		entity.setDoubleObject(Double.valueOf(Double.MIN_VALUE));
 		entity.setStringObject("");
-		entity.setDateObject(new Date());
+		entity.setDateObject(new Date(0));
 		entity.setLocalDateObject(LocalDate.MIN);
 		entity.setLocalTimeObject(LocalTime.MIN);
 		entity.setLocalDateTimeObject(LocalDateTime.MIN);

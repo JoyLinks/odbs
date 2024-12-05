@@ -753,32 +753,36 @@ public final class ODBSJson {
 
 	private final Object readEntity(ODBSDescription description, Object entity, JSONCodec reader) throws IOException, ParseException {
 		// 开始
-		if (reader.readSkip() == JSONCodec.OBJECT_BEGIN) {
-			// 开始读取跟对象 {...}
-			entity = readEntity(description, entity, reader, true);
-		} else if (reader.lastChar() == JSONCodec.ARRAY_BEGIN) {
-			// 开始读取跟数组 [] [...]
-			// 如果数组元素为JSON对象则类型为指定的类型
-			// [{},{}]
-			// 如果数据元素为基础数据类型，则全部按字符串读取，因为Java不支持JavaScript的混合类型
-			// ["A","B"]、[true,false]、[1,2,3]
-			final List<Object> list = new ArrayList<>();
-			while (reader.lastChar() != JSONCodec.ARRAY_END) {
-				if (reader.readSkip() == JSONCodec.OBJECT_BEGIN) {
-					list.add(readEntity(description, null, reader, false));
-				} else if (reader.lastChar() == JSONCodec.ARRAY_END) {
-					// 空集合[]
-					break;
-				} else {
-					if (reader.readValue()) {
-						// 值数组已字符串方式返回
-						list.add(reader.getString());
+		if (reader.readSkip() > 0) {
+			if (reader.lastChar() == JSONCodec.OBJECT_BEGIN) {
+				// 开始读取跟对象 {...}
+				entity = readEntity(description, entity, reader, true);
+			} else if (reader.lastChar() == JSONCodec.ARRAY_BEGIN) {
+				// 开始读取跟数组 [] [...]
+				// 如果数组元素为JSON对象则类型为指定的类型
+				// [{},{}]
+				// 如果数据元素为基础数据类型，则全部按字符串读取，因为Java不支持JavaScript的混合类型
+				// ["A","B"]、[true,false]、[1,2,3]
+				final List<Object> list = new ArrayList<>();
+				while (reader.lastChar() != JSONCodec.ARRAY_END) {
+					if (reader.readSkip() == JSONCodec.OBJECT_BEGIN) {
+						list.add(readEntity(description, null, reader, false));
+					} else if (reader.lastChar() == JSONCodec.ARRAY_END) {
+						// 空集合[]
+						break;
+					} else {
+						if (reader.readValue()) {
+							// 值数组以字符串方式返回
+							list.add(reader.getString());
+						}
 					}
 				}
+				entity = list;
+			} else {
+				throw new ParseException("意外的开始字符:\'" + reader.lastChar() + "\' " + reader.lastValue(), 0);
 			}
-			entity = list;
 		} else {
-			throw new ParseException("意外的开始字符:\'" + reader.lastChar() + "\' " + reader.lastValue(), 0);
+			// 流已结束
 		}
 		return entity;
 	}

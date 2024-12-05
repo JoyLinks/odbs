@@ -349,10 +349,19 @@ public final class ODBSReflect {
 	}
 
 	/**
-	 * 扫描指定模块/包中的所有类和资源
+	 * 扫描指定模块/包中的所有类和资源<br>
+	 * 模块名称 "com.joyzl.odbs"<br>
+	 * 包名称 "com.joyzl.odbs.test"<br>
+	 * 或模块中的包名称 "com.joyzl.odbs/com.joyzl.odbs.test"<br>
 	 */
 	public final static List<String> scan(String name) {
-		List<String> resources = scanModule(name);
+		List<String> resources;
+		int index = name.indexOf('/');
+		if (index > 0 && index < name.length() - 1) {
+			resources = scanModule(name.substring(0, index), name.substring(index + 1));
+		} else {
+			resources = scanModule(name, null);
+		}
 		if (resources == null || resources.isEmpty()) {
 			resources = scanPackage(name);
 		}
@@ -389,11 +398,11 @@ public final class ODBSReflect {
 	/**
 	 * 扫描指定模块中的所有类和资源
 	 * 
-	 * @see #scanModule(String)
+	 * @see #scanModule(String,String)
 	 */
 	public final static List<String> scanModule(Module module) {
 		if (module.isNamed()) {
-			return scanModule(module.getName());
+			return scanModule(module.getName(), null);
 		} else {
 			return null;
 		}
@@ -402,13 +411,26 @@ public final class ODBSReflect {
 	/**
 	 * 扫描指定模块中的所有类和资源
 	 * 
-	 * @param module 模块名称例如"com.joyzl.odbs"
-	 * @return null/List&lt;String&gt;
+	 * @see #scanModule(String,String)
 	 */
 	public final static List<String> scanModule(String module) {
-		final Optional<ResolvedModule> optional = ModuleLayer.boot().configuration().findModule(module);
+		return scanModule(module, null);
+	}
+
+	/**
+	 * 扫描指定模块中的所有类和资源
+	 * 
+	 * @param name 模块名称例如"com.joyzl.odbs"
+	 * @param pkg 模块中的包"com.joyzl.odbs.test"
+	 * @return null/List&lt;String&gt;
+	 */
+	public final static List<String> scanModule(String name, String pkg) {
+		final Optional<ResolvedModule> optional = ModuleLayer.boot().configuration().findModule(name);
 		if (optional.isEmpty()) {
 			return null;
+		}
+		if (pkg != null) {
+			pkg = pkg.replace('.', '/');
 		}
 		final List<String> resources = new ArrayList<>();
 		try (ModuleReader reader = optional.get().reference().open()) {
@@ -419,7 +441,11 @@ public final class ODBSReflect {
 				if (resource.endsWith("/")) {
 					continue;
 				}
+				if (pkg != null && !resource.startsWith(pkg)) {
+					continue;
+				}
 				resources.add(resource);
+				// System.out.println(resource);
 			}
 			return resources;
 		} catch (IOException ex) {
@@ -439,17 +465,21 @@ public final class ODBSReflect {
 	/**
 	 * 扫描指定包中的所有类和资源
 	 * 
-	 * @param module 包名称例如"com.joyzl.odbs"
+	 * @param name 包名称例如"com.joyzl.odbs"
 	 * @return null/List&lt;String&gt;
 	 */
 	public final static List<String> scanPackage(String name) {
 		final String path = name.replace('.', '/');
+		// System.out.println("scanPackage:" + name);
 		try {
 			URL url;
 			final List<String> resources = new ArrayList<>();
-			final Enumeration<URL> urls = Thread.currentThread().getContextClassLoader().getResources(path);
+			// final Enumeration<URL> urls =
+			// Thread.currentThread().getContextClassLoader().getResources(path);
+			final Enumeration<URL> urls = ClassLoader.getSystemClassLoader().getResources(path);
 			while (urls.hasMoreElements()) {
 				url = urls.nextElement();
+				// System.out.println(url);
 				if (url == null) {
 				} else if ("file".equalsIgnoreCase(url.getProtocol())) {
 					scanPackage(new File(url.toURI()), path, resources);
