@@ -63,7 +63,7 @@ public final class ODBSReflect {
 		}
 		if (clazz.isMemberClass()) {
 			// 成员类(类中定义的类)
-			return false;
+			return true;
 		}
 		if (clazz.isLocalClass()) {
 			// 局部类(方法中定义的类)

@@ -6,7 +6,7 @@
 
 	<groupId>com.joyzl</groupId>
 	<artifactId>odbs</artifactId>
-	<version>2.2.7</version>
+	<version>2.2.8</version>
 	<name>ODBS</name>
 	<description>Java对象序列化，同时支持二进制和JSON格式</description>
 	<url>https://github.com/JoyLinks/odbs</url>
