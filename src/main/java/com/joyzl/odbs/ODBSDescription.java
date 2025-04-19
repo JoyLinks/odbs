@@ -111,7 +111,7 @@ public final class ODBSDescription {
 			}
 		}
 		if (setters.size() > 0) {
-			settersIterator = getters.iterator();
+			settersIterator = setters.iterator();
 			while (settersIterator.hasNext()) {
 				setter = settersIterator.next();
 				fields.add(new ODBSField(null, setter));

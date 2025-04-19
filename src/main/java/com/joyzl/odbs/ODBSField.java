@@ -31,7 +31,11 @@ public final class ODBSField {
 
 		// getUser/isUser -> User
 		// 20230713 为JSON预制多种名称格式
-		NAMES = JSONName.precut(getter.getName());
+		if (getter != null) {
+			NAMES = JSONName.precut(getter.getName());
+		} else {
+			NAMES = JSONName.precut(setter.getName());
+		}
 
 		Class<?> getterType = null, setterType = null;
 		if (getter != null) {
