@@ -132,14 +132,14 @@ public final class ODBS {
 
 		final ODBS odbs = new ODBS();
 
-		TreeSet<Class<?>> enums = new TreeSet<>(new Comparator<Class<?>>() {
+		final TreeSet<Class<?>> enums = new TreeSet<>(new Comparator<Class<?>>() {
 			@Override
 			public int compare(Class<?> c1, Class<?> c2) {
 				// 必须指定排序以确保服务端和客户端获得相同的排列方式
 				return c1.getName().compareTo(c2.getName());
 			}
 		});
-		TreeSet<Class<?>> classes = new TreeSet<>(new Comparator<Class<?>>() {
+		final TreeSet<Class<?>> classes = new TreeSet<>(new Comparator<Class<?>>() {
 			@Override
 			public int compare(Class<?> c1, Class<?> c2) {
 				// 必须指定排序以确保服务端和客户端获得相同的排列方式
@@ -183,7 +183,7 @@ public final class ODBS {
 		// 因为字段类型可能会引用到具体的实体和枚举，需要通过索引进行标识
 		// 遍历同时生成签名
 		try {
-			MessageDigest messageDigest = MessageDigest.getInstance("SHA1");
+			final MessageDigest messageDigest = MessageDigest.getInstance("SHA1");
 			for (ODBSDescription description : odbs.DESCRIPTIONS) {
 				messageDigest.update(description.getName().getBytes());
 				for (ODBSField field : description.getFields()) {

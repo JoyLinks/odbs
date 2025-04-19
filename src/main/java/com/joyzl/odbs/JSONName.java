@@ -61,6 +61,10 @@ public enum JSONName {
 			name = name.substring(2);
 		} else if (name.startsWith("get")) {
 			name = name.substring(3);
+		} else if (name.startsWith("set")) {
+			name = name.substring(3);
+		} else {
+			throw new IllegalArgumentException("方法名无效");
 		}
 
 		// DEFAULT

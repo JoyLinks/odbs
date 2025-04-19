@@ -155,45 +155,47 @@ public final class ODBSJson {
 		ODBSField field;
 		for (int index = 0; index < description.getFieldCount(); index++) {
 			field = description.getField(index);
-			value = field.getValue(entity);
-			if (value == null) {
-				if (IGNORE_NULL) {
-					// 忽略空值
-				} else {
+			if (field.hasGetter()) {
+				value = field.getValue(entity);
+				if (value == null) {
+					if (IGNORE_NULL) {
+						// 忽略空值
+					} else {
+						writer.writeKey(field.getName(KEY_NAME_FORMAT));
+						writer.writeValue(JSONCodec.NULL);
+					}
+					continue;
+				} else if (ODBSTypes.isValue(field.getType().value())) {
 					writer.writeKey(field.getName(KEY_NAME_FORMAT));
-					writer.writeValue(JSONCodec.NULL);
+					writeValue(field.getType().value(), value, writer);
+				} else if (ODBSTypes.isBase(field.getType().value())) {
+					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writeBase(field.getType().value(), value, writer);
+				} else if (ODBSTypes.isEnum(field.getType().value())) {
+					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writeEnum(field.getType().value(), value, writer);
+				} else if (ODBSTypes.isEntity(field.getType().value())) {
+					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writeEntity(field.getType().value(), value, writer);
+				} else if (ODBSTypes.isArray(field.getType().value())) {
+					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writeArray(field.getType().further(), value, writer);
+				} else if (ODBSTypes.isList(field.getType().value())) {
+					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writeList(field.getType().further(), (List<?>) value, writer);
+				} else if (ODBSTypes.isSet(field.getType().value())) {
+					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writeSet(field.getType().further(), (Set<?>) value, writer);
+				} else if (ODBSTypes.isMap(field.getType().value())) {
+					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writeMap(field.getType().further(), (Map<?, ?>) value, writer);
+				} else if (ODBSTypes.isAny(field.getType().value())) {
+					// TODO 需要优化，目前仅转换为字符串输出
+					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writer.writeString(value.toString());
+				} else {
+					throw new IllegalStateException("不支持的数据类型:" + field);
 				}
-				continue;
-			} else if (ODBSTypes.isValue(field.getType().value())) {
-				writer.writeKey(field.getName(KEY_NAME_FORMAT));
-				writeValue(field.getType().value(), value, writer);
-			} else if (ODBSTypes.isBase(field.getType().value())) {
-				writer.writeKey(field.getName(KEY_NAME_FORMAT));
-				writeBase(field.getType().value(), value, writer);
-			} else if (ODBSTypes.isEnum(field.getType().value())) {
-				writer.writeKey(field.getName(KEY_NAME_FORMAT));
-				writeEnum(field.getType().value(), value, writer);
-			} else if (ODBSTypes.isEntity(field.getType().value())) {
-				writer.writeKey(field.getName(KEY_NAME_FORMAT));
-				writeEntity(field.getType().value(), value, writer);
-			} else if (ODBSTypes.isArray(field.getType().value())) {
-				writer.writeKey(field.getName(KEY_NAME_FORMAT));
-				writeArray(field.getType().further(), value, writer);
-			} else if (ODBSTypes.isList(field.getType().value())) {
-				writer.writeKey(field.getName(KEY_NAME_FORMAT));
-				writeList(field.getType().further(), (List<?>) value, writer);
-			} else if (ODBSTypes.isSet(field.getType().value())) {
-				writer.writeKey(field.getName(KEY_NAME_FORMAT));
-				writeSet(field.getType().further(), (Set<?>) value, writer);
-			} else if (ODBSTypes.isMap(field.getType().value())) {
-				writer.writeKey(field.getName(KEY_NAME_FORMAT));
-				writeMap(field.getType().further(), (Map<?, ?>) value, writer);
-			} else if (ODBSTypes.isAny(field.getType().value())) {
-				// TODO 需要优化，目前仅转换为字符串输出
-				writer.writeKey(field.getName(KEY_NAME_FORMAT));
-				writer.writeString(value.toString());
-			} else {
-				throw new IllegalStateException("不支持的数据类型:" + field);
 			}
 		}
 		writer.writeTag(JSONCodec.OBJECT_END);
@@ -826,34 +828,38 @@ public final class ODBSJson {
 						throw new IOException("未定义的字段:" + reader.getString());
 					}
 				} else {
-					// "key":value
-					// 必须具有可读值，否则认为JSON格式错误
-					if (ODBSTypes.isValue(field.getType().value())) {
-						field.setValue(entity, readValue(field.getType(), reader));
-					} else if (ODBSTypes.isBase(field.getType().value())) {
-						field.setValue(entity, readBase(field.getType(), reader));
-					} else if (ODBSTypes.isEnum(field.getType().value())) {
-						field.setValue(entity, readEnum(field.getType(), reader));
-					} else if (ODBSTypes.isEntity(field.getType().value())) {
-						field.setValue(entity, readEntity(field.getType(), reader, false));
-					} else if (ODBSTypes.isArray(field.getType().value())) {
-						field.setValue(entity, readArray(field.getType().further(), reader));
-					} else if (ODBSTypes.isList(field.getType().value())) {
-						field.setValue(entity, readList(field.getValue(entity), field.getType().further(), reader));
-					} else if (ODBSTypes.isSet(field.getType().value())) {
-						field.setValue(entity, readSet(field.getValue(entity), field.getType().further(), reader));
-					} else if (ODBSTypes.isMap(field.getType().value())) {
-						field.setValue(entity, readMap(field.getValue(entity), field.getType().further(), reader));
-					} else if (ODBSTypes.isAny(field.getType().value())) {
-						// TODO 需要优化,目前仅支持基础值
-						// FIXME 如果泛型未明确会出现错误
-						if (reader.readValue()) {
-							field.setValue(entity, reader.getString());
+					if (field.hasSetter()) {
+						// "key":value
+						// 必须具有可读值，否则认为JSON格式错误
+						if (ODBSTypes.isValue(field.getType().value())) {
+							field.setValue(entity, readValue(field.getType(), reader));
+						} else if (ODBSTypes.isBase(field.getType().value())) {
+							field.setValue(entity, readBase(field.getType(), reader));
+						} else if (ODBSTypes.isEnum(field.getType().value())) {
+							field.setValue(entity, readEnum(field.getType(), reader));
+						} else if (ODBSTypes.isEntity(field.getType().value())) {
+							field.setValue(entity, readEntity(field.getType(), reader, false));
+						} else if (ODBSTypes.isArray(field.getType().value())) {
+							field.setValue(entity, readArray(field.getType().further(), reader));
+						} else if (ODBSTypes.isList(field.getType().value())) {
+							field.setValue(entity, readList(field.getValue(entity), field.getType().further(), reader));
+						} else if (ODBSTypes.isSet(field.getType().value())) {
+							field.setValue(entity, readSet(field.getValue(entity), field.getType().further(), reader));
+						} else if (ODBSTypes.isMap(field.getType().value())) {
+							field.setValue(entity, readMap(field.getValue(entity), field.getType().further(), reader));
+						} else if (ODBSTypes.isAny(field.getType().value())) {
+							// TODO 需要优化,目前仅支持基础值
+							// FIXME 如果泛型未明确会出现错误
+							if (reader.readValue()) {
+								field.setValue(entity, reader.getString());
+							} else {
+								field.setValue(entity, null);
+							}
 						} else {
-							field.setValue(entity, null);
+							throw new IllegalStateException("意外的字段类型 " + field.getType());
 						}
 					} else {
-						throw new IllegalStateException("意外的字段类型 " + field.getType());
+						reader.readIgnore();
 					}
 				}
 			} else {
@@ -1720,42 +1726,54 @@ public final class ODBSJson {
 	 */
 	private final Object readBase(ODBSType type, JSONCodec reader) throws IOException, ParseException {
 		if (reader.readValue()) {
-			if (reader.isNull()) {
-				return null;
-			} else {
-				switch (type.value()) {
-					case ODBSTypes.BOOLEAN:
-						return "true".contentEquals(reader.getCharSequence()) ? Boolean.TRUE : Boolean.FALSE;
-					case ODBSTypes.BYTE:
-						return Byte.valueOf((byte) Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
-					case ODBSTypes.CHARACTER:
-						// 20230713 Character=0 特殊控制字符输出时为空字符串
-						return reader.hasString() ? reader.getCharSequence().charAt(0) : ODBSTypes.DEFAULT_CHAR;
-					case ODBSTypes.SHORT:
-						return Short.valueOf((short) Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
-					case ODBSTypes.INTEGER:
-						return Integer.valueOf(Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
-					case ODBSTypes.LONG:
-						return Long.valueOf(Long.parseLong(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
-					case ODBSTypes.FLOAT:
-						return Float.valueOf(reader.getString());
-					case ODBSTypes.DOUBLE:
-						return Double.valueOf(reader.getString());
-					case ODBSTypes.BIG_DECIMAL:
-						return new BigDecimal(reader.getString());
-					case ODBSTypes.DATE:
-						return reader.DATE_FORMAT.parse(reader.getString());
-					case ODBSTypes.LOCAL_TIME:
-						return LocalTime.parse(reader.getCharSequence(), TIME_FORMATTER);
-					case ODBSTypes.LOCAL_DATE:
-						return LocalDate.parse(reader.getCharSequence(), DATE_FORMATTER);
-					case ODBSTypes.LOCAL_DATE_TIME:
-						return LocalDateTime.parse(reader.getCharSequence(), DATE_TIME_FORMATTER);
-					case ODBSTypes.STRING:
-						return reader.getString();
-					default:
-						throw new IllegalStateException("意外的基础类型:" + type);
+			if (reader.hasString()) {
+				if (reader.isNull()) {
+					return null;
+				} else {
+					switch (type.value()) {
+						case ODBSTypes.BOOLEAN:
+							return "true".contentEquals(reader.getCharSequence()) ? Boolean.TRUE : Boolean.FALSE;
+						case ODBSTypes.BYTE:
+							return Byte.valueOf((byte) Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
+						case ODBSTypes.CHARACTER:
+							// 20230713 Character=0 特殊控制字符输出时为空字符串
+							return reader.hasString() ? reader.getCharSequence().charAt(0) : ODBSTypes.DEFAULT_CHAR;
+						case ODBSTypes.SHORT:
+							return Short.valueOf((short) Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
+						case ODBSTypes.INTEGER:
+							return Integer.valueOf(Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
+						case ODBSTypes.LONG:
+							return Long.valueOf(Long.parseLong(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
+						case ODBSTypes.FLOAT:
+							return Float.valueOf(reader.getString());
+						case ODBSTypes.DOUBLE:
+							return Double.valueOf(reader.getString());
+						case ODBSTypes.BIG_DECIMAL:
+							return new BigDecimal(reader.getString());
+						case ODBSTypes.DATE:
+							return reader.DATE_FORMAT.parse(reader.getString());
+						case ODBSTypes.LOCAL_TIME:
+							return LocalTime.parse(reader.getCharSequence(), TIME_FORMATTER);
+						case ODBSTypes.LOCAL_DATE:
+							return LocalDate.parse(reader.getCharSequence(), DATE_FORMATTER);
+						case ODBSTypes.LOCAL_DATE_TIME:
+							return LocalDateTime.parse(reader.getCharSequence(), DATE_TIME_FORMATTER);
+						case ODBSTypes.STRING:
+							return reader.getString();
+						default:
+							throw new IllegalStateException("意外的基础类型:" + type);
+					}
 				}
+			} else {
+				// ""
+				// 20250116 处理空字符串
+				if (type.value() == ODBSTypes.STRING) {
+					return reader.getString();
+				}
+				if (type.value() == ODBSTypes.CHARACTER) {
+					return ODBSTypes.DEFAULT_CHAR;
+				}
+				return null;
 			}
 		} else {
 			throw new ParseException("期望值:" + type, reader.getIndex());
@@ -1851,28 +1869,7 @@ public final class ODBSJson {
 	 */
 	private final Object readValue(ODBSType type, JSONCodec reader) throws IOException, ParseException {
 		if (reader.readValue()) {
-			if (reader.isNull()) {
-				switch (type.value()) {
-					case ODBSTypes._boolean:
-						return Boolean.FALSE;
-					case ODBSTypes._byte:
-						return ODBSTypes.DEFAULT_BYTE;
-					case ODBSTypes._char:
-						return ODBSTypes.DEFAULT_CHAR;
-					case ODBSTypes._short:
-						return ODBSTypes.DEFAULT_SHORT;
-					case ODBSTypes._int:
-						return ODBSTypes.DEFAULT_INTEGER;
-					case ODBSTypes._long:
-						return ODBSTypes.DEFAULT_LONG;
-					case ODBSTypes._float:
-						return ODBSTypes.DEFAULT_FLOAT;
-					case ODBSTypes._double:
-						return ODBSTypes.DEFAULT_DOUBLE;
-					default:
-						throw new IllegalStateException("意外的值类型:" + type);
-				}
-			} else {
+			if (reader.hasString()) {
 				switch (type.value()) {
 					case ODBSTypes._boolean:
 						return "true".contentEquals(reader.getCharSequence());
@@ -1891,6 +1888,29 @@ public final class ODBSJson {
 						return Float.parseFloat(reader.getString());
 					case ODBSTypes._double:
 						return Double.parseDouble(reader.getString());
+					default:
+						throw new IllegalStateException("意外的值类型:" + type);
+				}
+			} else {
+				// null / ""
+				// 20250116 忽略空字符串
+				switch (type.value()) {
+					case ODBSTypes._boolean:
+						return Boolean.FALSE;
+					case ODBSTypes._byte:
+						return ODBSTypes.DEFAULT_BYTE;
+					case ODBSTypes._char:
+						return ODBSTypes.DEFAULT_CHAR;
+					case ODBSTypes._short:
+						return ODBSTypes.DEFAULT_SHORT;
+					case ODBSTypes._int:
+						return ODBSTypes.DEFAULT_INTEGER;
+					case ODBSTypes._long:
+						return ODBSTypes.DEFAULT_LONG;
+					case ODBSTypes._float:
+						return ODBSTypes.DEFAULT_FLOAT;
+					case ODBSTypes._double:
+						return ODBSTypes.DEFAULT_DOUBLE;
 					default:
 						throw new IllegalStateException("意外的值类型:" + type);
 				}

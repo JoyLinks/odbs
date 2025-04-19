@@ -159,6 +159,18 @@ public final class ODBSReflect {
 			return false;
 		}
 
+		if (Modifier.isNative(method.getModifiers())) {
+			return false;
+		}
+		if (Modifier.isStatic(method.getModifiers())) {
+			return false;
+		}
+		if (Modifier.isTransient(method.getModifiers())) {
+			return false;
+		}
+		if (Modifier.isAbstract(method.getModifiers())) {
+			return false;
+		}
 		if (Modifier.isPublic(method.getModifiers())) {
 			if (method.getParameterCount() > 1) {
 				// 参数过多
@@ -232,6 +244,7 @@ public final class ODBSReflect {
 	 */
 	public final static Class<?>[] findGeneric(Method method) {
 		Type returnType = method.getGenericReturnType();
+
 		if (returnType instanceof ParameterizedType) {
 			ParameterizedType param = (ParameterizedType) returnType;
 			Type[] actualTypes = param.getActualTypeArguments();

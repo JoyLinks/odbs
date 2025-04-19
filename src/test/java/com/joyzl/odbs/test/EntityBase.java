@@ -431,4 +431,8 @@ public class EntityBase {
 	public void setEnumCodeTexts(EnumCodeTexts value) {
 		enumCodeTexts = value;
 	}
+
+	public String getName() {
+		return "name";
+	}
 }

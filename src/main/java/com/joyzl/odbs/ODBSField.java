@@ -18,7 +18,6 @@ import java.util.Map;
  */
 public final class ODBSField {
 
-	private final int INDEX;
 	private final String[] NAMES;
 	private final Method GETTER;
 	private final Method SETTER;
@@ -26,30 +25,37 @@ public final class ODBSField {
 	private final Object defaultValue;
 	private ODBSType type;
 
-	public ODBSField(Method getter, Method setter, int idx) {
+	ODBSField(Method getter, Method setter) {
 		GETTER = getter;
 		SETTER = setter;
-		INDEX = idx;
+
 		// getUser/isUser -> User
-		// NAME = getter.getName().startsWith("is") ?
-		// getter.getName().substring(2) : getter.getName().substring(3);
-		// 20230713 为JSON支持多种名称格式
+		// 20230713 为JSON预制多种名称格式
 		NAMES = JSONName.precut(getter.getName());
 
-		getter.setAccessible(true);
-		setter.setAccessible(true);
+		Class<?> getterType = null, setterType = null;
+		if (getter != null) {
+			getter.setAccessible(true);
+			getterType = getter.getReturnType();
+		}
+		if (setter != null) {
+			setter.setAccessible(true);
+			setterType = setter.getParameterTypes()[0];
+		}
 
-		Class<?> getterType = getter.getReturnType();
-		Class<?> setterType = setter.getParameterTypes()[0];
-		if (getterType == setterType) {
+		if (getterType != null && setterType != null) {
+			if (getterType == setterType) {
+				defaultValue = ODBSTypes.getDefaultValue(setterType);
+			} else {
+				throw new IllegalArgumentException("GETTER " + getter + " 和 SETTER " + setter + " 类型不匹配");
+			}
+		} else if (getterType != null) {
+			defaultValue = ODBSTypes.getDefaultValue(getterType);
+		} else if (setterType != null) {
 			defaultValue = ODBSTypes.getDefaultValue(setterType);
 		} else {
-			throw new IllegalArgumentException("GETTER " + getter + " 和 SETTER " + setter + " 数据类型不匹配");
+			throw new IllegalArgumentException("未指定有效方法");
 		}
-	}
-
-	public final int getIndex() {
-		return INDEX;
 	}
 
 	/**
@@ -166,7 +172,25 @@ public final class ODBSField {
 	 * 因为字段类型可能会引用到具体的实体和枚举，需要通过索引进行标识
 	 */
 	public final void makeType(ODBS odbs) {
-		type = ODBSType.make(odbs, GETTER.getReturnType(), ODBSReflect.findGeneric(GETTER));
+		if (GETTER != null) {
+			type = ODBSType.make(odbs, GETTER.getReturnType(), ODBSReflect.findGeneric(GETTER));
+			return;
+		}
+		if (SETTER != null) {
+			type = ODBSType.make(odbs, SETTER.getParameterTypes()[0], ODBSReflect.findGeneric(SETTER));
+		}
+	}
+
+	public boolean isPaired() {
+		return SETTER != null && GETTER != null;
+	}
+
+	public boolean hasSetter() {
+		return SETTER != null;
+	}
+
+	public boolean hasGetter() {
+		return GETTER != null;
 	}
 
 	@Override

@@ -10,8 +10,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.TreeSet;
 
 /**
@@ -31,10 +31,10 @@ public final class ODBSDescription {
 	private Class<?> override;
 	private Constructor<?> override_constructor;
 
-	public ODBSDescription(Class<?> clazz, int idx) {
+	public ODBSDescription(Class<?> clazz, int index) {
 		CLASS = clazz;
 		NAME = clazz.getCanonicalName();
-		INDEX = idx;
+		INDEX = index;
 
 		try {
 			CLASS_CONSTRUCTOR = clazz.getConstructor();
@@ -44,39 +44,77 @@ public final class ODBSDescription {
 		}
 
 		// 查找所有有效的方法
-		HashMap<String, Method> getter_setter = new HashMap<>();
-		Method[] methods = clazz.getMethods();
+		// 20250414修正重载方法干扰
+		final HashSet<Method> getters = new HashSet<>();
+		final HashSet<Method> setters = new HashSet<>();
+		final Method[] methods = clazz.getMethods();
 		for (Method method : methods) {
 			if (ODBSReflect.canSerialize(method)) {
-				getter_setter.put(method.getName().toLowerCase(), method);
+				if (method.getName().startsWith("get") || method.getName().startsWith("is")) {
+					if (method.getParameterCount() == 0 && method.getReturnType() != Void.TYPE) {
+						getters.add(method);
+					}
+					continue;
+				}
+				if (method.getName().startsWith("set")) {
+					if (method.getParameterCount() == 1 && method.getReturnType() == Void.TYPE) {
+						setters.add(method);
+					}
+				}
 			}
 		}
 
-		// get和set需要对应,否则序列化之后无法对象化
+		// get和set需要对应,否则序列化之后无法还原对象
+		// 支持未对应的方法，在JSON序列化时可用
 		// 通过get获取值,通过set设置值
 
-		idx = 0;
-		TreeSet<ODBSField> fields = new TreeSet<>(new Comparator<ODBSField>() {
+		final TreeSet<ODBSField> fields = new TreeSet<>(new Comparator<ODBSField>() {
 			@Override
 			public int compare(ODBSField f1, ODBSField f2) {
 				return f1.getName().compareTo(f2.getName());
 			}
 		});
 
-		Method setter = null, getter = null;
-		// TODO 同名类型匹配
-		for (Map.Entry<String, Method> entry : getter_setter.entrySet()) {
-			getter = entry.getValue();
-			if (entry.getKey().startsWith("get")) {
-				setter = getter_setter.get("set" + entry.getKey().substring(3));
-			} else if (entry.getKey().startsWith("is")) {
-				setter = getter_setter.get("set" + entry.getKey().substring(2));
+		String name;
+		Method getter, setter;
+		Iterator<Method> settersIterator;
+		Iterator<Method> gettersIterator = getters.iterator();
+		while (gettersIterator.hasNext()) {
+			getter = gettersIterator.next();
+			if (getter.getName().startsWith("get")) {
+				name = "set" + getter.getName().substring(3);
+			} else if (getter.getName().startsWith("is")) {
+				name = "set" + getter.getName().substring(2);
+			} else {
+				gettersIterator.remove();
+				continue;
 			}
 
-			if (setter != null) {
-				if (setter.getParameterCount() == 1 && getter.getParameterCount() == 0 && getter.getReturnType() != Void.TYPE) {
-					fields.add(new ODBSField(entry.getValue(), setter, idx++));
+			settersIterator = setters.iterator();
+			while (settersIterator.hasNext()) {
+				setter = settersIterator.next();
+				if (setter.getName().equals(name)) {
+					if (setter.getParameterTypes()[0] == getter.getReturnType()) {
+						fields.add(new ODBSField(getter, setter));
+						gettersIterator.remove();
+						settersIterator.remove();
+						break;
+					}
 				}
+			}
+		}
+		if (getters.size() > 0) {
+			gettersIterator = getters.iterator();
+			while (gettersIterator.hasNext()) {
+				getter = gettersIterator.next();
+				fields.add(new ODBSField(getter, null));
+			}
+		}
+		if (setters.size() > 0) {
+			settersIterator = getters.iterator();
+			while (settersIterator.hasNext()) {
+				setter = settersIterator.next();
+				fields.add(new ODBSField(null, setter));
 			}
 		}
 

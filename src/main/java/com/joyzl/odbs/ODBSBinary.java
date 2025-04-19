@@ -6,6 +6,8 @@
 package com.joyzl.odbs;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.joyzl.codec.BigEndianInputStream;
+import com.joyzl.codec.BigEndianOutputStream;
 import com.joyzl.codec.DataInput;
 import com.joyzl.codec.DataOutput;
 
@@ -38,6 +42,10 @@ public final class ODBSBinary extends ODBSTypes {
 			throw new NullPointerException("ODBS");
 		}
 		odbs = o;
+	}
+
+	public final void writeEntity(Object entity, OutputStream output) throws IOException {
+		writeEntity(entity, (DataOutput) new BigEndianOutputStream(output));
 	}
 
 	public final void writeEntity(Object entity, DataOutput writer) throws IOException {
@@ -75,35 +83,38 @@ public final class ODBSBinary extends ODBSTypes {
 		ODBSField field;
 		for (int index = 0; index < description.getFieldCount(); index++) {
 			field = description.getField(index);
-			value = field.getValue(entity);
-			if (field.isDefaultValue(value)) {
-				// 字段为值类型 0 值无须传递
-				// 字段为对象类型 null 值无须传递
-				continue;
-			} else {
-				// 字段索引
-				writer.writeVarint(index);
-				// 字段值
-				if (ODBSTypes.isValue(field.getType().value())) {
-					writeValue(field.getType().value(), value, writer);
-				} else if (ODBSTypes.isBase(field.getType().value())) {
-					writeBase(field.getType().value(), value, writer);
-				} else if (ODBSTypes.isEnum(field.getType().value())) {
-					writeEnum(field.getType().value(), value, writer);
-				} else if (ODBSTypes.isEntity(field.getType().value())) {
-					writeEntity(field.getType().value(), value, writer);
-				} else if (ODBSTypes.isArray(field.getType().value())) {
-					writeArray(field.getType().further(), value, writer);
-				} else if (ODBSTypes.isList(field.getType().value())) {
-					writeList(field.getType().further(), (List<?>) value, writer);
-				} else if (ODBSTypes.isSet(field.getType().value())) {
-					writeSet(field.getType().further(), (Set<?>) value, writer);
-				} else if (ODBSTypes.isMap(field.getType().value())) {
-					writeMap(field.getType().further(), (Map<?, ?>) value, writer);
-				} else if (ODBSTypes.isAny(field.getType().value())) {
-					writeObject(value, writer);
+			// 二进制仅序列化成对字段
+			if (field.isPaired()) {
+				value = field.getValue(entity);
+				if (field.isDefaultValue(value)) {
+					// 字段为值类型 0 值无须传递
+					// 字段为对象类型 null 值无须传递
+					continue;
 				} else {
-					throw new IllegalStateException("不支持的数据类型" + entity.getClass() + " " + field.getName());
+					// 字段索引
+					writer.writeVarint(index);
+					// 字段值
+					if (ODBSTypes.isValue(field.getType().value())) {
+						writeValue(field.getType().value(), value, writer);
+					} else if (ODBSTypes.isBase(field.getType().value())) {
+						writeBase(field.getType().value(), value, writer);
+					} else if (ODBSTypes.isEnum(field.getType().value())) {
+						writeEnum(field.getType().value(), value, writer);
+					} else if (ODBSTypes.isEntity(field.getType().value())) {
+						writeEntity(field.getType().value(), value, writer);
+					} else if (ODBSTypes.isArray(field.getType().value())) {
+						writeArray(field.getType().further(), value, writer);
+					} else if (ODBSTypes.isList(field.getType().value())) {
+						writeList(field.getType().further(), (List<?>) value, writer);
+					} else if (ODBSTypes.isSet(field.getType().value())) {
+						writeSet(field.getType().further(), (Set<?>) value, writer);
+					} else if (ODBSTypes.isMap(field.getType().value())) {
+						writeMap(field.getType().further(), (Map<?, ?>) value, writer);
+					} else if (ODBSTypes.isAny(field.getType().value())) {
+						writeObject(value, writer);
+					} else {
+						throw new IllegalStateException("不支持的数据类型" + entity.getClass() + " " + field.getName());
+					}
 				}
 			}
 		}
@@ -608,7 +619,11 @@ public final class ODBSBinary extends ODBSTypes {
 	////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////
 
-	public final Object readEntity(Object instence, DataInput reader) throws IOException {
+	public final <T> T readEntity(T instence, InputStream input) throws IOException {
+		return readEntity(instence, (DataInput) new BigEndianInputStream(input));
+	}
+
+	public final <T> T readEntity(T instence, DataInput reader) throws IOException {
 		int type = reader.readVarint();
 		ODBSDescription description = odbs.findDesc(type);
 		return readEntity(description, instence, reader);
@@ -628,12 +643,13 @@ public final class ODBSBinary extends ODBSTypes {
 		return readEntity(description, null, reader);
 	}
 
-	private final Object readEntity(ODBSDescription description, Object entity, DataInput reader) throws IOException {
+	@SuppressWarnings("unchecked")
+	private final <T> T readEntity(ODBSDescription description, T entity, DataInput reader) throws IOException {
 		int empty = 0;
 		ODBSField field = null;
 
 		if (entity == null) {
-			entity = description.newInstence();
+			entity = (T) description.newInstence();
 		}
 
 		// 字段序列
@@ -641,7 +657,10 @@ public final class ODBSBinary extends ODBSTypes {
 		while (index >= 0 && index < description.getFieldCount()) {
 			while (empty < index) {
 				// 将未传递的字段置为默认值
-				description.getField(empty++).setDefault(entity);
+				field = description.getField(empty++);
+				if (field.hasSetter()) {
+					field.setDefault(entity);
+				}
 			}
 			empty++;
 
@@ -674,7 +693,10 @@ public final class ODBSBinary extends ODBSTypes {
 
 		while (empty < index) {
 			// 将未传递的字段置为默认值
-			description.getField(empty++).setDefault(entity);
+			field = description.getField(empty++);
+			if (field.hasSetter()) {
+				field.setDefault(entity);
+			}
 		}
 		return entity;
 	}
