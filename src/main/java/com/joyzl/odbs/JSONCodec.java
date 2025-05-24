@@ -245,7 +245,7 @@ final class JSONCodec {
 				} else {
 					// 值中空白保留
 				}
-				if (quotes == 2) {
+				if (quotes == 0 || quotes == 2) {
 					// 尾随空白过滤
 					// 双引号已成对
 					continue;
