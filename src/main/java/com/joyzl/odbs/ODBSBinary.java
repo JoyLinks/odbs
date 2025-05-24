@@ -44,6 +44,17 @@ public final class ODBSBinary extends ODBSTypes {
 		odbs = o;
 	}
 
+	public final void writeEntities(Collection<? extends Object> entities, OutputStream output) throws IOException {
+		writeEntities(entities, (DataOutput) new BigEndianOutputStream(output));
+	}
+
+	public final void writeEntities(Collection<? extends Object> entities, DataOutput writer) throws IOException {
+		writer.writeVarint(entities.size());
+		for (Object entity : entities) {
+			writeEntity(odbs.findDesc(entity.getClass()), entity, writer);
+		}
+	}
+
 	public final void writeEntity(Object entity, OutputStream output) throws IOException {
 		writeEntity(entity, (DataOutput) new BigEndianOutputStream(output));
 	}
@@ -619,8 +630,50 @@ public final class ODBSBinary extends ODBSTypes {
 	////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////
 
+	public final <T> List<T> readEntities(InputStream input) throws IOException {
+		if (input.available() > 0) {
+			final List<T> entities = new ArrayList<>();
+			readEntities(entities, (DataInput) new BigEndianInputStream(input));
+			return entities;
+		}
+		return null;
+	}
+
+	public final <T> List<T> readEntities(DataInput input) throws IOException {
+		final List<T> entities = new ArrayList<>();
+		readEntities(entities, (DataInput) input);
+		return entities;
+	}
+
+	public final <T> void readEntities(Collection<T> entities, InputStream input) throws IOException {
+		if (input.available() > 0) {
+			readEntities(entities, (DataInput) new BigEndianInputStream(input));
+		}
+	}
+
+	public final <T> void readEntities(Collection<T> entities, DataInput input) throws IOException {
+		int size = input.readVarint();
+		while (size-- > 0) {
+			entities.add(readEntity(null, input));
+		}
+	}
+
+	public final <T> T readEntity(InputStream input) throws IOException {
+		if (input.available() > 0) {
+			return readEntity(null, (DataInput) new BigEndianInputStream(input));
+		}
+		return null;
+	}
+
+	public final <T> T readEntity(DataInput input) throws IOException {
+		return readEntity(null, input);
+	}
+
 	public final <T> T readEntity(T instence, InputStream input) throws IOException {
-		return readEntity(instence, (DataInput) new BigEndianInputStream(input));
+		if (input.available() > 0) {
+			return readEntity(instence, (DataInput) new BigEndianInputStream(input));
+		}
+		return null;
 	}
 
 	public final <T> T readEntity(T instence, DataInput reader) throws IOException {

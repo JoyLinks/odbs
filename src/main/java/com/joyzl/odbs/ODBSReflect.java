@@ -238,9 +238,9 @@ public final class ODBSReflect {
 	}
 
 	/**
-	 * 获取泛型类型,例如List<T>中的T的Class实例
+	 * 获取泛型类型,例如List&lt;T&gt;中的T的Class实例
 	 * 
-	 * @return null / Class<?>[]
+	 * @return null / Class&lt;?&gt;[]
 	 */
 	public final static Class<?>[] findGeneric(Method method) {
 		Type returnType = method.getGenericReturnType();
@@ -267,13 +267,13 @@ public final class ODBSReflect {
 	 * 例如：
 	 * 
 	 * <pre>
-	 * List<String> texts = new ArrayList<>();
+	 * List&lt;String&gt; texts = new ArrayList&lt;&gt;();
 	 * </pre>
 	 * 
 	 * 无法通过 texts.getClass()获取到具体的范型类型；<br>
 	 * 
 	 * <pre>
-	 * List<String> texts = new ArrayList<String>() {
+	 * List&lt;String&gt; texts = new ArrayList&lt;String&gt;() {
 	 * };
 	 * </pre>
 	 * </p>
@@ -281,7 +281,7 @@ public final class ODBSReflect {
 	 * </p>
 	 * 
 	 * @param clazz
-	 * @return null / Class<?>[]
+	 * @return null / Class&lt;?&gt;[]
 	 */
 	public final static Class<?>[] findGeneric(Class<?> clazz) {
 		Type type = clazz.getGenericSuperclass();
@@ -317,7 +317,7 @@ public final class ODBSReflect {
 	}
 
 	/**
-	 * 查找List<T>集合的范型类型
+	 * 查找List&lt;T&gt;集合的范型类型
 	 * 
 	 * @param clazz
 	 * @return 范型类型 / 抛出异常
@@ -332,7 +332,7 @@ public final class ODBSReflect {
 	}
 
 	/**
-	 * 查找Set<T>集合的范型类型
+	 * 查找Set&lt;T&gt;集合的范型类型
 	 * 
 	 * @param clazz
 	 * @return 范型类型 / 抛出异常
@@ -347,7 +347,7 @@ public final class ODBSReflect {
 	}
 
 	/**
-	 * 查找Map<K,V>集合的范型类型
+	 * 查找Map&lt;K,V&gt;集合的范型类型
 	 * 
 	 * @param clazz
 	 * @return 范型类型,数组0为键,1为值 / 抛出异常
@@ -358,6 +358,21 @@ public final class ODBSReflect {
 			return classes;
 		} else {
 			throw new IllegalStateException("Set<T>集合范型类型无效:" + clazz);
+		}
+	}
+
+	/**
+	 * 查找Collection&lt;T&gt;集合的范型类型
+	 * 
+	 * @param clazz
+	 * @return 范型类型 / 抛出异常
+	 */
+	public final static Class<?> findCollectionGeneric(Class<?> clazz) {
+		Class<?>[] classes = ODBSReflect.findGeneric(clazz);
+		if (classes != null && classes.length == 1) {
+			return classes[0];
+		} else {
+			throw new IllegalStateException("Collection<T>集合范型类型无效:" + clazz);
 		}
 	}
 

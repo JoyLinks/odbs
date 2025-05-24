@@ -57,4 +57,15 @@ class TestODBSReflect {
 		items = ODBSReflect.scanClass("com.joyzl");
 		assertTrue(items.size() > 0);
 	}
+
+	@Test
+	void testGeneric() throws Exception {
+		// final List<String> list = new ArrayList<>();
+		// list.add("TEST");
+		//
+		// ODBSReflect.findGeneric(list.getClass().getMethod("get", int.class));
+		//
+		// assertEquals(ODBSReflect.findListGeneric(list.getClass()),
+		// String.class);
+	}
 }

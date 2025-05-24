@@ -5,10 +5,10 @@
  */
 package com.joyzl.odbs.test;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -138,7 +138,7 @@ class TestODBSJson extends TestODBS {
 		final Writer writer = new OutputStreamWriter(output, "UTF-8");
 
 		// 空集合[]
-		JSON.writeEntity(Collections.emptyList(), writer);
+		JSON.writeEntities(Collections.emptyList(), writer);
 		// 空对象{}
 		JSON.writeEntity(new EntityEmpty(), writer);
 		writer.flush();
@@ -152,7 +152,7 @@ class TestODBSJson extends TestODBS {
 		result = JSON.readEntity(EntityBase.class, Reader.nullReader());
 		Assertions.assertNull(result);
 		// 空集合[]
-		result = JSON.readEntity(EntityEmpty.class, reader);
+		result = JSON.readEntities(EntityEmpty.class, reader);
 		Assertions.assertInstanceOf(Collection.class, result);
 		// 空对象{}
 		result = JSON.readEntity(EntityEmpty.class, reader);
@@ -222,13 +222,13 @@ class TestODBSJson extends TestODBS {
 		sources.add(EntityBase.createNullValue());
 		sources.add(EntityBase.createMinValue());
 		sources.add(EntityBase.createMaxValue());
-		JSON.writeEntity(sources, writer);
+		JSON.writeEntities(sources, writer);
 		writer.flush();
 
 		final InputStream input = new ByteArrayInputStream(output.toByteArray());
 		final Reader reader = new InputStreamReader(input, "UTF-8");
 
-		Object targets = JSON.readEntity(EntityBase.class, reader);
+		Object targets = JSON.readEntities(EntityBase.class, reader);
 		assertInstanceOf(Collection.class, targets);
 		Assertions.assertEquals(sources, targets);
 	}
@@ -296,13 +296,13 @@ class TestODBSJson extends TestODBS {
 		sources.add(EntitySet.createNullValue());
 		sources.add(EntitySet.createEmptyValue());
 		sources.add(EntitySet.createNormalValue());
-		JSON.writeEntity(sources, writer);
+		JSON.writeEntities(sources, writer);
 		writer.flush();
 
 		final InputStream input = new ByteArrayInputStream(output.toByteArray());
 		final Reader reader = new InputStreamReader(input, "UTF-8");
 
-		Object targets = JSON.readEntity(EntitySet.class, reader);
+		Object targets = JSON.readEntities(EntitySet.class, reader);
 		assertInstanceOf(Collection.class, targets);
 		// assertEquals(sources, targets);
 	}
@@ -370,13 +370,13 @@ class TestODBSJson extends TestODBS {
 		sources.add(EntityList.createNullValue());
 		sources.add(EntityList.createEmptyValue());
 		sources.add(EntityList.createNormalValue());
-		JSON.writeEntity(sources, writer);
+		JSON.writeEntities(sources, writer);
 		writer.flush();
 
 		final InputStream input = new ByteArrayInputStream(output.toByteArray());
 		final Reader reader = new InputStreamReader(input, "UTF-8");
 
-		Object targets = JSON.readEntity(EntityList.class, reader);
+		Object targets = JSON.readEntities(EntityList.class, reader);
 		assertInstanceOf(Collection.class, targets);
 		// assertEquals(sources, targets);
 	}
@@ -444,13 +444,13 @@ class TestODBSJson extends TestODBS {
 		sources.add(EntityMap.createNullValue());
 		sources.add(EntityMap.createEmptyValue());
 		sources.add(EntityMap.createNormalValue());
-		JSON.writeEntity(sources, writer);
+		JSON.writeEntities(sources, writer);
 		writer.flush();
 
 		final InputStream input = new ByteArrayInputStream(output.toByteArray());
 		final Reader reader = new InputStreamReader(input, "UTF-8");
 
-		Object targets = JSON.readEntity(EntityMap.class, reader);
+		Object targets = JSON.readEntities(EntityMap.class, reader);
 		assertInstanceOf(Collection.class, targets);
 		// assertEquals(sources, targets);
 	}
@@ -613,7 +613,7 @@ class TestODBSJson extends TestODBS {
 				[
 				]
 				""");
-		value = JSON.readEntity(EntityBase.class, reader);
+		value = JSON.readEntities(EntityBase.class, reader);
 		assertNotNull(value);
 		assertTrue(value instanceof List);
 
@@ -623,7 +623,7 @@ class TestODBSJson extends TestODBS {
 				"BBBBBBB N"
 				]
 				""");
-		value = JSON.readEntity(EntityBase.class, reader);
+		value = JSON.readStrings(reader);
 		final List<?> list = (List<?>) value;
 		assertEquals(list.get(0), "AAAAAA");
 		assertEquals(list.get(1), "BBBBBBB N");

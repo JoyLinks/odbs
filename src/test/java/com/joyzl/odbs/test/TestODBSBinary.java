@@ -5,12 +5,15 @@
  */
 package com.joyzl.odbs.test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -313,5 +316,22 @@ class TestODBSBinary extends TestODBS {
 
 		// EXCEPTION
 		// BINARY.writeEntity("String", writer);
+	}
+
+	@Test
+	void testCollection() throws IOException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+		final List<EntityBase> bases = new ArrayList<>();
+		bases.add(EntityBase.createMinValue());
+		bases.add(EntityBase.createMaxValue());
+
+		BINARY.writeEntities(bases, output);
+
+		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
+
+		bases.clear();
+		BINARY.readEntities(bases, input);
+		assertEquals(bases.size(), 2);
 	}
 }

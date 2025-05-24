@@ -91,7 +91,7 @@ public final class ODBSJson {
 		writeEntity(odbs.findDesc(entity.getClass()), entity, JSONCodec.instence(this, writer));
 	}
 
-	public final void writeEntity(Collection<?> entities, Writer writer) throws IOException {
+	public final void writeEntities(Collection<?> entities, Writer writer) throws IOException {
 		if (entities == null) {
 			return;
 		}
@@ -726,8 +726,50 @@ public final class ODBSJson {
 
 	////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////
+	// JSON 格式不具备额外的对象类型标识，因此必须由外部指定实例或类型
+	// 外部程序可通过URL或者参数确定JSON填充的对象实例
 
-	public final Object readEntity(Class<?> clazz, Reader reader) throws IOException, ParseException {
+	public final List<String> readStrings(Reader reader) throws IOException, ParseException {
+		if (reader.ready()) {
+			final List<String> values = new ArrayList<>();
+			readStrings(values, JSONCodec.instence(this, reader));
+			return values;
+		} else {
+			return null;
+		}
+	}
+
+	public final void readStrings(Collection<String> values, Reader reader) throws IOException, ParseException {
+		if (reader.ready()) {
+			readStrings(values, JSONCodec.instence(this, reader));
+		}
+	}
+
+	public final <T> List<T> readEntities(Class<T> clazz, Reader reader) throws IOException, ParseException {
+		final ODBSDescription description = odbs.findDesc(clazz);
+		if (description == null) {
+			throw new RuntimeException("对象描述不存在" + clazz.getName());
+		}
+		if (reader.ready()) {
+			final List<T> entities = new ArrayList<>();
+			readEntities(description, entities, JSONCodec.instence(this, reader));
+			return entities;
+		} else {
+			return null;
+		}
+	}
+
+	public final <T> void readEntities(Collection<T> entities, Class<T> clazz, Reader reader) throws IOException, ParseException {
+		final ODBSDescription description = odbs.findDesc(clazz);
+		if (description == null) {
+			throw new RuntimeException("对象描述不存在" + clazz.getName());
+		}
+		if (reader.ready()) {
+			readEntities(description, entities, JSONCodec.instence(this, reader));
+		}
+	}
+
+	public final <T> T readEntity(Class<T> clazz, Reader reader) throws IOException, ParseException {
 		final ODBSDescription description = odbs.findDesc(clazz);
 		if (description == null) {
 			throw new RuntimeException("对象描述不存在" + clazz.getName());
@@ -739,9 +781,7 @@ public final class ODBSJson {
 		}
 	}
 
-	public final Object readEntity(Object instence, Reader reader) throws IOException, ParseException {
-		// JSON 格式不具备额外的对象类型标识，因此必须由外部指定实例
-		// 外部程序可通过URL或者参数确定JSON填充的对象实例
+	public final <T> T readEntity(T instence, Reader reader) throws IOException, ParseException {
 		final ODBSDescription description = odbs.findDesc(instence.getClass());
 		if (description == null) {
 			throw new RuntimeException("对象描述不存在" + instence.getClass().getName());
@@ -753,35 +793,48 @@ public final class ODBSJson {
 		}
 	}
 
-	private final Object readEntity(ODBSDescription description, Object entity, JSONCodec reader) throws IOException, ParseException {
+	/** [1,false,"string"] */
+	private final void readStrings(Collection<String> values, JSONCodec reader) throws IOException, ParseException {
+		if (reader.readSkip() > 0) {
+			if (reader.lastChar() == JSONCodec.ARRAY_BEGIN) {
+				// 如果数据元素为基础数据类型，则全部按字符串读取，因为Java不支持JavaScript的混合类型
+				// ["A","B"]、[true,false]、[1,2,3]
+				do {
+					if (reader.readValue()) {
+						values.add(reader.getString());
+					}
+				} while (reader.lastChar() != JSONCodec.ARRAY_END);
+			} else {
+				throw new ParseException("应为数组:" + reader.lastChar(), reader.getIndex());
+			}
+		}
+	}
+
+	/** [{...}] */
+	private final <T> void readEntities(ODBSDescription description, Collection<T> entities, JSONCodec reader) throws IOException, ParseException {
+		if (reader.readSkip() > 0) {
+			if (reader.lastChar() == JSONCodec.ARRAY_BEGIN) {
+				// 开始读取根数组，如果数组元素为JSON对象则类型为指定的类型 [{},{}]
+				do {
+					if (reader.readSkip() == JSONCodec.OBJECT_BEGIN) {
+						entities.add(readEntity(description, null, reader, false));
+					}
+				} while (reader.lastChar() != JSONCodec.ARRAY_END);
+			} else {
+				throw new ParseException("应为数组:" + reader.lastChar(), reader.getIndex());
+			}
+		}
+	}
+
+	/** {...} */
+	private final <T> T readEntity(ODBSDescription description, T entity, JSONCodec reader) throws IOException, ParseException {
 		// 开始
 		if (reader.readSkip() > 0) {
 			if (reader.lastChar() == JSONCodec.OBJECT_BEGIN) {
-				// 开始读取跟对象 {...}
+				// 开始读取根对象 {...}
 				entity = readEntity(description, entity, reader, true);
-			} else if (reader.lastChar() == JSONCodec.ARRAY_BEGIN) {
-				// 开始读取跟数组 [] [...]
-				// 如果数组元素为JSON对象则类型为指定的类型
-				// [{},{}]
-				// 如果数据元素为基础数据类型，则全部按字符串读取，因为Java不支持JavaScript的混合类型
-				// ["A","B"]、[true,false]、[1,2,3]
-				final List<Object> list = new ArrayList<>();
-				while (reader.lastChar() != JSONCodec.ARRAY_END) {
-					if (reader.readSkip() == JSONCodec.OBJECT_BEGIN) {
-						list.add(readEntity(description, null, reader, false));
-					} else if (reader.lastChar() == JSONCodec.ARRAY_END) {
-						// 空集合[]
-						break;
-					} else {
-						if (reader.readValue()) {
-							// 值数组以字符串方式返回
-							list.add(reader.getString());
-						}
-					}
-				}
-				entity = list;
 			} else {
-				throw new ParseException("意外的开始字符:\'" + reader.lastChar() + "\' " + reader.lastValue(), 0);
+				throw new ParseException("应为对象:" + reader.lastChar(), reader.getIndex());
 			}
 		} else {
 			// 流已结束
@@ -790,7 +843,7 @@ public final class ODBSJson {
 	}
 
 	/**
-	 * 都对象，开始标记是否确认(tag) readEntity(description, null, reader, false);
+	 * 读取对象，开始标记是否确认(tag) readEntity(description, null, reader, false);
 	 */
 	private final Object readEntity(ODBSType type, JSONCodec reader, boolean tag) throws IOException, ParseException {
 		final ODBSDescription description = odbs.findDesc(type.value());
@@ -810,12 +863,13 @@ public final class ODBSJson {
 	/**
 	 * 读取对象，开始标记已确认
 	 */
-	private final Object readEntity(ODBSDescription description, Object entity, JSONCodec reader, boolean root) throws IOException, ParseException {
+	@SuppressWarnings("unchecked")
+	private final <T> T readEntity(ODBSDescription description, T entity, JSONCodec reader, boolean root) throws IOException, ParseException {
 		// {}
 		// { name:value }
 		// { "name1":"value","name2":true }
 		if (entity == null) {
-			entity = description.newInstence();
+			entity = (T) description.newInstence();
 		}
 		ODBSField field;
 		while (reader.lastChar() != JSONCodec.OBJECT_END) {
