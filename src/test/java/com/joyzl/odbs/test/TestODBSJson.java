@@ -1,7 +1,6 @@
 /*
- * www.joyzl.net
- * 重庆骄智科技有限公司
- * Copyright © JOY-Links Company. All rights reserved.
+ * Copyright © 2017-2025 重庆骄智科技有限公司.
+ * 本软件根据 Apache License 2.0 开源，详见 LICENSE 文件。
  */
 package com.joyzl.odbs.test;
 
@@ -285,6 +284,60 @@ class TestODBSJson extends TestODBS {
 		EntityArray target = new EntityArray();
 		target = (EntityArray) JSON.readEntity(target, reader);
 		EntityArray.assertEntity(source, target);
+	}
+
+	@Test
+	void testVarArgsNullValues() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityVarArgs source = EntityVarArgs.createNullValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		print(new ByteArrayInputStream(output.toByteArray()));
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityVarArgs target = new EntityVarArgs();
+		target = (EntityVarArgs) JSON.readEntity(target, reader);
+		EntityVarArgs.assertEntity(source, target);
+	}
+
+	@Test
+	void testVarArgsEmptyValues() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityVarArgs source = EntityVarArgs.createEmptyValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		print(new ByteArrayInputStream(output.toByteArray()));
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityVarArgs target = new EntityVarArgs();
+		target = (EntityVarArgs) JSON.readEntity(target, reader);
+		EntityVarArgs.assertEntity(source, target);
+	}
+
+	@Test
+	void testVarArgsNormalValues() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityVarArgs source = EntityVarArgs.createNormalValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		print(new ByteArrayInputStream(output.toByteArray()));
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityVarArgs target = new EntityVarArgs();
+		target = (EntityVarArgs) JSON.readEntity(target, reader);
+		EntityVarArgs.assertEntity(source, target);
 	}
 
 	@Test

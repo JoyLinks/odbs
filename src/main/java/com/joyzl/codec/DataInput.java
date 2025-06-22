@@ -1,13 +1,13 @@
-/*-
- * www.joyzl.net
- * 重庆骄智科技有限公司
- * Copyright © JOY-Links Company. All rights reserved.
+/*
+ * Copyright © 2017-2025 重庆骄智科技有限公司.
+ * 本软件根据 Apache License 2.0 开源，详见 LICENSE 文件。
  */
 package com.joyzl.codec;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.CharBuffer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -92,6 +92,7 @@ public interface DataInput extends java.io.DataInput {
 
 	/** 读取integer值(无符号,变长),1~4 Byte, 8~32 Bit */
 	default int readVarint() throws IOException {
+		// TODO 取消循环模式改为判断模式
 		int value = 0;
 		for (int shift = 0; shift < 64; shift += 7) {
 			final byte b = readByte();
@@ -105,6 +106,7 @@ public interface DataInput extends java.io.DataInput {
 
 	/** 读取long值(无符号,变长),1~8 Byte, 8~64 Bit */
 	default long readVarlong() throws IOException {
+		// TODO 取消循环模式改为判断模式
 		long result = 0;
 		for (int shift = 0; shift < 64; shift += 7) {
 			final byte b = (byte) readByte();
@@ -221,6 +223,57 @@ public interface DataInput extends java.io.DataInput {
 	/** 读取ASCII String值,1 Byte, 8 Bit */
 	default String readASCIIString() throws IOException {
 		return String.valueOf(readASCIIs(readVarint()));
+	}
+
+	/** 读取UTF8值,1~4 Byte codePoint */
+	default int readUTF8() throws IOException {
+		int code = readByte();
+		if ((code & 0x80) == 0) {
+			return (char) code;
+		} else if ((code & 0xE0) == 0xC0) {
+			code = (code & 0x1F) << 6;
+			code |= (readByte() & 0x3F);
+			return (char) code;
+		} else if ((code & 0xF0) == 0xE0) {
+
+			// TODO 兼容格式代理项
+
+			code = (code & 0x0F) << 12;
+			code |= (readByte() & 0x3F) << 6;
+			code |= (readByte() & 0x3F);
+			return (char) code;
+		} else if ((code & 0xF8) == 0xF0) {
+			code = (code & 0x07) << 18;
+			code |= (readByte() & 0x3F) << 12;
+			code |= (readByte() & 0x3F) << 6;
+			code |= (readByte() & 0x3F);
+
+			// if (code >= 0x010000 && code <= 0x10FFFF) {
+			// 代理对
+			// int high = ((code - 0x010000) >> 10) + 0xD800;
+			// int low = ((code - 0x010000) & 0x3FF) + 0xDC00;
+			// Character.highSurrogate(code);
+			// Character.lowSurrogate(code);
+			// Character.toChars(code);
+			// }
+		} else {
+			// 非法字节
+		}
+		return code;
+	}
+
+	default void readUTF8(CharBuffer buffer) throws IOException {
+		// TODO 此方法如何结束
+		int code;
+		while (buffer.hasRemaining()) {
+			code = readUTF8();
+			if (Character.isBmpCodePoint(code)) {
+				buffer.put((char) code);
+			} else if (Character.isValidCodePoint(code)) {
+				buffer.put(Character.highSurrogate(code));
+				buffer.put(Character.lowSurrogate(code));
+			}
+		}
 	}
 
 	@Override

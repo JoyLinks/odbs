@@ -1,7 +1,6 @@
-/*-
- * www.joyzl.net
- * 重庆骄智科技有限公司
- * Copyright © JOY-Links Company. All rights reserved.
+/*
+ * Copyright © 2017-2025 重庆骄智科技有限公司.
+ * 本软件根据 Apache License 2.0 开源，详见 LICENSE 文件。
  */
 package com.joyzl.odbs;
 
@@ -154,10 +153,11 @@ public final class ODBSReflect {
 			// 编译器引入方法
 			return false;
 		}
-		if (method.isVarArgs()) {
-			// 可变参数
-			return false;
-		}
+		// 20250615 允许可变参数
+		// if (method.isVarArgs()) {
+		// 可变参数
+		// return false;
+		// }
 
 		if (Modifier.isNative(method.getModifiers())) {
 			return false;
@@ -165,9 +165,10 @@ public final class ODBSReflect {
 		if (Modifier.isStatic(method.getModifiers())) {
 			return false;
 		}
-		if (Modifier.isTransient(method.getModifiers())) {
-			return false;
-		}
+		// 20250615 可变参数方法始终返回true，导致方法被过滤因此注释
+		// if (Modifier.isTransient(method.getModifiers())) {
+		// return false;
+		// }
 		if (Modifier.isAbstract(method.getModifiers())) {
 			return false;
 		}

@@ -1,8 +1,6 @@
-# ODBS
+# JOYZL ODBS
 
-#### 介绍
-
-Java对象序列化和反序列化，支持二进制和JSON格式
+Java对象序列化和反序列化，支持二进制和JSON格式。
 
 #### 软件架构
 
@@ -10,16 +8,18 @@ ODBS会预先扫描对象定义，根据对象定义建立对象描述信息，�
 预先扫描对象定义是一种严格机制，这意味着序列化和反序列化必须是已知的对象否则将会收到异常；
 这种机制的好处是性能更优，无须在序列化结果中嵌入过多的对象信息，并且结果是预知且安全的；
 对象定义（实体对象）遵循JavaBean规范，ODBS将通过getter和setter方法获取和设置值，
-这也意味着只有成对出现的setXXX()和getXXX()方法值会被序列化，
+这也意味着只有成对出现的setXXX()和getXXX()方法值会被二进制字节序列化，
+而JSON序列化时会分别在序列化和反序列化时使用getXXX()和setXXX()；
 执行序列化时ODBS将通过getXXX()方法获取值，
 执行反序列化时ODBS将通过setXXX()方法设置值。
 
-1. 没有任何第三方依赖；
-2. 支持值类型：boolean,byte,char,short,int,long,float,double；
-3. 支持基础类型：Boolean,Byte,Character,Short,Integer,Long,Float,Double,BigDecimal,Date,LocalTime,LocalDate,LocalDateTime,String；
-4. 支持枚举类型和自定义枚举类型：EnumCode,EnumText,EnumCodeText；
-5. 支持集合类型：Array,List,Set,Map；
-6. 无须在序列化实体对象中嵌入注解，遵循非常简单的规范即可。
+
+1. 支持值类型：boolean,byte,char,short,int,long,float,double；
+2. 支持基础类型：Boolean,Byte,Character,Short,Integer,Long,Float,Double,BigDecimal,Date,LocalTime,LocalDate,LocalDateTime,String；
+3. 支持枚举类型和自定义枚举类型：EnumCode,EnumText,EnumCodeText；
+4. 支持集合类型：Array,List,Set,Map；
+5. 无须在序列化实体对象中嵌入注解，遵循非常简单的规范即可；
+6. 没有其它第三方依赖。
 
 JSON规范参考：RFC4627, [www.json.org](https://www.json.org)
 
@@ -230,18 +230,8 @@ JSON序列化键名默认格式为大写字母开头驼峰格式 "UserName"，
 Map集合的键类型不能使用Array/List/Set/Map作为Map集合的键类型，如果使用这些类型作为Map键类型将导致序列化失败。
 
 
-#### 参与贡献
-
-www.joyzl.com
-
-www.huatens.com
-
-ZhangXi
-
-
 ---
+[www.joyzl.com](http://www.joyzl.com)
 
-
-中国制造，智造中国
-
-Made in China, Intelligent China
+Copyright © 2017-2025 重庆骄智科技有限公司.
+本软件根据 Apache License 2.0 开源，详见 LICENSE 文件。

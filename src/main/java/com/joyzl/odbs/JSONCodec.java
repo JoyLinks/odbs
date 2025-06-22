@@ -1,7 +1,6 @@
-/*-
- * www.joyzl.net
- * 重庆骄智科技有限公司
- * Copyright © JOY-Links Company. All rights reserved.
+/*
+ * Copyright © 2017-2025 重庆骄智科技有限公司.
+ * 本软件根据 Apache License 2.0 开源，详见 LICENSE 文件。
  */
 package com.joyzl.odbs;
 
@@ -147,6 +146,9 @@ final class JSONCodec {
 		}
 	}
 
+	// TODO 读取忽略JS注释 // /* */
+	// TODO JSON5 注释 // /* */
+
 	/**
 	 * 读取键名，有效字符串均为合法键
 	 */
@@ -205,7 +207,7 @@ final class JSONCodec {
 			}
 			sb.append((char) c);
 		}
-		throw new EOFException();
+		throw new EOFException(sb.toString());
 	}
 
 	/**
@@ -271,7 +273,7 @@ final class JSONCodec {
 			}
 			sb.append((char) c);
 		}
-		throw new EOFException();
+		throw new EOFException(sb.toString());
 	}
 
 	@Deprecated
@@ -348,7 +350,7 @@ final class JSONCodec {
 				throw new IOException("意外字符：" + (char) c);
 			}
 		}
-		throw new EOFException();
+		throw new EOFException(sb.toString());
 	}
 
 	/**

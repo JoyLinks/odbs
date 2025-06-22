@@ -1,7 +1,6 @@
 /*
- * www.joyzl.net
- * 中翌智联（重庆)科技有限公司
- * Copyright © JOY-Links Company. All rights reserved.
+ * Copyright © 2017-2025 重庆骄智科技有限公司.
+ * 本软件根据 Apache License 2.0 开源，详见 LICENSE 文件。
  */
 package com.joyzl.odbs.test;
 
@@ -1471,11 +1470,12 @@ public class EntityMap {
 		assertEquals(a.getBigDecimalLong(), b.getBigDecimalLong());
 		assertEquals(a.getBigDecimalFloat(), b.getBigDecimalFloat());
 		assertEquals(a.getBigDecimalDouble(), b.getBigDecimalDouble());
-		//assertEquals(a.getBigDecimalDate(), b.getBigDecimalDate());
+		// assertEquals(a.getBigDecimalDate(), b.getBigDecimalDate());
 		assertEquals(a.getBigDecimalString(), b.getBigDecimalString());
 		assertEquals(a.getBigDecimalLocalDate(), b.getBigDecimalLocalDate());
-		//assertEquals(a.getBigDecimalLocalTime(), b.getBigDecimalLocalTime());
-		//assertEquals(a.getBigDecimalLocalDateTime(), b.getBigDecimalLocalDateTime());
+		// assertEquals(a.getBigDecimalLocalTime(), b.getBigDecimalLocalTime());
+		// assertEquals(a.getBigDecimalLocalDateTime(),
+		// b.getBigDecimalLocalDateTime());
 		assertEquals(a.getBigDecimalBigDecimal(), b.getBigDecimalBigDecimal());
 		assertEquals(a.getBigDecimalEnumCodes(), b.getBigDecimalEnumCodes());
 		assertEquals(a.getBigDecimalEnumTexts(), b.getBigDecimalEnumTexts());

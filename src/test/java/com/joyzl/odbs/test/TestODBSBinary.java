@@ -1,7 +1,6 @@
 /*
- * www.joyzl.net
- * 重庆骄智科技有限公司
- * Copyright © JOY-Links Company. All rights reserved.
+ * Copyright © 2017-2025 重庆骄智科技有限公司.
+ * 本软件根据 Apache License 2.0 开源，详见 LICENSE 文件。
  */
 package com.joyzl.odbs.test;
 
@@ -166,6 +165,51 @@ class TestODBSBinary extends TestODBS {
 		EntityArray target = new EntityArray();
 		target = (EntityArray) BINARY.readEntity(target, input);
 		EntityArray.assertEntity(source, target);
+	}
+
+	@Test
+	void testVarArgsNullValues() throws IOException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+		final EntityVarArgs source = EntityVarArgs.createNullValue();
+		BINARY.writeEntity(source, output);
+
+		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
+		System.out.println("ARRAY NULL VALUES:" + input.available());
+
+		EntityVarArgs target = new EntityVarArgs();
+		target = (EntityVarArgs) BINARY.readEntity(target, input);
+		EntityVarArgs.assertEntity(source, target);
+	}
+
+	@Test
+	void testVarArgsEmptyValues() throws IOException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+		final EntityVarArgs source = EntityVarArgs.createEmptyValue();
+		BINARY.writeEntity(source, output);
+
+		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
+		System.out.println("ARRAY EMPTY VALUES:" + input.available());
+
+		EntityVarArgs target = new EntityVarArgs();
+		target = (EntityVarArgs) BINARY.readEntity(target, input);
+		EntityVarArgs.assertEntity(source, target);
+	}
+
+	@Test
+	void testVarArgsNormalValues() throws IOException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+		final EntityVarArgs source = EntityVarArgs.createNormalValue();
+		BINARY.writeEntity(source, output);
+
+		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
+		System.out.println("ARRAY NORMAL VALUES:" + input.available());
+
+		EntityVarArgs target = new EntityVarArgs();
+		target = (EntityVarArgs) BINARY.readEntity(target, input);
+		EntityVarArgs.assertEntity(source, target);
 	}
 
 	@Test

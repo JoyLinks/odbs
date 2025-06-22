@@ -14,12 +14,12 @@ import java.time.LocalTime;
 import java.util.Date;
 
 /**
- * 具有数组的实体
+ * 具有数组的实体，采用可变参数形式
  * 
  * @author ZhangXi
  * @date 2023年7月27日
  */
-public class EntityArray {
+public class EntityVarArgs {
 
 	static final boolean[] BOOLEAN_VALUES = new boolean[] { true, false };
 	static final byte[] BYTE_VALUES = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, Byte.MIN_VALUE, Byte.MAX_VALUE };
@@ -87,8 +87,8 @@ public class EntityArray {
 	private EntityBase[] entityBases;
 	private EntityEmpty[] entityEmpties;
 
-	static EntityArray createNullValue() {
-		final EntityArray entity = new EntityArray();
+	static EntityVarArgs createNullValue() {
+		final EntityVarArgs entity = new EntityVarArgs();
 		entity.setBooleanValues(null);
 		entity.setByteValues(null);
 		entity.setCharValues(null);
@@ -98,34 +98,34 @@ public class EntityArray {
 		entity.setFloatValues(null);
 		entity.setDoubleValues(null);
 
-		entity.setBooleanObjects(null);
-		entity.setCharacterObjects(null);
-		entity.setByteObjects(null);
-		entity.setShortObjects(null);
-		entity.setIntegerObjects(null);
-		entity.setLongObjects(null);
-		entity.setFloatObjects(null);
-		entity.setDoubleObjects(null);
+		entity.setBooleanObjects((Boolean[]) null);
+		entity.setCharacterObjects((Character[]) null);
+		entity.setByteObjects((Byte[]) null);
+		entity.setShortObjects((Short[]) null);
+		entity.setIntegerObjects((Integer[]) null);
+		entity.setLongObjects((Long[]) null);
+		entity.setFloatObjects((Float[]) null);
+		entity.setDoubleObjects((Double[]) null);
 
-		entity.setStringObjects(null);
-		entity.setDateObjects(null);
-		entity.setLocalDateObjects(null);
-		entity.setLocalTimeObjects(null);
-		entity.setLocalDateTimeObjects(null);
-		entity.setDecimalObjects(null);
+		entity.setStringObjects((String[]) null);
+		entity.setDateObjects((Date[]) null);
+		entity.setLocalDateObjects((LocalDate[]) null);
+		entity.setLocalTimeObjects((LocalTime[]) null);
+		entity.setLocalDateTimeObjects((LocalDateTime[]) null);
+		entity.setDecimalObjects((BigDecimal[]) null);
 
-		entity.setEnumCodes(null);
-		entity.setEnumTexts(null);
-		entity.setEnumNatives(null);
-		entity.setEnumCodeTexts(null);
+		entity.setEnumCodes((EnumCodes[]) null);
+		entity.setEnumTexts((EnumTexts[]) null);
+		entity.setEnumNatives((EnumNative[]) null);
+		entity.setEnumCodeTexts((EnumCodeTexts[]) null);
 
-		entity.setEntityBases(null);
-		entity.setEntityEmpties(null);
+		entity.setEntityBases((EntityBase[]) null);
+		entity.setEntityEmpties((EntityEmpty[]) null);
 		return entity;
 	}
 
-	static EntityArray createEmptyValue() {
-		final EntityArray entity = new EntityArray();
+	static EntityVarArgs createEmptyValue() {
+		final EntityVarArgs entity = new EntityVarArgs();
 		entity.setBooleanValues(new boolean[0]);
 		entity.setByteValues(new byte[0]);
 		entity.setCharValues(new char[0]);
@@ -161,8 +161,8 @@ public class EntityArray {
 		return entity;
 	}
 
-	static EntityArray createNormalValue() {
-		final EntityArray entity = new EntityArray();
+	static EntityVarArgs createNormalValue() {
+		final EntityVarArgs entity = new EntityVarArgs();
 		entity.setBooleanValues(BOOLEAN_VALUES);
 		entity.setByteValues(BYTE_VALUES);
 		entity.setCharValues(CHAR_VALUES);
@@ -198,7 +198,7 @@ public class EntityArray {
 		return entity;
 	}
 
-	static void assertEntity(EntityArray a, EntityArray b) {
+	static void assertEntity(EntityVarArgs a, EntityVarArgs b) {
 		assertArrayEquals(a.isBooleanValues(), b.isBooleanValues());
 		assertArrayEquals(a.getByteValues(), b.getByteValues());
 		assertArrayEquals(a.getCharValues(), b.getCharValues());
@@ -246,7 +246,7 @@ public class EntityArray {
 		return booleanValues;
 	}
 
-	public void setBooleanValues(boolean[] values) {
+	public void setBooleanValues(boolean... values) {
 		booleanValues = values;
 	}
 
@@ -254,7 +254,7 @@ public class EntityArray {
 		return byteValues;
 	}
 
-	public void setByteValues(byte[] values) {
+	public void setByteValues(byte... values) {
 		byteValues = values;
 	}
 
@@ -262,7 +262,7 @@ public class EntityArray {
 		return charValues;
 	}
 
-	public void setCharValues(char[] values) {
+	public void setCharValues(char... values) {
 		charValues = values;
 	}
 
@@ -270,7 +270,7 @@ public class EntityArray {
 		return shortValues;
 	}
 
-	public void setShortValues(short[] values) {
+	public void setShortValues(short... values) {
 		shortValues = values;
 	}
 
@@ -278,7 +278,7 @@ public class EntityArray {
 		return intValues;
 	}
 
-	public void setIntValues(int[] values) {
+	public void setIntValues(int... values) {
 		intValues = values;
 	}
 
@@ -286,7 +286,7 @@ public class EntityArray {
 		return longValues;
 	}
 
-	public void setLongValues(long[] values) {
+	public void setLongValues(long... values) {
 		longValues = values;
 	}
 
@@ -294,7 +294,7 @@ public class EntityArray {
 		return floatValues;
 	}
 
-	public void setFloatValues(float[] values) {
+	public void setFloatValues(float... values) {
 		floatValues = values;
 	}
 
@@ -302,7 +302,7 @@ public class EntityArray {
 		return doubleValues;
 	}
 
-	public void setDoubleValues(double[] values) {
+	public void setDoubleValues(double... values) {
 		doubleValues = values;
 	}
 
@@ -310,7 +310,7 @@ public class EntityArray {
 		return booleanObjects;
 	}
 
-	public void setBooleanObjects(Boolean[] values) {
+	public void setBooleanObjects(Boolean... values) {
 		booleanObjects = values;
 	}
 
@@ -318,7 +318,7 @@ public class EntityArray {
 		return byteObjects;
 	}
 
-	public void setByteObjects(Byte[] values) {
+	public void setByteObjects(Byte... values) {
 		byteObjects = values;
 	}
 
@@ -326,7 +326,7 @@ public class EntityArray {
 		return characterObjects;
 	}
 
-	public void setCharacterObjects(Character[] values) {
+	public void setCharacterObjects(Character... values) {
 		characterObjects = values;
 	}
 
@@ -334,7 +334,7 @@ public class EntityArray {
 		return shortObjects;
 	}
 
-	public void setShortObjects(Short[] values) {
+	public void setShortObjects(Short... values) {
 		shortObjects = values;
 	}
 
@@ -342,7 +342,7 @@ public class EntityArray {
 		return integerObjects;
 	}
 
-	public void setIntegerObjects(Integer[] values) {
+	public void setIntegerObjects(Integer... values) {
 		integerObjects = values;
 	}
 
@@ -350,7 +350,7 @@ public class EntityArray {
 		return longObjects;
 	}
 
-	public void setLongObjects(Long[] values) {
+	public void setLongObjects(Long... values) {
 		longObjects = values;
 	}
 
@@ -358,7 +358,7 @@ public class EntityArray {
 		return floatObjects;
 	}
 
-	public void setFloatObjects(Float[] values) {
+	public void setFloatObjects(Float... values) {
 		floatObjects = values;
 	}
 
@@ -366,7 +366,7 @@ public class EntityArray {
 		return doubleObjects;
 	}
 
-	public void setDoubleObjects(Double[] values) {
+	public void setDoubleObjects(Double... values) {
 		doubleObjects = values;
 	}
 
@@ -374,7 +374,7 @@ public class EntityArray {
 		return stringObjects;
 	}
 
-	public void setStringObjects(String[] values) {
+	public void setStringObjects(String... values) {
 		stringObjects = values;
 	}
 
@@ -382,7 +382,7 @@ public class EntityArray {
 		return dateObjects;
 	}
 
-	public void setDateObjects(Date[] values) {
+	public void setDateObjects(Date... values) {
 		dateObjects = values;
 	}
 
@@ -390,7 +390,7 @@ public class EntityArray {
 		return localDateObjects;
 	}
 
-	public void setLocalDateObjects(LocalDate[] values) {
+	public void setLocalDateObjects(LocalDate... values) {
 		localDateObjects = values;
 	}
 
@@ -398,7 +398,7 @@ public class EntityArray {
 		return localTimeObjects;
 	}
 
-	public void setLocalTimeObjects(LocalTime[] values) {
+	public void setLocalTimeObjects(LocalTime... values) {
 		localTimeObjects = values;
 	}
 
@@ -406,7 +406,7 @@ public class EntityArray {
 		return localDateTimeObjects;
 	}
 
-	public void setLocalDateTimeObjects(LocalDateTime[] values) {
+	public void setLocalDateTimeObjects(LocalDateTime... values) {
 		localDateTimeObjects = values;
 	}
 
@@ -414,7 +414,7 @@ public class EntityArray {
 		return decimalObjects;
 	}
 
-	public void setDecimalObjects(BigDecimal[] values) {
+	public void setDecimalObjects(BigDecimal... values) {
 		decimalObjects = values;
 	}
 
@@ -422,7 +422,7 @@ public class EntityArray {
 		return enumCodes;
 	}
 
-	public void setEnumCodes(EnumCodes[] values) {
+	public void setEnumCodes(EnumCodes... values) {
 		enumCodes = values;
 	}
 
@@ -430,7 +430,7 @@ public class EntityArray {
 		return enumTexts;
 	}
 
-	public void setEnumTexts(EnumTexts[] values) {
+	public void setEnumTexts(EnumTexts... values) {
 		enumTexts = values;
 	}
 
@@ -438,7 +438,7 @@ public class EntityArray {
 		return enumNatives;
 	}
 
-	public void setEnumNatives(EnumNative[] values) {
+	public void setEnumNatives(EnumNative... values) {
 		enumNatives = values;
 	}
 
@@ -446,7 +446,7 @@ public class EntityArray {
 		return enumCodeTexts;
 	}
 
-	public void setEnumCodeTexts(EnumCodeTexts[] values) {
+	public void setEnumCodeTexts(EnumCodeTexts... values) {
 		enumCodeTexts = values;
 	}
 
@@ -454,7 +454,7 @@ public class EntityArray {
 		return entityBases;
 	}
 
-	public void setEntityBases(EntityBase[] values) {
+	public void setEntityBases(EntityBase... values) {
 		entityBases = values;
 	}
 
@@ -462,7 +462,7 @@ public class EntityArray {
 		return entityEmpties;
 	}
 
-	public void setEntityEmpties(EntityEmpty[] values) {
+	public void setEntityEmpties(EntityEmpty... values) {
 		entityEmpties = values;
 	}
 }

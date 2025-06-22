@@ -1,7 +1,6 @@
-/*-
- * www.joyzl.net
- * 重庆骄智科技有限公司
- * Copyright © JOY-Links Company. All rights reserved.
+/*
+ * Copyright © 2017-2025 重庆骄智科技有限公司.
+ * 本软件根据 Apache License 2.0 开源，详见 LICENSE 文件。
  */
 package com.joyzl.odbs;
 
@@ -371,15 +370,15 @@ public final class ODBS {
 	 */
 	public final String checkString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("ENUMERATIONS");
+		builder.append("\nENUMERATIONS:\n");
 		for (ODBSEnumeration enumeration : ENUMERATIONS) {
-			builder.append('\n');
 			builder.append(enumeration);
-		}
-		builder.append("\nDESCRIPTIONS");
-		for (ODBSDescription description : DESCRIPTIONS) {
 			builder.append('\n');
+		}
+		builder.append("DESCRIPTIONS:\n");
+		for (ODBSDescription description : DESCRIPTIONS) {
 			builder.append(description);
+			builder.append('\n');
 		}
 		return builder.toString();
 	}
