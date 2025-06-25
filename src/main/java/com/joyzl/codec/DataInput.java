@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.CharBuffer;
+import java.nio.ReadOnlyBufferException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -90,9 +91,11 @@ public interface DataInput extends java.io.DataInput {
 	@Override
 	double readDouble() throws IOException;
 
-	/** 读取integer值(无符号,变长),1~4 Byte, 8~32 Bit */
+	/** 读取integer值(无符号,变长),1~5 Byte, 8~32 Bit */
 	default int readVarint() throws IOException {
-		// TODO 取消循环模式改为判断模式
+		/*-
+		 * ZhangXi 20250622
+		 * 取消循环模式改为判断模式
 		int value = 0;
 		for (int shift = 0; shift < 64; shift += 7) {
 			final byte b = readByte();
@@ -102,11 +105,40 @@ public interface DataInput extends java.io.DataInput {
 			}
 		}
 		return value;
+		*/
+
+		byte b = readByte();
+		if ((b & 0x80) != 0) {
+			int value = b & 0x7F;
+			b = readByte();
+			value |= (b & 0x7F) << 7;
+			if ((b & 0x80) != 0) {
+				b = readByte();
+				value |= (b & 0x7F) << 14;
+				if ((b & 0x80) != 0) {
+					b = readByte();
+					value |= (b & 0x7F) << 21;
+					if ((b & 0x80) != 0) {
+						b = readByte();
+						value |= (b & 0x7F) << 28;
+						if ((b & 0x80) != 0) {
+							// 溢出4字节整形范围
+							throw new IOException("Varint overflow");
+						}
+					}
+				}
+			}
+			return value;
+		} else {
+			return b;
+		}
 	}
 
-	/** 读取long值(无符号,变长),1~8 Byte, 8~64 Bit */
+	/** 读取long值(无符号,变长),1~10 Byte, 8~64 Bit */
 	default long readVarlong() throws IOException {
-		// TODO 取消循环模式改为判断模式
+		/*-
+		 * ZhangXi 20250622
+		 * 取消循环模式改为判断模式
 		long result = 0;
 		for (int shift = 0; shift < 64; shift += 7) {
 			final byte b = (byte) readByte();
@@ -116,6 +148,53 @@ public interface DataInput extends java.io.DataInput {
 			}
 		}
 		return result;
+		*/
+
+		byte b = readByte();
+		if ((b & 0x80) != 0) {
+			long value = b & 0x7F;
+			b = readByte();
+			value |= (b & 0x7F) << 7;
+			if ((b & 0x80) != 0) {
+				b = readByte();
+				value |= (b & 0x7F) << 14;
+				if ((b & 0x80) != 0) {
+					b = readByte();
+					value |= (b & 0x7F) << 21;
+					if ((b & 0x80) != 0) {
+						b = readByte();
+						value |= (b & 0x7FL) << 28;
+						if ((b & 0x80) != 0) {
+							b = readByte();
+							value |= (b & 0x7FL) << 35;
+							if ((b & 0x80) != 0) {
+								b = readByte();
+								value |= (b & 0x7FL) << 42;
+								if ((b & 0x80) != 0) {
+									b = readByte();
+									value |= (b & 0x7FL) << 49;
+									if ((b & 0x80) != 0) {
+										b = readByte();
+										value |= (b & 0x7FL) << 56;
+										if ((b & 0x80) != 0) {
+											b = readByte();
+											value |= (b & 0x7FL) << 63;
+											if ((b & 0x80) != 0) {
+												// 溢出8字节整形范围
+												throw new IOException("Varint overflow");
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			return value;
+		} else {
+			return b;
+		}
 	}
 
 	/** 读取decimal值,n Byte, n*8 Bit */
@@ -225,45 +304,51 @@ public interface DataInput extends java.io.DataInput {
 		return String.valueOf(readASCIIs(readVarint()));
 	}
 
-	/** 读取UTF8值,1~4 Byte codePoint */
+	/** 读取UTF8值,1~4 Byte codePoint(须调用者处理代理项) */
 	default int readUTF8() throws IOException {
+		// UTF-8 RFC3629
+		// 00000000-0000007F | 0xxxxxxx
+		// 00000080-000007FF | 110xxxxx 10xxxxxx
+		// 00000800-0000FFFF | 1110xxxx 10xxxxxx 10xxxxxx
+		// 00010000-0010FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+
+		// 常量
+		// 0x80 = 0b10000000
+		// 0xC0 = 0b11000000
+		// 0xE0 = 0b11100000
+		// 0xF0 = 0b11110000
+		// 0xF8 - 0b11111000
+		// 0x3F = 0b00111111
+		// 0x1F = 0b00011111
+		// 0x0F = 0b00001111
+		// 0x07 = 0b00000111
+
 		int code = readByte();
 		if ((code & 0x80) == 0) {
-			return (char) code;
 		} else if ((code & 0xE0) == 0xC0) {
 			code = (code & 0x1F) << 6;
 			code |= (readByte() & 0x3F);
-			return (char) code;
 		} else if ((code & 0xF0) == 0xE0) {
-
-			// TODO 兼容格式代理项
-
 			code = (code & 0x0F) << 12;
 			code |= (readByte() & 0x3F) << 6;
 			code |= (readByte() & 0x3F);
-			return (char) code;
 		} else if ((code & 0xF8) == 0xF0) {
 			code = (code & 0x07) << 18;
 			code |= (readByte() & 0x3F) << 12;
 			code |= (readByte() & 0x3F) << 6;
 			code |= (readByte() & 0x3F);
-
-			// if (code >= 0x010000 && code <= 0x10FFFF) {
-			// 代理对
-			// int high = ((code - 0x010000) >> 10) + 0xD800;
-			// int low = ((code - 0x010000) & 0x3FF) + 0xDC00;
-			// Character.highSurrogate(code);
-			// Character.lowSurrogate(code);
-			// Character.toChars(code);
-			// }
 		} else {
 			// 非法字节
+			code = 0;
 		}
 		return code;
 	}
 
+	/** 读取UTF8字符，调用者应确保CharBuffer长度合适 */
 	default void readUTF8(CharBuffer buffer) throws IOException {
-		// TODO 此方法如何结束
+		if (buffer.isReadOnly()) {
+			throw new ReadOnlyBufferException();
+		}
 		int code;
 		while (buffer.hasRemaining()) {
 			code = readUTF8();

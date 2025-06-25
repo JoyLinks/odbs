@@ -1176,6 +1176,9 @@ public class EntityMap {
 	static <K, V> void fill(Map<K, V> map, K[] keys, V[] values) {
 		int v = 0;
 		for (int k = 0; k < keys.length; k++) {
+			if (keys[k] == null) {
+				continue;
+			}
 			map.put(keys[k], values[v++]);
 			v = v < values.length ? v : 0;
 		}

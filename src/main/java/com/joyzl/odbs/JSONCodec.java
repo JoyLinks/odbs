@@ -8,11 +8,26 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.NumberFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 /**
  * JSON 读取辅助类
+ * 
+ * <pre>
+ * JSON5 https://spec.json5.org
+ * 键名允许没有引号 key:"value"
+ * 允许最后的键值对或数组元素尾部逗号 {k:v,}[1,]
+ * 允许字符串续行 \+0A \0D \2028 \2029
+ * 允许常量 IEEE754 Infinity -Infinity NaN
+ * 允许注释
+ * </pre>
  * 
  * @author ZhangXi
  * @date 2020年8月22日
@@ -32,11 +47,6 @@ final class JSONCodec {
 	final static char OBJECT_END = '}';
 	final static char OBJECT_BEGIN = '{';
 
-	/** 日期时间格式 */
-	final DateFormat DATE_FORMAT;
-	/** 数字格式化 */
-	final NumberFormat NUMBER_FORMAT;
-
 	public static JSONCodec instence(ODBSJson oj, Reader reader) {
 		JSONCodec JR = new JSONCodec(oj);
 		JR.setReader(reader);
@@ -52,22 +62,17 @@ final class JSONCodec {
 	////////////////////////////////////////////////////////////////////////////////
 
 	private final StringBuilder sb = new StringBuilder();
-	private final ODBSJson odbs_json;
 	private Reader reader;
 	private Writer writer;
 
-	/** 当前值是否有双引号包围 */
-	private int quotes;
-	/** 当前索引位置 */
-	private int index;
+	/** 当前中断是否有双引号包围 */
+	private boolean quotes;
 	/** 当前读取的字符 */
 	private int c;
 
 	JSONCodec(ODBSJson oj) {
-		odbs_json = oj;
 		// 获取独立的格式化实例，确保多线程安全
-		DATE_FORMAT = oj.getDateFormat();
-		NUMBER_FORMAT = oj.getNumberFormat();
+
 	}
 
 	public void setReader(Reader r) {
@@ -78,34 +83,6 @@ final class JSONCodec {
 	public void setWriter(Writer w) {
 		writer = w;
 		c = -1;
-	}
-
-	/**
-	 * 获取当前索引
-	 */
-	public int getIndex() {
-		return index;
-	}
-
-	public boolean isNull() {
-		if (quotes > 0) {
-			// 区分null和"null"
-			return false;
-		}
-		// 判断最后一次读取值是否为null
-		if (sb.length() == 4) {
-			// 容错:忽略大小写
-			if (sb.charAt(0) != 'n' && sb.charAt(0) != 'N')
-				return false;
-			if (sb.charAt(1) != 'u' && sb.charAt(1) != 'U')
-				return false;
-			if (sb.charAt(2) != 'l' && sb.charAt(2) != 'L')
-				return false;
-			if (sb.charAt(3) != 'l' && sb.charAt(3) != 'L')
-				return false;
-			return true;
-		}
-		return false;
 	}
 
 	public boolean hasString() {
@@ -124,7 +101,7 @@ final class JSONCodec {
 		return (char) c;
 	}
 
-	public int lastValue() {
+	public int lastCode() {
 		return c;
 	}
 
@@ -132,279 +109,289 @@ final class JSONCodec {
 	 * 判断最后字符是否结构标记<br>
 	 * 六个结构标记{}[],:
 	 */
-	public boolean lastIsStructure() {
-		switch (c) {
-			case JSONCodec.OBJECT_BEGIN:
-			case JSONCodec.OBJECT_END:
-			case JSONCodec.ARRAY_BEGIN:
-			case JSONCodec.ARRAY_END:
-			case JSONCodec.COMMA:
-			case JSONCodec.COLON:
-				return true;
-			default:
-				return false;
-		}
+	public boolean isStructure() {
+		return isStructure(c);
 	}
 
-	// TODO 读取忽略JS注释 // /* */
-	// TODO JSON5 注释 // /* */
+	/** 是否结构字符 */
+	public boolean isStructure(int c) {
+		return c == OBJECT_BEGIN || c == OBJECT_END || c == ARRAY_BEGIN || c == ARRAY_END || c == COMMA || c == COLON;
+	}
+
+	/** 是否结构字符'{' */
+	public boolean isObjectBegin() {
+		return c == OBJECT_BEGIN;
+	}
+
+	/** 是否结构字符'[' */
+	public boolean isArrayBegin() {
+		return c == ARRAY_BEGIN;
+	}
+
+	/** 是否结构字符'}' */
+	public boolean isObjectEnd() {
+		return c == OBJECT_END;
+	}
+
+	/** 是否结构字符']' */
+	public boolean isArrayEnd() {
+		return c == ARRAY_END;
+	}
+
+	/** 是否结构字符',' */
+	public boolean isComma() {
+		return c == COMMA;
+	}
+
+	/** 是否结构字符':' */
+	public boolean isColon() {
+		return c == COLON;
+	}
+
+	public boolean getBoolean() {
+		return "true".contentEquals(sb);
+	}
+
+	public int getInt() {
+		if (is0x()) {
+			return Integer.parseInt(sb, 2, sb.length(), 16);
+		}
+		return Integer.parseInt(sb, 0, sb.length(), 10);
+	}
+
+	public long getLong() {
+		if (is0x()) {
+			return Long.parseLong(sb, 2, sb.length(), 16);
+		}
+		return Long.parseLong(sb, 0, sb.length(), 10);
+	}
+
+	boolean is0x() {
+		if (sb.length() > 2) {
+			if (sb.charAt(0) == '0') {
+				if (sb.charAt(1) == 'x' || sb.charAt(1) == 'X') {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public boolean isNull() {
+		if (quotes) {
+			// 引号包围则不能是null常量
+			// "null"
+			return false;
+		}
+		// 判断最后一次读取值是否为null
+		if (sb.length() == 4) {
+			// 容错:忽略大小写
+			if (sb.charAt(0) != 'n' && sb.charAt(0) != 'N')
+				return false;
+			if (sb.charAt(1) != 'u' && sb.charAt(1) != 'U')
+				return false;
+			if (sb.charAt(2) != 'l' && sb.charAt(2) != 'L')
+				return false;
+			if (sb.charAt(3) != 'l' && sb.charAt(3) != 'L')
+				return false;
+			return true;
+		}
+		return false;
+	}
+
+	////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * 读取键名，有效字符串均为合法键
 	 */
 	public boolean readKey() throws IOException {
-		// JSON有效键永远是 ':'结束，没有键时可能的结束'}'
-		// 可能有双引号，可能没有
+		// JSON 有效键永远是 ':'结束，没有键时可能的结束'}'
 		// 数组对象通过']'和'}'结束返回后可能会残留','
-		// "" "..."
+		// 可能有双引号，可能没有(JSON5)
 
-		if (lastIsStructure()) {
-			// 最后字符如果是结构字符须丢弃
-			// 结构字符不能包括在键名中
-			sb.setLength(0);
-			quotes = 0;
-		} else {
-			sb.setLength(0);
-			if (c == JSONCodec.QUOTES) {
-				quotes = 1;
-			} else {
-				sb.append((char) c);
-				quotes = 0;
-			}
+		if (readSkip() < 0) {
+			return false;
+		}
+		if (isStructure(c)) {
+			return false;
 		}
 
-		while ((c = reader.read()) >= 0) {
-			index++;
-			if (Character.isWhitespace(c)) {
-				if (sb.length() == 0) {
-					// 忽略前空白
-					continue;
-				} else {
-					// 允许键中空白
+		sb.setLength(0);
+		if (c == QUOTE || c == QUOTES) {
+			int quote = c;
+			quotes = true;
+			// 键有引号
+			while ((c = reader.read()) >= 0) {
+				if (c == quote) {
+					if (readSkip() > 0) {
+						if (c == COLON) {
+							return true;
+						}
+						throw new EOFException("键语法错误 " + sb.toString());
+					} else {
+						// 意外结束
+						break;
+					}
 				}
-			} else if (c == JSONCodec.QUOTES) {
-				quotes++;
-				continue;
-			} else if (c == JSONCodec.COMMA) {
-				if (sb.length() == 0) {
-					// 忽略键前逗号
-					continue;
-				} else {
-					// 允许键中逗号
+				if (c == ESCAPE) {
+					c = readEscape();
 				}
-			} else if (c == JSONCodec.ESCAPE) {
-				// 读取转义字符
-				c = readEscape(reader);
-			} else if (c == JSONCodec.COLON || c == JSONCodec.OBJECT_END) {
-				// 键名结束于冒号':'
-				if (quotes == 0) {
-					// 键名无双引号
-					return sb.length() > 0;
-				} else if (quotes >= 2) {
-					// 键名有双引号 ""/"..."
+				sb.append((char) c);
+			}
+		} else {
+			sb.append((char) c);
+			quotes = false;
+			// 键无引号
+			while ((c = reader.read()) >= 0) {
+				if (c == COLON) {
 					return true;
 				}
+				if (Character.isWhitespace(c)) {
+					if (readSkip() > 0) {
+						if (c == COLON) {
+							return true;
+						}
+						throw new EOFException("键语法错误 " + sb.toString());
+					} else {
+						// 意外结束
+						break;
+					}
+				}
+				if (c == ESCAPE) {
+					c = readEscape();
+				}
+				sb.append((char) c);
 			}
-			sb.append((char) c);
 		}
-		throw new EOFException(sb.toString());
+		throw new EOFException("键意外结束 " + sb.toString());
 	}
 
 	/**
-	 * 读取值
+	 * 读取值（常量、数值、字符串、NULL），不能读取对象和数组
+	 * 
+	 * @return true 成功读取值
 	 */
 	public boolean readValue() throws IOException {
-		// JSON值不能省略
-		// {"key"}, {"key":}
-		// 常量true false null
-		// {"key":true}, {"key":null}
-		// 数值 0 10 -10 10.8 e+2 e-4
-		// {"key":0,"key":10.8}
-		// 字符串"",转义字符
-		// {"key":"","key":null,"key":"null","key":"TEXT"}
-		// 值不能是对象{} 列表[]
+		// JSON 值不能省略
+		// 常量 true false null
+		// 数值 0 10 -10 10.8 .82 e+2 e-4 0xA 0Xa -0xA
+		// IEEE754 Infinity -Infinity NaN
+		// 字符串"",转义字符,续行符
+
+		// 对象{}或数组[]不是值
 		// 可能的结束标志 ,]}
 
-		if (lastIsStructure()) {
-			sb.setLength(0);
-			quotes = 0;
-		} else {
-			sb.setLength(0);
-			if (c == JSONCodec.QUOTES) {
-				quotes = 1;
-			} else {
-				sb.append((char) c);
-				quotes = 0;
-			}
+		if (readSkip() < 0) {
+			return false;
+		}
+		if (isStructure(c)) {
+			return false;
 		}
 
-		while ((c = reader.read()) >= 0) {
-			index++;
-			if (Character.isWhitespace(c)) {
-				if (sb.length() == 0) {
-					// 忽略前空白
-					continue;
-				} else {
-					// 值中空白保留
+		// {key:value}
+		// {key:value,}
+		// {{key:value}}
+		// {{key:value},}
+		// [value]
+		// [value,]
+		// [[value]]
+		// [[value],]
+
+		sb.setLength(0);
+		if (c == QUOTE || c == QUOTES) {
+			int quote = c;
+			quotes = true;
+			// 值有引号
+			while ((c = reader.read()) >= 0) {
+				if (c == quote) {
+					if (readSkip() > 0) {
+						if (c == COMMA) {
+							return true;
+						}
+						if (c == OBJECT_END || c == ARRAY_END) {
+							return true;
+						}
+						throw new EOFException("值语法错误 " + sb.toString());
+					} else {
+						// 意外结束
+						break;
+					}
 				}
-				if (quotes == 0 || quotes == 2) {
-					// 尾随空白过滤
-					// 双引号已成对
-					continue;
+				if (c == ESCAPE) {
+					c = readEscape();
 				}
-			} else if (c == JSONCodec.QUOTES) {
-				// 如果值中出现双引号应转义
-				// 首尾双引号表示字符串值
-				quotes++;
-				continue;
-			} else if (c == JSONCodec.ESCAPE) {
-				// 读取转义字符
-				c = readEscape(reader);
-			} else if (c == JSONCodec.COMMA || c == JSONCodec.ARRAY_END || c == JSONCodec.OBJECT_END) {
-				if (quotes == 0) {
-					// 有效字符返回成功
-					return sb.length() > 0;
-				} else if (quotes >= 2) {
-					// 空字符串和有效字符返回成功
+				sb.append((char) c);
+			}
+		} else {
+			sb.append((char) c);
+			quotes = false;
+			// 值无引号
+			while ((c = reader.read()) >= 0) {
+				if (c == COMMA) {
 					return true;
-				} else {
-					// 双引号之间的结束符
 				}
-			}
-			sb.append((char) c);
-		}
-		throw new EOFException(sb.toString());
-	}
-
-	@Deprecated
-	public void readString() throws IOException {
-		// "name":"text",字符串值必须有引号
-		// "name":null,可能有空值且无引号
-		// 转义 \" \\ \/ \b \f \n \r \t \u0000
-		// 可能的结束标志 空白,]}
-
-		if (lastIsStructure()) {
-			sb.setLength(0);
-		} else {
-			sb.setLength(0);
-			sb.append((char) c);
-		}
-
-		// 跳过前空白直到'"'/有效字符
-		while ((c = reader.read()) >= 0) {
-			index++;
-			if (Character.isWhitespace((char) c)) {
-				continue;
-			} else if (c == JSONCodec.QUOTES) {
-				// 字符串开始,由后续代码读取并处理转义字符
-				break;
-			} else if (c == JSONCodec.COMMA || c == JSONCodec.ARRAY_END || c == JSONCodec.OBJECT_END) {
-				// 常量结束,例如 null
-				return;
-			} else {
-				// throw new IOException("意外字符：" + (char) c);
+				if (c == OBJECT_END || c == ARRAY_END) {
+					return true;
+				}
+				if (Character.isWhitespace(c)) {
+					if (readSkip() > 0) {
+						if (c == COMMA) {
+							return true;
+						}
+						if (c == OBJECT_END || c == ARRAY_END) {
+							return true;
+						}
+						throw new EOFException("值语法错误 " + sb.toString());
+					} else {
+						// 意外结束
+						break;
+					}
+				}
+				if (c == ESCAPE) {
+					c = readEscape();
+				}
 				sb.append((char) c);
 			}
 		}
-		while ((c = reader.read()) >= 0) {
-			index++;
-			if (c == JSONCodec.QUOTES) {
-				break;
-			} else if (c == JSONCodec.ESCAPE) {
-				c = reader.read();
-				index++;
-				if (c == 'b') {
-					sb.append('\b');
-				} else if (c == 'f') {
-					sb.append('\f');
-				} else if (c == 'n') {
-					sb.append('\n');
-				} else if (c == 'r') {
-					sb.append('\r');
-				} else if (c == 't') {
-					sb.append('\t');
-				} else if (c == 'u') {
-					char[] code = new char[4];
-					code[0] = (char) reader.read();
-					code[1] = (char) reader.read();
-					code[2] = (char) reader.read();
-					code[3] = (char) reader.read();
-					index += 4;
-					sb.append(Integer.parseInt(new String(code), 16));
-				} else {
-					sb.append((char) c);
-				}
-			} else {
-				sb.append((char) c);
-			}
-		}
-
-		// 跳过后空白直到结束标志
-		while ((c = reader.read()) >= 0) {
-			index++;
-			if (Character.isWhitespace((char) c)) {
-				continue;
-			} else if (c == JSONCodec.COMMA || c == JSONCodec.ARRAY_END || c == JSONCodec.OBJECT_END) {
-				return;
-			} else {
-				throw new IOException("意外字符：" + (char) c);
-			}
-		}
-		throw new EOFException(sb.toString());
+		throw new EOFException("值意外结束 " + sb.toString());
 	}
 
 	/**
-	 * 读取转义字符，必须在检测到转义标记字符'\'之后
-	 */
-	int readEscape(Reader reader) throws IOException {
-		switch (reader.read()) {
-			case '"': // \" 引号 U+0022
-				index++;
-				return '"';
-			case '\\': // \\ 反斜杠 U+005C
-				index++;
-				return '\\';
-			case '/': // \/ 斜杠 U+002F
-				index++;
-				return '/';
-			case 'b': // \b 退格符 U+0008
-				index++;
-				return '\b';
-			case 'f': // \f 换页符 U+000C
-				index++;
-				return '\f';
-			case 'n': // \n 换行符 U+000A
-				index++;
-				return '\n';
-			case 'r': // \r 回车符 U+000D
-				index++;
-				return '\r';
-			case 't': // \t 制表符 U+0009
-				index++;
-				return '\t';
-			case 'u': // \u005C CODE POINT
-				char[] code = new char[4];
-				code[0] = (char) reader.read();
-				code[1] = (char) reader.read();
-				code[2] = (char) reader.read();
-				code[3] = (char) reader.read();
-				index += 5;
-				return Integer.parseInt(new String(code), 16);
-			default:
-				throw new IOException("意外字符：" + (char) c);
-		}
-	}
-
-	/**
-	 * 跳过空白字符直到非空白字符
+	 * 跳过空白字符直到非空白字符，忽略注释
 	 * 
 	 * @return 最后一个非空白字符/-1流结束
 	 */
 	public int readSkip() throws IOException {
 		while ((c = reader.read()) >= 0) {
-			index++;
-			if (Character.isWhitespace((char) c)) {
+			if (Character.isWhitespace(c)) {
 				continue;
+			}
+			if (c == '/') {
+				// 忽略注释
+				c = reader.read();
+				if (c == '/') {
+					// 单行注释 //...\r\n
+					while ((c = reader.read()) >= 0) {
+						if (c == '\r' || c == '\n' || c == 0x2028 || c == 0x2029) {
+							break;
+						}
+					}
+					continue;
+				} else if (c == '*') {
+					// 多行注释 /*...*/
+					while ((c = reader.read()) >= 0) {
+						if (c == '*') {
+							c = reader.read();
+							if (c == '/') {
+								break;
+							}
+						}
+					}
+					continue;
+				} else {
+					// 意外情况，在键值之外读取到非法的 '/'
+					throw new IOException("意外的字符'/'");
+				}
 			}
 			return c;
 		}
@@ -415,140 +402,686 @@ final class JSONCodec {
 	 * 读取并忽略当前值
 	 */
 	public void readIgnore() throws IOException {
-		switch (readSkip()) {
-			case JSONCodec.ARRAY_BEGIN:
-				while (lastChar() != JSONCodec.ARRAY_END) {
-					readIgnore();
+		// 忽略数组中单个值
+		// 忽略键值对中的值
+		// 忽略整个键值对
+
+		// 忽略整个数组
+		// 忽略整个对象
+
+		if (readSkip() < 0) {
+			return;
+		}
+		if (c == COMMA || c == OBJECT_END || c == ARRAY_END) {
+			return;
+		}
+
+		if (c == ARRAY_BEGIN || c == OBJECT_BEGIN) {
+			int tag = 1;
+			do {
+				if (readSkip() < 0) {
+					return;
 				}
-				return;
-			case JSONCodec.OBJECT_BEGIN:
-				while (lastChar() != JSONCodec.OBJECT_END) {
-					readIgnore();
+				if (c == ARRAY_END || c == OBJECT_END) {
+					tag--;
+					continue;
 				}
-				return;
+				if (c == ARRAY_BEGIN || c == OBJECT_BEGIN) {
+					tag++;
+					continue;
+				}
+				if (readIgnoreField() < 0) {
+					return;
+				}
+				if (c == ARRAY_END || c == OBJECT_END) {
+					tag--;
+				}
+			} while (tag > 0);
+		} else {
+			readIgnoreField();
+		}
+	}
+
+	/** 忽略值或键值 */
+	int readIgnoreField() throws IOException {
+		if (c == COMMA) {
+			// ...],[...
+			return c;
+		}
+
+		int quote = 0;
+		if (c == QUOTE || c == QUOTES) {
+			quote = c;
+		}
+		while ((c = reader.read()) > 0) {
+			if (c == '\\') {
+				// 简化处理转义字符
+				// 防止转义的引号影响处理过程
+				c = reader.read();
+				if (c < 0) {
+					throw new EOFException();
+				}
+				continue;
+			}
+			if (quote > 0) {
+				// 键值引号结束之后才能解析结构标记
+				if (c == quote) {
+					quote = 0;
+				}
+				continue;
+			}
+			if (isStructure(c)) {
+				return c;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * 读取转义字符，必须在检测到转义标记字符'\'之后<br>
+	 * 续行符也由'\'开始，后跟:0A 0D U+2028 U+2029
+	 */
+	int readEscape() throws IOException {
+		c = reader.read();
+		if (c < 0) {
+			throw new EOFException();
+		}
+		switch (c) {
+			case '\'': // 引号 U+0027
+				return '\'';
+			case '"': // 引号 U+0022
+				return '"';
+			case '\\': // 反斜杠 U+005C
+				return '\\';
+			case '/': // 斜杠 U+002F
+				return '/';
+			case 'b': // 退格符 U+0008
+				return '\b';
+			case 'f': // 换页符 U+000C
+				return '\f';
+			case 'n': // 换行符 U+000A
+				return '\n';
+			case 'r': // 回车符 U+000D
+				return '\r';
+			case 't': // 制表符 U+0009
+				return '\t';
+			case 'v': // 制表符 U+000B
+				return '\u000B';
+			case '0': // 空值 U+0000
+				return '\u0000';
+			case 0xA: // 续行
+				c = reader.read();
+				if (c < 0) {
+					throw new EOFException();
+				}
+				return c;
+			case 0xD: // 续行
+				// 检查 \r\n 情况
+				c = reader.read();
+				if (c < 0) {
+					throw new EOFException();
+				}
+				if (c == 0x0A) {
+					c = reader.read();
+					if (c < 0) {
+						throw new EOFException();
+					}
+				}
+				return c;
+			case 0x2028, 0x2029: // 续行
+				c = reader.read();
+				if (c < 0) {
+					throw new EOFException();
+				}
+				return c;
+			case 'u': // \u005C
+				int index = sb.length();
+				c = reader.read();
+				if (c < 0) {
+					throw new EOFException();
+				}
+				sb.append((char) c);
+				c = reader.read();
+				if (c < 0) {
+					throw new EOFException();
+				}
+				sb.append((char) c);
+				c = reader.read();
+				if (c < 0) {
+					throw new EOFException();
+				}
+				sb.append((char) c);
+				c = reader.read();
+				if (c < 0) {
+					throw new EOFException();
+				}
+				sb.append((char) c);
+				index = Integer.parseInt(sb, index, index + 4, 16);
+				sb.setLength(sb.length() - 4);
+				return index;
 			default:
-				readValue();
-				return;
+				if (c > 9) {
+					// JSON5
+					// 允许其它字符自己转义自己
+					return c;
+				}
+				throw new IOException("意外转义字符：" + (char) c);
 		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////
 
+	/** 输出结构标记{}[] */
 	public void writeTag(char tag) throws IOException {
-		if (tag == JSONCodec.OBJECT_BEGIN || c == JSONCodec.ARRAY_BEGIN) {
-			if (c > 0 && c != JSONCodec.COLON && c != JSONCodec.ARRAY_BEGIN) {
+		if (tag == OBJECT_BEGIN || c == ARRAY_BEGIN) {
+			if (c > 0 && c != COLON && c != ARRAY_BEGIN) {
 				// 值在键之后和数组开始时没有前逗号
-				writer.write(JSONCodec.COMMA);
-				index++;
+				writer.write(COMMA);
 			}
 		}
 
 		writer.write(tag);
-		index++;
 		c = tag;
 	}
 
-	public void writeKey(String key) throws IOException {
-		if (c != JSONCodec.OBJECT_BEGIN) {
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(Boolean key) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(key.booleanValue());
+			writeBaseKey(sb);
+		}
+	}
+
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(Byte key) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(key.byteValue());
+			writeBaseKey(sb);
+		}
+	}
+
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(Short key) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(key.shortValue());
+			writeBaseKey(sb);
+		}
+	}
+
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(Integer key) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(key.intValue());
+			writeBaseKey(sb);
+		}
+	}
+
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(Character key) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(key.charValue());
+			writeBaseKey(sb);
+		}
+	}
+
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(Long key) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(key.longValue());
+			writeBaseKey(sb);
+		}
+	}
+
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(Float key, NumberFormat format) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			// sb.setLength(0);
+			// sb.append(key.floatValue());
+			writeBaseKey(format.format(key.floatValue()));
+		}
+	}
+
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(Double key, NumberFormat format) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			// sb.setLength(0);
+			// sb.append(key.doubleValue());
+			writeBaseKey(format.format(key.doubleValue()));
+		}
+	}
+
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(BigDecimal key) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			writeBaseKey(key.toPlainString());
+		}
+	}
+
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(Date key, DateFormat format) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			writeBaseKey(format.format(key));
+		}
+	}
+
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(LocalDate key, DateTimeFormatter formatter) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			sb.setLength(0);
+			formatter.formatTo(key, sb);
+			writeBaseKey(sb);
+		}
+	}
+
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(LocalTime key, DateTimeFormatter formatter) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			sb.setLength(0);
+			formatter.formatTo(key, sb);
+			writeBaseKey(sb);
+		}
+	}
+
+	/** 输出基础值键名，通常是MAP键 */
+	public void writeKey(LocalDateTime key, DateTimeFormatter formatter) throws IOException {
+		if (key == null) {
+			writeBaseKey(NULL);
+		} else {
+			sb.setLength(0);
+			formatter.formatTo(key, sb);
+			writeBaseKey(sb);
+		}
+	}
+
+	/** 输出基础值键名，双引号包围，无转义 */
+	private void writeBaseKey(CharSequence key) throws IOException {
+		if (c != OBJECT_BEGIN) {
 			// 只要不是对象开始，键之前必须有逗号
 			// {"key":"value","key":"value"}
 			// 键不会出现在数组中,只会出现在对象中
-			writer.write(JSONCodec.COMMA);
-			index++;
+			writer.write(COMMA);
+		}
+
+		if (key == NULL) {
+			writer.append(NULL);
+		} else {
+			writer.write(QUOTES);
+			writer.append(key);
+			writer.write(QUOTES);
+		}
+		writer.write(c = COLON);
+	}
+
+	/** 输出常规键名，执行转义 */
+	public void writeKey(CharSequence key, boolean quots) throws IOException {
+		if (c != OBJECT_BEGIN) {
+			// 只要不是对象开始，键之前必须有逗号
+			// {"key":"value","key":"value"}
+			// 键不会出现在数组中,只会出现在对象中
+			writer.write(COMMA);
 		}
 
 		// 前后双引号
-		if (odbs_json.isQuotesKey()) {
-			writer.write(JSONCodec.QUOTES);
-			writeEscape(key);
-			writer.write(JSONCodec.QUOTES);
-			index += 2;
+		if (quots) {
+			// 输出有双引号的键名
+			writer.write(QUOTES);
+			if (key == null) {
+				writer.write(NULL);
+			} else {
+				writeEscape(key);
+			}
+			writer.write(QUOTES);
 		} else {
-			writeEscape(key);
+			// 输出无双引号的键名
+			if (key == null) {
+				writer.write(NULL);
+			} else {
+				writeEscape(key);
+			}
 		}
-		writer.write(c = JSONCodec.COLON);
-		index++;
+		writer.write(c = COLON);
 	}
 
-	public void writeString(String value) throws IOException {
-		if (c != JSONCodec.COLON && c != JSONCodec.ARRAY_BEGIN) {
+	/** 输出字符串（须转义） */
+	public void writeValue(CharSequence value) throws IOException {
+		if (c != COLON && c != ARRAY_BEGIN) {
 			// 值在键之后和数组开始时没有前逗号
 			// ["a","b"]
 			// {"key":"value","key":"value"}
-			writer.write(JSONCodec.COMMA);
-			index++;
+			writer.write(COMMA);
 		}
 
-		writer.write(JSONCodec.QUOTES);
-		writeEscape(value);
-		writer.write(c = JSONCodec.QUOTES);
-		index += 2;
+		if (value == null) {
+			writer.write(NULL);
+		} else {
+			writer.write(QUOTES);
+			writeEscape(value);
+			writer.write(c = QUOTES);
+		}
 	}
 
-	public void writeValue(String value) throws IOException {
-		if (c != JSONCodec.COLON && c != JSONCodec.ARRAY_BEGIN) {
+	/** 输出值（无转义） */
+	public void writeValue(boolean value) throws IOException {
+		sb.setLength(0);
+		sb.append(value);
+		writeBaseValue(sb);
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(byte value) throws IOException {
+		sb.setLength(0);
+		sb.append(value);
+		writeBaseValue(sb);
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(char value) throws IOException {
+		sb.setLength(0);
+		sb.append(QUOTES);
+		sb.append(value);
+		sb.append(QUOTES);
+		writeBaseValue(sb);
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(short value) throws IOException {
+		sb.setLength(0);
+		sb.append(value);
+		writeBaseValue(sb);
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(int value) throws IOException {
+		sb.setLength(0);
+		sb.append(value);
+		writeBaseValue(sb);
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(long value) throws IOException {
+		sb.setLength(0);
+		sb.append(value);
+		writeBaseValue(sb);
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(float value, NumberFormat format) throws IOException {
+		// sb.setLength(0);
+		// sb.append(value);
+		writeBaseValue(format.format(value));
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(double value, NumberFormat format) throws IOException {
+		// sb.setLength(0);
+		// sb.append(value);
+		writeBaseValue(format.format(value));
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(Boolean value) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(value.booleanValue());
+			writeBaseValue(sb);
+		}
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(Byte value) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(value.byteValue());
+			writeBaseValue(sb);
+		}
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(Short value) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(value.shortValue());
+			writeBaseValue(sb);
+		}
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(Integer value) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(value.intValue());
+			writeBaseValue(sb);
+		}
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(Long value) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(value.longValue());
+			writeBaseValue(sb);
+		}
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(Float value, NumberFormat format) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			// sb.setLength(0);
+			// sb.append(value.floatValue());
+			writeBaseValue(format.format(value.floatValue()));
+		}
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(Double value, NumberFormat format) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			// sb.setLength(0);
+			// sb.append(value.floatValue());
+			writeBaseValue(format.format(value.doubleValue()));
+		}
+	}
+
+	/** 输出值（无转义） */
+	public void writeValue(BigDecimal value) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			writeBaseValue(value.toPlainString());
+		}
+	}
+
+	/** 输出值 */
+	public void writeValue(Character value) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(QUOTES);
+			escape(value.charValue(), sb);
+			sb.append(QUOTES);
+			writeBaseValue(sb);
+		}
+	}
+
+	/** 输出值 */
+	public void writeValue(Date value, DateFormat format) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(QUOTES);
+			sb.append(format.format(value));
+			sb.append(QUOTES);
+			writeBaseValue(sb);
+		}
+	}
+
+	/** 输出值 */
+	public void writeValue(LocalDate value, DateTimeFormatter formatter) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(QUOTES);
+			formatter.formatTo(value, sb);
+			sb.append(QUOTES);
+			writeBaseValue(sb);
+		}
+	}
+
+	/** 输出值 */
+	public void writeValue(LocalTime value, DateTimeFormatter formatter) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(QUOTES);
+			formatter.formatTo(value, sb);
+			sb.append(QUOTES);
+			writeBaseValue(sb);
+		}
+	}
+
+	/** 输出值 */
+	public void writeValue(LocalDateTime value, DateTimeFormatter formatter) throws IOException {
+		if (value == null) {
+			writeBaseValue(NULL);
+		} else {
+			sb.setLength(0);
+			sb.append(QUOTES);
+			formatter.formatTo(value, sb);
+			sb.append(QUOTES);
+			writeBaseValue(sb);
+		}
+	}
+
+	/** 输出值 null */
+	public void writeValue() throws IOException {
+		writeBaseValue(NULL);
+	}
+
+	/** 输出值（无转义） */
+	private void writeBaseValue(CharSequence value) throws IOException {
+		if (c != COLON && c != ARRAY_BEGIN) {
 			// 值在键之后和数组开始时没有前逗号
 			// [1,2]
 			// {"key":value,"key":value}
-			writer.write(JSONCodec.COMMA);
-			index++;
+			writer.write(COMMA);
 		}
 
-		writer.write(value);
-		index++;
+		writer.append(value);
 		c = SPACE;
 	}
 
-	void writeEscape(String value) throws IOException {
+	private void writeEscape(CharSequence value) throws IOException {
+		for (int i = 0; i < value.length(); i++) {
+			escape(value.charAt(i), writer);
+		}
+	}
+
+	private void escape(char value, Appendable writer) throws IOException {
 		// 转义字符 '"'='\"'
 		// 转义 \" \\ \/ \b \f \n \r \t \u0000
-
-		sb.setLength(0);
-		for (int i = 0; i < value.length(); i++) {
-			switch (c = value.charAt(i)) {
-				case JSONCodec.QUOTES:
-					sb.append(JSONCodec.ESCAPE);
-					sb.append('"');
-					break;
-				case '\\':
-					sb.append(JSONCodec.ESCAPE);
-					sb.append('\\');
-					break;
-				case '/':
-					// 20200928 JSON.parse() 不支持斜杠 '\/' 转义
-					sb.append(JSONCodec.ESCAPE);
-					sb.append('/');
-					break;
-				case '\b':
-					sb.append(JSONCodec.ESCAPE);
-					sb.append('b');
-					break;
-				case '\f':
-					sb.append(JSONCodec.ESCAPE);
-					sb.append('f');
-					break;
-				case '\n':
-					sb.append(JSONCodec.ESCAPE);
-					sb.append('n');
-					break;
-				case '\r':
-					sb.append(JSONCodec.ESCAPE);
-					sb.append('r');
-					break;
-				case '\t':
-					sb.append(JSONCodec.ESCAPE);
-					sb.append('t');
-					break;
-				case 0:
-					// '\0' NUL 字符导致JSON 失败
-					// 大部分运行环境视为字符结束，后续字符不再输出
-					break;
-				default:
-					sb.append((char) c);
-			}
+		switch (value) {
+			case QUOTE:
+				writer.append(ESCAPE);
+				writer.append('\'');
+				break;
+			case QUOTES:
+				writer.append(ESCAPE);
+				writer.append('"');
+				break;
+			case '\\':
+				writer.append(ESCAPE);
+				writer.append('\\');
+				break;
+			case '/':
+				// 20200928 JSON.parse() 不支持斜杠 '\/' 转义
+				writer.append(ESCAPE);
+				writer.append('/');
+				break;
+			case '\b':
+				writer.append(ESCAPE);
+				writer.append('b');
+				break;
+			case '\f':
+				writer.append(ESCAPE);
+				writer.append('f');
+				break;
+			case '\n':
+				writer.append(ESCAPE);
+				writer.append('n');
+				break;
+			case '\r':
+				writer.append(ESCAPE);
+				writer.append('r');
+				break;
+			case '\t':
+				writer.append(ESCAPE);
+				writer.append('t');
+				break;
+			case 0x000B:
+				writer.append(ESCAPE);
+				writer.append('v');
+				break;
+			case 0:
+				// '\0' NUL 字符导致JSON 失败
+				// 大部分运行环境视为字符结束，后续字符不再输出
+				writer.append(ESCAPE);
+				writer.append('0');
+				break;
+			default:
+				writer.append(value);
 		}
-		writer.append(sb);
-		index += sb.length();
+	}
+
+	@Override
+	public String toString() {
+		return (char) c + " " + sb.toString();
 	}
 }

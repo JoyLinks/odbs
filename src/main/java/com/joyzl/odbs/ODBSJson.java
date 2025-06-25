@@ -10,6 +10,8 @@ import java.io.Writer;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -64,6 +66,7 @@ public final class ODBSJson {
 	private DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd");
 	/** 日期时间格式 */
 	private DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss");
+
 	/** 日期时间格式 */
 	private Supplier<DateFormat> DATE_FORMAT = new Supplier<DateFormat>() {
 		@Override
@@ -73,14 +76,23 @@ public final class ODBSJson {
 	};
 	/** 数字格式化 */
 	private Supplier<NumberFormat> NUMBER_FORMAT = new Supplier<NumberFormat>() {
+		// TODO Float和Double的转换性能较低，后续应优化
 		@Override
 		public NumberFormat get() {
-			NumberFormat format = NumberFormat.getInstance();
+			final DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance();
+			symbols.setInfinity("Infinity");
+			symbols.setNaN("NaN");
+			DecimalFormat format = new DecimalFormat();
 			format.setGroupingUsed(false);
 			format.setMaximumFractionDigits(Double.MAX_EXPONENT);
+			format.setDecimalFormatSymbols(symbols);
 			return format;
 		}
 	};
+	private ThreadLocal<NumberFormat> TL_NUMBER_FORMAT = ThreadLocal.withInitial(NUMBER_FORMAT);
+	private ThreadLocal<DateFormat> TL_DATE_FORMAT = ThreadLocal.withInitial(DATE_FORMAT);
+
+	////////////////////////////////////////////////////////////////////////////////
 
 	public final void writeEntity(Object entity, Writer writer) throws IOException {
 		if (entity == null) {
@@ -160,38 +172,38 @@ public final class ODBSJson {
 					if (IGNORE_NULL) {
 						// 忽略空值
 					} else {
-						writer.writeKey(field.getName(KEY_NAME_FORMAT));
-						writer.writeValue(JSONCodec.NULL);
+						writer.writeKey(field.getName(KEY_NAME_FORMAT), QUOTES_KEY);
+						writer.writeValue();
 					}
 					continue;
 				} else if (ODBSTypes.isValue(field.getType().value())) {
-					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writer.writeKey(field.getName(KEY_NAME_FORMAT), QUOTES_KEY);
 					writeValue(field.getType().value(), value, writer);
 				} else if (ODBSTypes.isBase(field.getType().value())) {
-					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writer.writeKey(field.getName(KEY_NAME_FORMAT), QUOTES_KEY);
 					writeBase(field.getType().value(), value, writer);
 				} else if (ODBSTypes.isEnum(field.getType().value())) {
-					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writer.writeKey(field.getName(KEY_NAME_FORMAT), QUOTES_KEY);
 					writeEnum(field.getType().value(), value, writer);
 				} else if (ODBSTypes.isEntity(field.getType().value())) {
-					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writer.writeKey(field.getName(KEY_NAME_FORMAT), QUOTES_KEY);
 					writeEntity(field.getType().value(), value, writer);
 				} else if (ODBSTypes.isArray(field.getType().value())) {
-					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writer.writeKey(field.getName(KEY_NAME_FORMAT), QUOTES_KEY);
 					writeArray(field.getType().further(), value, writer);
 				} else if (ODBSTypes.isList(field.getType().value())) {
-					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writer.writeKey(field.getName(KEY_NAME_FORMAT), QUOTES_KEY);
 					writeList(field.getType().further(), (List<?>) value, writer);
 				} else if (ODBSTypes.isSet(field.getType().value())) {
-					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writer.writeKey(field.getName(KEY_NAME_FORMAT), QUOTES_KEY);
 					writeSet(field.getType().further(), (Set<?>) value, writer);
 				} else if (ODBSTypes.isMap(field.getType().value())) {
-					writer.writeKey(field.getName(KEY_NAME_FORMAT));
+					writer.writeKey(field.getName(KEY_NAME_FORMAT), QUOTES_KEY);
 					writeMap(field.getType().further(), (Map<?, ?>) value, writer);
 				} else if (ODBSTypes.isAny(field.getType().value())) {
 					// TODO 需要优化，目前仅转换为字符串输出
-					writer.writeKey(field.getName(KEY_NAME_FORMAT));
-					writer.writeString(value.toString());
+					writer.writeKey(field.getName(KEY_NAME_FORMAT), QUOTES_KEY);
+					writer.writeValue(value.toString());
 				} else {
 					throw new IllegalStateException("不支持的数据类型:" + field);
 				}
@@ -202,47 +214,47 @@ public final class ODBSJson {
 
 	private final void writeKey(int type, Object value, JSONCodec writer) throws IOException {
 		switch (type) {
+			case ODBSTypes.STRING:
+				writer.writeKey((String) value, true);
+				break;
 			case ODBSTypes.BOOLEAN:
-				writer.writeKey(value.toString());
+				writer.writeKey((Boolean) value);
 				break;
 			case ODBSTypes.BYTE:
-				writer.writeKey(value.toString());
+				writer.writeKey((Byte) value);
 				break;
 			case ODBSTypes.CHARACTER:
-				writer.writeKey(value.toString());
+				writer.writeKey((Character) value);
 				break;
 			case ODBSTypes.SHORT:
-				writer.writeKey(value.toString());
+				writer.writeKey((Short) value);
 				break;
 			case ODBSTypes.INTEGER:
-				writer.writeKey(value.toString());
+				writer.writeKey((Integer) value);
 				break;
 			case ODBSTypes.LONG:
-				writer.writeKey(value.toString());
+				writer.writeKey((Long) value);
 				break;
 			case ODBSTypes.FLOAT:
-				writer.writeKey(writer.NUMBER_FORMAT.format(value));
+				writer.writeKey((Float) value, TL_NUMBER_FORMAT.get());
 				break;
 			case ODBSTypes.DOUBLE:
-				writer.writeKey(writer.NUMBER_FORMAT.format(value));
+				writer.writeKey((Double) value, TL_NUMBER_FORMAT.get());
 				break;
 			case ODBSTypes.BIG_DECIMAL:
-				writer.writeKey(value.toString());
+				writer.writeKey((BigDecimal) value);
 				break;
 			case ODBSTypes.DATE:
-				writer.writeKey(writer.DATE_FORMAT.format(value));
+				writer.writeKey((Date) value, DATE_FORMAT.get());
 				break;
 			case ODBSTypes.LOCAL_TIME:
-				writer.writeKey(TIME_FORMATTER.format((LocalTime) value));
+				writer.writeKey((LocalTime) value, TIME_FORMATTER);
 				break;
 			case ODBSTypes.LOCAL_DATE:
-				writer.writeKey(DATE_FORMATTER.format((LocalDate) value));
+				writer.writeKey((LocalDate) value, DATE_FORMATTER);
 				break;
 			case ODBSTypes.LOCAL_DATE_TIME:
-				writer.writeKey(DATE_TIME_FORMATTER.format((LocalDateTime) value));
-				break;
-			case ODBSTypes.STRING:
-				writer.writeKey(value.toString());
+				writer.writeKey((LocalDateTime) value, DATE_TIME_FORMATTER);
 				break;
 			default:
 				throw new IllegalStateException("意外的基础类型:" + type);
@@ -252,28 +264,28 @@ public final class ODBSJson {
 	private final void writeValue(int type, Object value, JSONCodec writer) throws IOException {
 		switch (type) {
 			case ODBSTypes._boolean:
-				writer.writeValue(value.toString());
+				writer.writeValue((Boolean) value);
 				break;
 			case ODBSTypes._byte:
-				writer.writeValue(value.toString());
+				writer.writeValue((Byte) value);
 				break;
 			case ODBSTypes._char:
-				writer.writeString(value.toString());
+				writer.writeValue((Character) value);
 				break;
 			case ODBSTypes._short:
-				writer.writeValue(value.toString());
+				writer.writeValue((Short) value);
 				break;
 			case ODBSTypes._int:
-				writer.writeValue(value.toString());
+				writer.writeValue((Integer) value);
 				break;
 			case ODBSTypes._long:
-				writer.writeValue(value.toString());
+				writer.writeValue((Long) value);
 				break;
 			case ODBSTypes._float:
-				writer.writeValue(writer.NUMBER_FORMAT.format(value));
+				writer.writeValue((Float) value, TL_NUMBER_FORMAT.get());
 				break;
 			case ODBSTypes._double:
-				writer.writeValue(writer.NUMBER_FORMAT.format(value));
+				writer.writeValue((Double) value, TL_NUMBER_FORMAT.get());
 				break;
 			default:
 				throw new IllegalStateException("意外的值类型:" + type);
@@ -283,46 +295,46 @@ public final class ODBSJson {
 	private final void writeBase(int type, Object value, JSONCodec writer) throws IOException {
 		switch (type) {
 			case ODBSTypes.BOOLEAN:
-				writer.writeValue(value.toString());
+				writer.writeValue((Boolean) value);
 				break;
 			case ODBSTypes.BYTE:
-				writer.writeValue(value.toString());
+				writer.writeValue((Byte) value);
 				break;
 			case ODBSTypes.CHARACTER:
-				writer.writeString(value.toString());
+				writer.writeValue((Character) value);
 				break;
 			case ODBSTypes.SHORT:
-				writer.writeValue(value.toString());
+				writer.writeValue((Short) value);
 				break;
 			case ODBSTypes.INTEGER:
-				writer.writeValue(value.toString());
+				writer.writeValue((Integer) value);
 				break;
 			case ODBSTypes.LONG:
-				writer.writeValue(value.toString());
+				writer.writeValue((Long) value);
 				break;
 			case ODBSTypes.FLOAT:
-				writer.writeValue(writer.NUMBER_FORMAT.format(value));
+				writer.writeValue((Float) value, TL_NUMBER_FORMAT.get());
 				break;
 			case ODBSTypes.DOUBLE:
-				writer.writeValue(writer.NUMBER_FORMAT.format(value));
+				writer.writeValue((Double) value, TL_NUMBER_FORMAT.get());
 				break;
 			case ODBSTypes.BIG_DECIMAL:
-				writer.writeValue(value.toString());
+				writer.writeValue((BigDecimal) value);
 				break;
 			case ODBSTypes.DATE:
-				writer.writeString(writer.DATE_FORMAT.format(value));
+				writer.writeValue((Date) value, DATE_FORMAT.get());
 				break;
 			case ODBSTypes.LOCAL_TIME:
-				writer.writeString(TIME_FORMATTER.format((LocalTime) value));
+				writer.writeValue((LocalTime) value, TIME_FORMATTER);
 				break;
 			case ODBSTypes.LOCAL_DATE:
-				writer.writeString(DATE_FORMATTER.format((LocalDate) value));
+				writer.writeValue((LocalDate) value, DATE_FORMATTER);
 				break;
 			case ODBSTypes.LOCAL_DATE_TIME:
-				writer.writeString(DATE_TIME_FORMATTER.format((LocalDateTime) value));
+				writer.writeValue((LocalDateTime) value, DATE_TIME_FORMATTER);
 				break;
 			case ODBSTypes.STRING:
-				writer.writeString(value.toString());
+				writer.writeValue((CharSequence) value);
 				break;
 			default:
 				throw new IllegalStateException("意外的基础类型:" + type);
@@ -336,21 +348,21 @@ public final class ODBSJson {
 	private final void writeEnum(ODBSEnumeration type, Object value, JSONCodec writer) throws IOException {
 		if (ENUM_OBJECT) {
 			writer.writeTag(JSONCodec.OBJECT_BEGIN);
-			writer.writeKey("value");
-			writer.writeValue(Integer.toString(type.getValue(value)));
+			writer.writeKey("value", QUOTES_KEY);
+			writer.writeValue(type.getValue(value));
 			String name = type.getName(value);
 			if (name != null) {
-				writer.writeKey("name");
-				writer.writeString(name);
+				writer.writeKey("name", QUOTES_KEY);
+				writer.writeValue(name);
 			}
 			name = type.getText(value);
 			if (name != null) {
-				writer.writeKey("text");
-				writer.writeString(name);
+				writer.writeKey("text", QUOTES_KEY);
+				writer.writeValue(name);
 			}
 			writer.writeTag(JSONCodec.OBJECT_END);
 		} else {
-			writer.writeValue(Integer.toString(type.getValue(value)));
+			writer.writeValue(type.getValue(value));
 		}
 	}
 
@@ -412,42 +424,42 @@ public final class ODBSJson {
 		switch (type) {
 			case ODBSTypes._boolean:
 				for (int index = 0; index < length; index++) {
-					writer.writeValue(Boolean.toString(Array.getBoolean(values, index)));
+					writer.writeValue(Array.getBoolean(values, index));
 				}
 				break;
 			case ODBSTypes._byte:
 				for (int index = 0; index < length; index++) {
-					writer.writeValue(Byte.toString(Array.getByte(values, index)));
+					writer.writeValue(Array.getByte(values, index));
 				}
 				break;
 			case ODBSTypes._char:
 				for (int index = 0; index < length; index++) {
-					writer.writeString(Character.toString(Array.getChar(values, index)));
+					writer.writeValue(Array.getChar(values, index));
 				}
 				break;
 			case ODBSTypes._short:
 				for (int index = 0; index < length; index++) {
-					writer.writeValue(Short.toString(Array.getShort(values, index)));
+					writer.writeValue(Array.getShort(values, index));
 				}
 				break;
 			case ODBSTypes._int:
 				for (int index = 0; index < length; index++) {
-					writer.writeValue(Integer.toString(Array.getInt(values, index)));
+					writer.writeValue(Array.getInt(values, index));
 				}
 				break;
 			case ODBSTypes._long:
 				for (int index = 0; index < length; index++) {
-					writer.writeValue(Long.toString(Array.getLong(values, index)));
+					writer.writeValue(Array.getLong(values, index));
 				}
 				break;
 			case ODBSTypes._float:
 				for (int index = 0; index < length; index++) {
-					writer.writeValue(writer.NUMBER_FORMAT.format(Array.getFloat(values, index)));
+					writer.writeValue(Array.getFloat(values, index), TL_NUMBER_FORMAT.get());
 				}
 				break;
 			case ODBSTypes._double:
 				for (int index = 0; index < length; index++) {
-					writer.writeValue(writer.NUMBER_FORMAT.format(Array.getDouble(values, index)));
+					writer.writeValue(Array.getDouble(values, index), TL_NUMBER_FORMAT.get());
 				}
 				break;
 			default:
@@ -459,90 +471,75 @@ public final class ODBSJson {
 	private final void writeBases(int type, Object values, JSONCodec writer) throws IOException {
 		writer.writeTag(JSONCodec.ARRAY_BEGIN);
 		final int length = Array.getLength(values);
-		Object value = null;
 		switch (type) {
 			case ODBSTypes.BOOLEAN:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeValue(value == null ? JSONCodec.NULL : value.toString());
+					writer.writeValue((Boolean) Array.get(values, index));
 				}
 				break;
 			case ODBSTypes.BYTE:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeValue(value == null ? JSONCodec.NULL : value.toString());
+					writer.writeValue((Byte) Array.get(values, index));
 				}
 				break;
 			case ODBSTypes.CHARACTER:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeString(value == null ? JSONCodec.NULL : value.toString());
+					writer.writeValue((Character) Array.get(values, index));
 				}
 				break;
 			case ODBSTypes.SHORT:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeValue(value == null ? JSONCodec.NULL : value.toString());
+					writer.writeValue((Short) Array.get(values, index));
 				}
 				break;
 			case ODBSTypes.INTEGER:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeValue(value == null ? JSONCodec.NULL : value.toString());
+					writer.writeValue((Integer) Array.get(values, index));
 				}
 				break;
 			case ODBSTypes.LONG:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeValue(value == null ? JSONCodec.NULL : value.toString());
+					writer.writeValue((Long) Array.get(values, index));
 				}
 				break;
 			case ODBSTypes.FLOAT:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeValue(value == null ? JSONCodec.NULL : value.toString());
+					writer.writeValue((Float) Array.get(values, index), TL_NUMBER_FORMAT.get());
 				}
 				break;
 			case ODBSTypes.DOUBLE:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeValue(value == null ? JSONCodec.NULL : value.toString());
+					writer.writeValue((Double) Array.get(values, index), TL_NUMBER_FORMAT.get());
 				}
 				break;
 			case ODBSTypes.BIG_DECIMAL:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeValue(value == null ? JSONCodec.NULL : value.toString());
+					writer.writeValue((BigDecimal) Array.get(values, index));
 				}
 				break;
 			case ODBSTypes.DATE:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeString(value == null ? JSONCodec.NULL : writer.DATE_FORMAT.format(value));
+					writer.writeValue((Date) Array.get(values, index), DATE_FORMAT.get());
 				}
 				break;
 			case ODBSTypes.LOCAL_TIME:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeString(value == null ? JSONCodec.NULL : TIME_FORMATTER.format((LocalTime) value));
+					writer.writeValue((LocalTime) Array.get(values, index), TIME_FORMATTER);
 				}
 				break;
 			case ODBSTypes.LOCAL_DATE:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeString(value == null ? JSONCodec.NULL : DATE_FORMATTER.format((LocalDate) value));
+					writer.writeValue((LocalDate) Array.get(values, index), DATE_FORMATTER);
 				}
 				break;
 			case ODBSTypes.LOCAL_DATE_TIME:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeString(value == null ? JSONCodec.NULL : DATE_TIME_FORMATTER.format((LocalDateTime) value));
+					writer.writeValue((LocalDateTime) Array.get(values, index), DATE_TIME_FORMATTER);
 				}
 				break;
 			case ODBSTypes.STRING:
 				for (int index = 0; index < length; index++) {
-					value = Array.get(values, index);
-					writer.writeString(value == null ? JSONCodec.NULL : value.toString());
+					writer.writeValue((String) Array.get(values, index));
 				}
 				break;
 			default:
@@ -728,7 +725,7 @@ public final class ODBSJson {
 	// JSON 格式不具备额外的对象类型标识，因此必须由外部指定实例或类型
 	// 外部程序可通过URL或者参数确定JSON填充的对象实例
 
-	public final List<String> readStrings(Reader reader) throws IOException, ParseException {
+	public final List<String> readStrings(Reader reader) throws IOException {
 		if (reader.ready()) {
 			final List<String> values = new ArrayList<>();
 			readStrings(values, JSONCodec.instence(this, reader));
@@ -738,13 +735,13 @@ public final class ODBSJson {
 		}
 	}
 
-	public final void readStrings(Collection<String> values, Reader reader) throws IOException, ParseException {
+	public final void readStrings(Collection<String> values, Reader reader) throws IOException {
 		if (reader.ready()) {
 			readStrings(values, JSONCodec.instence(this, reader));
 		}
 	}
 
-	public final <T> List<T> readEntities(Class<T> clazz, Reader reader) throws IOException, ParseException {
+	public final <T> List<T> readEntities(Class<T> clazz, Reader reader) throws IOException {
 		final ODBSDescription description = odbs.findDesc(clazz);
 		if (description == null) {
 			throw new RuntimeException("对象描述不存在" + clazz.getName());
@@ -758,7 +755,7 @@ public final class ODBSJson {
 		}
 	}
 
-	public final <T> void readEntities(Collection<T> entities, Class<T> clazz, Reader reader) throws IOException, ParseException {
+	public final <T> void readEntities(Collection<T> entities, Class<T> clazz, Reader reader) throws IOException {
 		final ODBSDescription description = odbs.findDesc(clazz);
 		if (description == null) {
 			throw new RuntimeException("对象描述不存在" + clazz.getName());
@@ -768,7 +765,7 @@ public final class ODBSJson {
 		}
 	}
 
-	public final <T> T readEntity(Class<T> clazz, Reader reader) throws IOException, ParseException {
+	public final <T> T readEntity(Class<T> clazz, Reader reader) throws IOException {
 		final ODBSDescription description = odbs.findDesc(clazz);
 		if (description == null) {
 			throw new RuntimeException("对象描述不存在" + clazz.getName());
@@ -780,7 +777,7 @@ public final class ODBSJson {
 		}
 	}
 
-	public final <T> T readEntity(T instence, Reader reader) throws IOException, ParseException {
+	public final <T> T readEntity(T instence, Reader reader) throws IOException {
 		final ODBSDescription description = odbs.findDesc(instence.getClass());
 		if (description == null) {
 			throw new RuntimeException("对象描述不存在" + instence.getClass().getName());
@@ -793,7 +790,7 @@ public final class ODBSJson {
 	}
 
 	/** [1,false,"string"] */
-	private final void readStrings(Collection<String> values, JSONCodec reader) throws IOException, ParseException {
+	private final void readStrings(Collection<String> values, JSONCodec reader) throws IOException {
 		if (reader.readSkip() > 0) {
 			if (reader.lastChar() == JSONCodec.ARRAY_BEGIN) {
 				// 如果数据元素为基础数据类型，则全部按字符串读取，因为Java不支持JavaScript的混合类型
@@ -804,13 +801,13 @@ public final class ODBSJson {
 					}
 				} while (reader.lastChar() != JSONCodec.ARRAY_END);
 			} else {
-				throw new ParseException("应为数组:" + reader.lastChar(), reader.getIndex());
+				throw new IOException("应为数组:" + reader.lastChar());
 			}
 		}
 	}
 
 	/** [{...}] */
-	private final <T> void readEntities(ODBSDescription description, Collection<T> entities, JSONCodec reader) throws IOException, ParseException {
+	private final <T> void readEntities(ODBSDescription description, Collection<T> entities, JSONCodec reader) throws IOException {
 		if (reader.readSkip() > 0) {
 			if (reader.lastChar() == JSONCodec.ARRAY_BEGIN) {
 				// 开始读取根数组，如果数组元素为JSON对象则类型为指定的类型 [{},{}]
@@ -820,20 +817,20 @@ public final class ODBSJson {
 					}
 				} while (reader.lastChar() != JSONCodec.ARRAY_END);
 			} else {
-				throw new ParseException("应为数组:" + reader.lastChar(), reader.getIndex());
+				throw new IOException("应为数组:" + reader.lastChar());
 			}
 		}
 	}
 
 	/** {...} */
-	private final <T> T readEntity(ODBSDescription description, T entity, JSONCodec reader) throws IOException, ParseException {
+	private final <T> T readEntity(ODBSDescription description, T entity, JSONCodec reader) throws IOException {
 		// 开始
 		if (reader.readSkip() > 0) {
 			if (reader.lastChar() == JSONCodec.OBJECT_BEGIN) {
 				// 开始读取根对象 {...}
 				entity = readEntity(description, entity, reader, true);
 			} else {
-				throw new ParseException("应为对象:" + reader.lastChar(), reader.getIndex());
+				throw new IOException("应为对象:" + reader.lastChar());
 			}
 		} else {
 			// 流已结束
@@ -844,7 +841,7 @@ public final class ODBSJson {
 	/**
 	 * 读取对象，开始标记是否确认(tag) readEntity(description, null, reader, false);
 	 */
-	private final Object readEntity(ODBSType type, JSONCodec reader, boolean tag) throws IOException, ParseException {
+	private final Object readEntity(ODBSType type, JSONCodec reader, boolean tag) throws IOException {
 		final ODBSDescription description = odbs.findDesc(type.value());
 		if (description == null) {
 			throw new RuntimeException("对象描述不存在" + type);
@@ -855,7 +852,7 @@ public final class ODBSJson {
 		if (reader.readSkip() == JSONCodec.OBJECT_BEGIN) {
 			return readEntity(description, null, reader, false);
 		} else {
-			throw new ParseException("意外字符:" + reader.lastChar(), reader.getIndex());
+			throw new IOException("应为对象:" + reader.lastChar());
 		}
 	}
 
@@ -863,7 +860,7 @@ public final class ODBSJson {
 	 * 读取对象，开始标记已确认
 	 */
 	@SuppressWarnings("unchecked")
-	private final <T> T readEntity(ODBSDescription description, T entity, JSONCodec reader, boolean root) throws IOException, ParseException {
+	private final <T> T readEntity(ODBSDescription description, T entity, JSONCodec reader, boolean root) throws IOException {
 		// {}
 		// { name:value }
 		// { "name1":"value","name2":true }
@@ -931,7 +928,7 @@ public final class ODBSJson {
 		return entity;
 	}
 
-	private final Map<?, ?> readMap(Map<Object, Object> map, ODBSType type, JSONCodec reader) throws IOException, ParseException {
+	private final Map<?, ?> readMap(Map<Object, Object> map, ODBSType type, JSONCodec reader) throws IOException {
 		// {"key1":value1,"key2":value2}
 		if (reader.readSkip() == JSONCodec.OBJECT_BEGIN) {
 			if (map == null) {
@@ -1004,26 +1001,25 @@ public final class ODBSJson {
 			}
 			reader.readSkip();
 		} else {
-			if (reader.lastIsStructure()) {
-				// 集合只能是数组结构[]，其它结构均为错误
-				throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
-			} else {
-				// 集合除数组以外只有null可用
-				if (reader.readValue()) {
-					if (reader.isNull()) {
-						map = null;
-					} else {
-						throw new ParseException(type + "意外值:" + reader.getString(), reader.getIndex());
-					}
+			if (reader.isStructure()) {
+				// MAP 集合只能是对象结构{}，其它结构均为错误
+				throw new IOException(type + "意外字符:" + reader.lastChar());
+			}
+			// null
+			if (reader.readValue()) {
+				if (reader.isNull()) {
+					map = null;
 				} else {
-					throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+					throw new IOException(type + "意外值:" + reader.getString());
 				}
+			} else {
+				throw new IOException(type + "意外字符:" + reader.lastChar());
 			}
 		}
 		return map;
 	}
 
-	private final Set<?> readSet(Set<Object> set, ODBSType type, JSONCodec reader) throws IOException, ParseException {
+	private final Set<?> readSet(Set<Object> set, ODBSType type, JSONCodec reader) throws IOException {
 		// []
 		if (reader.readSkip() == JSONCodec.ARRAY_BEGIN) {
 			if (set == null) {
@@ -1068,26 +1064,26 @@ public final class ODBSJson {
 			}
 			reader.readSkip();
 		} else {
-			if (reader.lastIsStructure()) {
+			if (reader.isStructure()) {
 				// 集合只能是数组结构[]，其它结构均为错误
-				throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+				throw new IOException(type + "意外字符:" + reader.lastChar());
 			} else {
 				// 集合除数组以外只有null可用
 				if (reader.readValue()) {
 					if (reader.isNull()) {
 						set = null;
 					} else {
-						throw new ParseException(type + "意外值:" + reader.getString(), reader.getIndex());
+						throw new IOException(type + "意外值:" + reader.getString());
 					}
 				} else {
-					throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+					throw new IOException(type + "意外字符:" + reader.lastChar());
 				}
 			}
 		}
 		return set;
 	}
 
-	private final List<?> readList(List<Object> list, ODBSType type, JSONCodec reader) throws ParseException, IOException {
+	private final List<?> readList(List<Object> list, ODBSType type, JSONCodec reader) throws IOException {
 		// []
 		if (reader.readSkip() == JSONCodec.ARRAY_BEGIN) {
 			if (list == null) {
@@ -1132,19 +1128,19 @@ public final class ODBSJson {
 			}
 			reader.readSkip();
 		} else {
-			if (reader.lastIsStructure()) {
+			if (reader.isStructure()) {
 				// 集合只能是数组结构[]，其它结构均为错误
-				throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+				throw new IOException(type + "意外字符:" + reader.lastChar());
 			} else {
 				// 集合除数组以外只有null可用
 				if (reader.readValue()) {
 					if (reader.isNull()) {
 						list = null;
 					} else {
-						throw new ParseException(type + "意外值:" + reader.getString(), reader.getIndex());
+						throw new IOException(type + "意外值:" + reader.getString());
 					}
 				} else {
-					throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+					throw new IOException(type + "意外字符:" + reader.lastChar());
 				}
 			}
 		}
@@ -1154,7 +1150,7 @@ public final class ODBSJson {
 	/**
 	 * 读取数组
 	 */
-	private final Object readArray(ODBSType type, JSONCodec reader) throws IOException, ParseException {
+	private final Object readArray(ODBSType type, JSONCodec reader) throws IOException {
 		// []
 		if (ODBSTypes.isValue(type.value())) {
 			// [] 值数组
@@ -1242,24 +1238,24 @@ public final class ODBSJson {
 		}
 
 		// ELSE
-		if (reader.lastIsStructure()) {
+		if (reader.isStructure()) {
 			// 集合只能是数组结构[]，其它结构均为错误
-			throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+			throw new IOException(type + "意外字符:" + reader.lastChar());
 		} else {
 			// 集合除数组以外只有null可用
 			if (reader.readValue()) {
 				if (reader.isNull()) {
 					return null;
 				} else {
-					throw new ParseException(type + "意外值:" + reader.getString(), reader.getIndex());
+					throw new IOException(type + "意外值:" + reader.getString());
 				}
 			} else {
-				throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+				throw new IOException(type + "意外字符:" + reader.lastChar());
 			}
 		}
 	}
 
-	private final void readEnums(Collection<? super Object> collection, ODBSType type, JSONCodec reader) throws IOException, ParseException {
+	private final void readEnums(Collection<? super Object> collection, ODBSType type, JSONCodec reader) throws IOException {
 		// 读取枚举集合
 		// 此方法将减少不必要的类型判断
 		final ODBSEnumeration enumeration = odbs.findEnum(type.value());
@@ -1291,7 +1287,7 @@ public final class ODBSJson {
 					collection.add(enumeration.getConstant(Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10)));
 				}
 			} else {
-				throw new ParseException("期望值:" + type, reader.getIndex());
+				throw new IOException("期望值:" + type);
 			}
 		}
 	}
@@ -1299,7 +1295,7 @@ public final class ODBSJson {
 	/**
 	 * 读取枚举数组
 	 */
-	private final Object[] readEnums(ODBSType type, JSONCodec reader) throws IOException, ParseException {
+	private final Object[] readEnums(ODBSType type, JSONCodec reader) throws IOException {
 		// "enum":[{"value":1,"name":"USER","text":"用户"},{"value":2,"name":"USER","text":"用户"},null]
 		// "enum":[{"value":1,"name":"USER","text":"用户"},2,null]
 		// "enum":[1,2,null]
@@ -1337,32 +1333,32 @@ public final class ODBSJson {
 						values.add(enumeration.getConstant(Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10)));
 					}
 				} else {
-					throw new ParseException("期望值:" + type, reader.getIndex());
+					throw new IOException("期望值:" + type);
 				}
 			}
 			reader.readSkip();
 			// 返回数组
 			return values.toArray(enumeration.newArray(values.size()));
 		} else {
-			if (reader.lastIsStructure()) {
+			if (reader.isStructure()) {
 				// 集合只能是数组结构[]，其它结构均为错误
-				throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+				throw new IOException(type + "意外字符:" + reader.lastChar());
 			} else {
 				// 集合除数组以外只有null可用
 				if (reader.readValue()) {
 					if (reader.isNull()) {
 						return null;
 					} else {
-						throw new ParseException(type + "意外值:" + reader.getString(), reader.getIndex());
+						throw new IOException(type + "意外值:" + reader.getString());
 					}
 				} else {
-					throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+					throw new IOException(type + "意外字符:" + reader.lastChar());
 				}
 			}
 		}
 	}
 
-	private final Object readEnum(ODBSType type, JSONCodec reader) throws IOException, ParseException {
+	private final Object readEnum(ODBSType type, JSONCodec reader) throws IOException {
 		// "enum":{"value":1,"name":"USER","text":"用户"},
 		// "enum":{"value":null,"name":null,"text":null},
 		// "enum":1,
@@ -1395,11 +1391,11 @@ public final class ODBSJson {
 			}
 			return enumeration.getConstant(Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
 		} else {
-			throw new ParseException("期望值:" + type, reader.getIndex());
+			throw new IOException("期望值:" + type);
 		}
 	}
 
-	private final void readBases(Collection<? super Object> collection, ODBSType type, JSONCodec reader) throws ParseException, IOException {
+	private final void readBases(Collection<? super Object> collection, ODBSType type, JSONCodec reader) throws IOException {
 		// 读取基本类型集合
 		// 此方法将减少不必要的类型判断
 		switch (type.value()) {
@@ -1409,7 +1405,7 @@ public final class ODBSJson {
 						if (reader.isNull()) {
 							collection.add(null);
 						} else {
-							collection.add("true".contentEquals(reader.getCharSequence()) ? Boolean.TRUE : Boolean.FALSE);
+							collection.add(reader.getBoolean() ? Boolean.TRUE : Boolean.FALSE);
 						}
 					}
 				}
@@ -1420,7 +1416,7 @@ public final class ODBSJson {
 						if (reader.isNull()) {
 							collection.add(null);
 						} else {
-							collection.add(Byte.valueOf((byte) Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10)));
+							collection.add(Byte.valueOf((byte) reader.getInt()));
 						}
 					}
 				}
@@ -1442,7 +1438,7 @@ public final class ODBSJson {
 						if (reader.isNull()) {
 							collection.add(null);
 						} else {
-							collection.add(Short.valueOf((short) Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10)));
+							collection.add(Short.valueOf((short) reader.getInt()));
 						}
 					}
 				}
@@ -1453,7 +1449,7 @@ public final class ODBSJson {
 						if (reader.isNull()) {
 							collection.add(null);
 						} else {
-							collection.add(Integer.valueOf(Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10)));
+							collection.add(Integer.valueOf(reader.getInt()));
 						}
 					}
 				}
@@ -1464,7 +1460,7 @@ public final class ODBSJson {
 						if (reader.isNull()) {
 							collection.add(null);
 						} else {
-							collection.add(Long.valueOf(Long.parseLong(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10)));
+							collection.add(Long.valueOf(reader.getLong()));
 						}
 					}
 				}
@@ -1508,7 +1504,7 @@ public final class ODBSJson {
 						if (reader.isNull()) {
 							collection.add(null);
 						} else {
-							collection.add(reader.DATE_FORMAT.parse(reader.getString()));
+							collection.add(parseDate(reader.getString()));
 						}
 					}
 				}
@@ -1565,7 +1561,7 @@ public final class ODBSJson {
 	/**
 	 * 读取基础类型数组
 	 */
-	private final Object[] readBases(ODBSType type, JSONCodec reader) throws ParseException, IOException {
+	private final Object[] readBases(ODBSType type, JSONCodec reader) throws IOException {
 		// 读取多个基础类型值数组
 		// 基础类型数组值类型相同，因此先执行类型判断后执行循环读值可减少重复类型判断
 		if (reader.readSkip() == JSONCodec.ARRAY_BEGIN) {
@@ -1577,7 +1573,7 @@ public final class ODBSJson {
 							if (reader.isNull()) {
 								booleans.add(null);
 							} else {
-								booleans.add("true".contentEquals(reader.getCharSequence()) ? Boolean.TRUE : Boolean.FALSE);
+								booleans.add(reader.getBoolean() ? Boolean.TRUE : Boolean.FALSE);
 							}
 						}
 					}
@@ -1590,7 +1586,7 @@ public final class ODBSJson {
 							if (reader.isNull()) {
 								bytes.add(null);
 							} else {
-								bytes.add(Byte.valueOf((byte) Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10)));
+								bytes.add(Byte.valueOf((byte) reader.getInt()));
 							}
 						}
 					}
@@ -1616,7 +1612,7 @@ public final class ODBSJson {
 							if (reader.isNull()) {
 								shorts.add(null);
 							} else {
-								shorts.add(Short.valueOf((short) Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10)));
+								shorts.add(Short.valueOf((short) reader.getInt()));
 							}
 						}
 					}
@@ -1629,7 +1625,7 @@ public final class ODBSJson {
 							if (reader.isNull()) {
 								integers.add(null);
 							} else {
-								integers.add(Integer.valueOf(Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10)));
+								integers.add(Integer.valueOf(reader.getInt()));
 							}
 						}
 					}
@@ -1642,7 +1638,7 @@ public final class ODBSJson {
 							if (reader.isNull()) {
 								longs.add(null);
 							} else {
-								longs.add(Long.valueOf(Long.parseLong(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10)));
+								longs.add(Long.valueOf(reader.getLong()));
 							}
 						}
 					}
@@ -1694,7 +1690,7 @@ public final class ODBSJson {
 							if (reader.isNull()) {
 								dates.add(null);
 							} else {
-								dates.add(reader.DATE_FORMAT.parse(reader.getString()));
+								dates.add(parseDate(reader.getString()));
 							}
 						}
 					}
@@ -1756,19 +1752,19 @@ public final class ODBSJson {
 					throw new IllegalStateException("意外的数组基础类型 " + type);
 			}
 		} else {
-			if (reader.lastIsStructure()) {
+			if (reader.isStructure()) {
 				// 集合只能是数组结构[]，其它结构均为错误
-				throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+				throw new IOException(type + "意外字符:" + reader.lastChar());
 			} else {
 				// 集合除数组以外只有null可用
 				if (reader.readValue()) {
 					if (reader.isNull()) {
 						return null;
 					} else {
-						throw new ParseException(type + "意外值:" + reader.getString(), reader.getIndex());
+						throw new IOException(type + "意外值:" + reader.getString());
 					}
 				} else {
-					throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+					throw new IOException(type + "意外字符:" + reader.lastChar());
 				}
 			}
 		}
@@ -1777,7 +1773,7 @@ public final class ODBSJson {
 	/**
 	 * 读取基本类型，调用此方法之前必须先读取键，支持null值
 	 */
-	private final Object readBase(ODBSType type, JSONCodec reader) throws IOException, ParseException {
+	private final Object readBase(ODBSType type, JSONCodec reader) throws IOException {
 		if (reader.readValue()) {
 			if (reader.hasString()) {
 				if (reader.isNull()) {
@@ -1785,18 +1781,18 @@ public final class ODBSJson {
 				} else {
 					switch (type.value()) {
 						case ODBSTypes.BOOLEAN:
-							return "true".contentEquals(reader.getCharSequence()) ? Boolean.TRUE : Boolean.FALSE;
+							return reader.getBoolean() ? Boolean.TRUE : Boolean.FALSE;
 						case ODBSTypes.BYTE:
-							return Byte.valueOf((byte) Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
+							return Byte.valueOf((byte) reader.getInt());
 						case ODBSTypes.CHARACTER:
 							// 20230713 Character=0 特殊控制字符输出时为空字符串
 							return reader.hasString() ? reader.getCharSequence().charAt(0) : ODBSTypes.DEFAULT_CHAR;
 						case ODBSTypes.SHORT:
-							return Short.valueOf((short) Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
+							return Short.valueOf((short) reader.getInt());
 						case ODBSTypes.INTEGER:
-							return Integer.valueOf(Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
+							return Integer.valueOf(reader.getInt());
 						case ODBSTypes.LONG:
-							return Long.valueOf(Long.parseLong(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
+							return Long.valueOf(reader.getLong());
 						case ODBSTypes.FLOAT:
 							return Float.valueOf(reader.getString());
 						case ODBSTypes.DOUBLE:
@@ -1804,7 +1800,7 @@ public final class ODBSJson {
 						case ODBSTypes.BIG_DECIMAL:
 							return new BigDecimal(reader.getString());
 						case ODBSTypes.DATE:
-							return reader.DATE_FORMAT.parse(reader.getString());
+							return parseDate(reader.getString());
 						case ODBSTypes.LOCAL_TIME:
 							return LocalTime.parse(reader.getCharSequence(), TIME_FORMATTER);
 						case ODBSTypes.LOCAL_DATE:
@@ -1829,16 +1825,17 @@ public final class ODBSJson {
 				return null;
 			}
 		} else {
-			throw new ParseException("期望值:" + type, reader.getIndex());
+			throw new IOException("期望值:" + type);
 		}
 	}
 
 	/**
 	 * 读取值类型数组
 	 */
-	private final Object readValues(ODBSType type, JSONCodec reader) throws IOException, ParseException {
+	private final Object readValues(ODBSType type, JSONCodec reader) throws IOException {
 		// 数组读取通过此方法避免过多的装箱拆箱操作
 		// 先读出所有字符值然后才能确定数组值数量
+		// TODO 是否可优化为全部读取后解析，避免过多字符串对象被创建
 		if (reader.readSkip() == JSONCodec.ARRAY_BEGIN) {
 			final List<String> values = new ArrayList<>();
 			while (reader.lastChar() != JSONCodec.ARRAY_END) {
@@ -1846,6 +1843,7 @@ public final class ODBSJson {
 					values.add(reader.isNull() ? null : reader.getString());
 				}
 			}
+			reader.readSkip();
 			switch (type.value()) {
 				case ODBSTypes._boolean:
 					final boolean[] booleans = new boolean[values.size()];
@@ -1899,19 +1897,19 @@ public final class ODBSJson {
 					throw new IllegalStateException("意外的数组值类型:" + type);
 			}
 		} else {
-			if (reader.lastIsStructure()) {
+			if (reader.isStructure()) {
 				// 集合只能是数组结构[]，其它结构均为错误
-				throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+				throw new IOException(type + "意外字符:" + reader.lastChar());
 			} else {
 				// 集合除数组以外只有null可用
 				if (reader.readValue()) {
 					if (reader.isNull()) {
 						return null;
 					} else {
-						throw new ParseException(type + "意外值:" + reader.getString(), reader.getIndex());
+						throw new IOException(type + "意外值:" + reader.getString());
 					}
 				} else {
-					throw new ParseException(type + "意外字符:" + reader.lastChar(), reader.getIndex());
+					throw new IOException(type + "意外字符:" + reader.lastChar());
 				}
 			}
 		}
@@ -1920,23 +1918,23 @@ public final class ODBSJson {
 	/**
 	 * 读取值类型，调用此方法之前必须先读取键，如果为null将返回对应值类型的默认值
 	 */
-	private final Object readValue(ODBSType type, JSONCodec reader) throws IOException, ParseException {
+	private final Object readValue(ODBSType type, JSONCodec reader) throws IOException {
 		if (reader.readValue()) {
 			if (reader.hasString()) {
 				switch (type.value()) {
 					case ODBSTypes._boolean:
-						return "true".contentEquals(reader.getCharSequence());
+						return reader.getBoolean() ? Boolean.TRUE : Boolean.FALSE;
 					case ODBSTypes._byte:
-						return (byte) Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10);
+						return Byte.valueOf((byte) reader.getInt());
 					case ODBSTypes._char:
 						// 20230713 char=0 特殊控制字符输出时为空字符串
 						return reader.hasString() ? reader.getCharSequence().charAt(0) : ODBSTypes.DEFAULT_CHAR;
 					case ODBSTypes._short:
-						return (short) Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10);
+						return Short.valueOf((short) reader.getInt());
 					case ODBSTypes._int:
-						return Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10);
+						return reader.getInt();
 					case ODBSTypes._long:
-						return Long.parseLong(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10);
+						return reader.getLong();
 					case ODBSTypes._float:
 						return Float.parseFloat(reader.getString());
 					case ODBSTypes._double:
@@ -1969,20 +1967,20 @@ public final class ODBSJson {
 				}
 			}
 		} else {
-			throw new ParseException("期望值:" + type, reader.getIndex());
+			throw new IOException("期望值:" + type);
 		}
 	}
 
 	/**
 	 * 获取基础值，调用此方法之前必须先读取键和值
 	 */
-	private final Object base(int type, JSONCodec reader) throws ParseException {
+	private final Object base(int type, JSONCodec reader) {
 		if (reader.isNull()) {
 			return null;
 		}
 		switch (type) {
 			case ODBSTypes.BOOLEAN:
-				return "true".contentEquals(reader.getCharSequence()) ? Boolean.TRUE : Boolean.FALSE;
+				return reader.getBoolean() ? Boolean.TRUE : Boolean.FALSE;
 			case ODBSTypes.BYTE:
 				int b = Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10);
 				return Byte.valueOf((byte) b);
@@ -2002,7 +2000,7 @@ public final class ODBSJson {
 			case ODBSTypes.BIG_DECIMAL:
 				return new BigDecimal(reader.getString());
 			case ODBSTypes.DATE:
-				return reader.DATE_FORMAT.parse(reader.getString());
+				return parseDate(reader.getString());
 			case ODBSTypes.LOCAL_TIME:
 				return LocalTime.parse(reader.getCharSequence(), TIME_FORMATTER);
 			case ODBSTypes.LOCAL_DATE:
@@ -2013,6 +2011,14 @@ public final class ODBSJson {
 				return reader.getString();
 			default:
 				throw new IllegalStateException("意外的基础类型:" + type);
+		}
+	}
+
+	Date parseDate(String value) {
+		try {
+			return TL_DATE_FORMAT.get().parse(value);
+		} catch (ParseException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

@@ -81,22 +81,88 @@ public interface DataOutput extends java.io.DataOutput {
 	@Override
 	void writeDouble(double value) throws IOException;
 
-	/** 写入integer值(变长),1~5 Byte, 8~32 Bit */
+	/** 写入integer值(变长),1~5 Byte */
 	default void writeVarint(int value) throws IOException {
-		// TODO 取消循环模式改为判断模式
-		while ((value & ~0x7F) != 0) {
+		// ZhangXi 20250622
+		// 取消循环模式改为判断模式
+		// while ((value & ~0x7F) != 0) {
+		// writeByte((value & 0x7F) | 0x80);
+		// value >>>= 7;
+		// }
+		// writeByte(value);
+
+		if ((value & ~0x7F) != 0) {
 			writeByte((value & 0x7F) | 0x80);
 			value >>>= 7;
+			if ((value & ~0x7F) != 0) {
+				writeByte((value & 0x7F) | 0x80);
+				value >>>= 7;
+				if ((value & ~0x7F) != 0) {
+					writeByte((value & 0x7F) | 0x80);
+					value >>>= 7;
+					if ((value & ~0x7F) != 0) {
+						writeByte((value & 0x7F) | 0x80);
+						value >>>= 7;
+						if ((value & ~0x7F) != 0) {
+							writeByte((value & 0x7F) | 0x80);
+							value >>>= 7;
+						}
+					}
+				}
+			}
 		}
 		writeByte(value);
 	}
 
-	/** 写入long值(变长),1~10 Byte, 8~64 Bit */
+	/** 写入long值(变长),1~10 Byte */
 	default void writeVarlong(long value) throws IOException {
-		// TODO 取消循环模式改为判断模式
-		while ((value & ~0x7FL) != 0) {
+		// ZhangXi 20250622
+		// 取消循环模式改为判断模式
+		// while ((value & ~0x7FL) != 0) {
+		// writeByte(((int) value & 0x7F) | 0x80);
+		// value >>>= 7;
+		// }
+		// writeByte((int) value);
+
+		if ((value & ~0x7FL) != 0) {
 			writeByte(((int) value & 0x7F) | 0x80);
 			value >>>= 7;
+			if ((value & ~0x7FL) != 0) {
+				writeByte(((int) value & 0x7F) | 0x80);
+				value >>>= 7;
+				if ((value & ~0x7FL) != 0) {
+					writeByte(((int) value & 0x7F) | 0x80);
+					value >>>= 7;
+					if ((value & ~0x7FL) != 0) {
+						writeByte(((int) value & 0x7F) | 0x80);
+						value >>>= 7;
+						if ((value & ~0x7FL) != 0) {
+							writeByte(((int) value & 0x7F) | 0x80);
+							value >>>= 7;
+							if ((value & ~0x7FL) != 0) {
+								writeByte(((int) value & 0x7F) | 0x80);
+								value >>>= 7;
+								if ((value & ~0x7FL) != 0) {
+									writeByte(((int) value & 0x7F) | 0x80);
+									value >>>= 7;
+									if ((value & ~0x7FL) != 0) {
+										writeByte(((int) value & 0x7F) | 0x80);
+										value >>>= 7;
+										if ((value & ~0x7FL) != 0) {
+											writeByte(((int) value & 0x7F) | 0x80);
+											value >>>= 7;
+											if ((value & ~0x7FL) != 0) {
+												writeByte(((int) value & 0x7F) | 0x80);
+												value >>>= 7;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 		writeByte((int) value);
 	}
@@ -208,34 +274,40 @@ public interface DataOutput extends java.io.DataOutput {
 		writeASCIIs(value);
 	}
 
-	/** 写入UTF8值,1~4 Byte */
+	/** 写入UTF8(char)值,1~4 Byte */
 	default void writeUTF8(char value) throws IOException {
+		// 代理项
+		// 0000D800-0000DBFF | 高代理项
+		// 0000DC00-0000DFFF | 低代理项
+
+		if (Character.isSurrogate(value)) {
+			throw new IOException("代理字符应转换为代码点");
+		} else {
+			writeUTF8((int) value);
+		}
+	}
+
+	/** 写入UTF8(codePoint)值,1~4 Byte */
+	default void writeUTF8(int value) throws IOException {
+		// UTF-8 RFC3629
+		// 00000000-0000007F | 0xxxxxxx
+		// 00000080-000007FF | 110xxxxx 10xxxxxx
+		// 00000800-0000FFFF | 1110xxxx 10xxxxxx 10xxxxxx
+		// 00010000-0010FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+
+		// 常量
+		// 0x80 = 0b10000000
+		// 0xC0 = 0b11000000
+		// 0xE0 = 0b11100000
+		// 0xF0 = 0b11110000
+		// 0x3F = 0b00111111
+
 		if (value <= 0x7F) {
-			// ASCII(0-127)
 			writeByte(value);
 		} else if (value <= 0x7FF) {
-			// Unicode 2Byte(128-2047)
 			writeByte(0xC0 | (value >> 6));
 			writeByte(0x80 | (value & 0x3F));
 		} else if (value <= 0xFFFF) {
-			// Unicode 3Byte(2048-65535)
-
-			// 兼容格式代理项
-			// 处理高代理项(Surrogate High)
-			if (value >= 0xD800 && value <= 0xDBFF) {
-				writeByte(0xED);
-				writeByte(0xA0 | ((value - 0xD800) >> 6));
-				writeByte(0x80 | ((value - 0xD800) & 0x3F));
-				return;
-			}
-			// 处理低代理项(Surrogate Low)
-			if (value >= 0xDC00 && value <= 0xDFFF) {
-				writeByte(0xED);
-				writeByte(0xB0 | ((value - 0xDC00) >> 6));
-				writeByte(0x80 | ((value - 0xDC00) & 0x3F));
-				return;
-			}
-			// 非代理项字符
 			writeByte(0xE0 | (value >> 12));
 			writeByte(0x80 | ((value >> 6) & 0x3F));
 			writeByte(0x80 | (value & 0x3F));
@@ -252,26 +324,30 @@ public interface DataOutput extends java.io.DataOutput {
 		}
 	}
 
-	/** 写入UTF8代理项字符 */
-	default void writeUTF8(char high, char low) throws IOException {
-		// 组合为完整码点(U+10000 到 U+10FFFF)
-		int code = ((high - 0xD800) << 10) + (low - 0xDC00) + 0x10000;
-		// 编码 4 字节 UTF-8(U+10000 到 U+10FFFF)
-		writeByte(0xF0 | (code >> 18));
-		writeByte(0x80 | ((code >> 12) & 0x3F));
-		writeByte(0x80 | ((code >> 6) & 0x3F));
-		writeByte(0x80 | (code & 0x3F));
-	}
+	// /** 写入UTF8代理项字符 */
+	// default void writeUTF8(char high, char low) throws IOException {
+	// // 组合为完整码点(U+10000 到 U+10FFFF)
+	// int code = ((high - 0xD800) << 10) + (low - 0xDC00) + 0x10000;
+	// // 编码 4 字节 UTF-8(U+10000 到 U+10FFFF)
+	// writeByte(0xF0 | (code >> 18));
+	// writeByte(0x80 | ((code >> 12) & 0x3F));
+	// writeByte(0x80 | ((code >> 6) & 0x3F));
+	// writeByte(0x80 | (code & 0x3F));
+	// }
 
 	/** 写入UTF8值,无前导数量 */
 	default void writeUTF8(CharSequence value) throws IOException {
 		char c;
 		for (int index = 0; index < value.length(); index++) {
 			c = value.charAt(index);
-			if (Character.isHighSurrogate(c)) {
-				writeUTF8(c, value.charAt(index++));
+			if (Character.isSurrogate(c)) {
+				if (++index < value.length()) {
+					writeUTF8(Character.toCodePoint(c, value.charAt(index)));
+				} else {
+					throw new IOException("代理字符被截断");
+				}
 			} else {
-				writeUTF8(c);
+				writeUTF8((int) c);
 			}
 		}
 	}

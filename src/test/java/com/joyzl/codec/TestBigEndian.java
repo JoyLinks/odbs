@@ -2,7 +2,7 @@
  * Copyright © 2017-2025 重庆骄智科技有限公司.
  * 本软件根据 Apache License 2.0 开源，详见 LICENSE 文件。
  */
-package com.joyzl.codec.test;
+package com.joyzl.codec;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,11 +21,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import com.joyzl.codec.BigEndianDataInput;
-import com.joyzl.codec.BigEndianDataOutput;
-import com.joyzl.codec.BigEndianInputStream;
-import com.joyzl.codec.BigEndianOutputStream;
 
 class TestBigEndian {
 

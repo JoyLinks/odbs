@@ -21,7 +21,8 @@ ODBS会预先扫描对象定义，根据对象定义建立对象描述信息，�
 5. 无须在序列化实体对象中嵌入注解，遵循非常简单的规范即可；
 6. 没有其它第三方依赖。
 
-JSON规范参考：RFC4627, [www.json.org](https://www.json.org)
+JSON规范参考：RFC4627, [www.json.org](https://www.json.org)，已全面支持 JSON5。
+不建议实体对象使用 java.util.Date 基础类型，在JSON序列化过程中转换效率较低。
 
 #### 使用说明
 

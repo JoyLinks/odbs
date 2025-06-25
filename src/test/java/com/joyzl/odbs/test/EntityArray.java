@@ -27,24 +27,24 @@ public class EntityArray {
 	static final short[] SHORT_VALUES = new short[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, Short.MIN_VALUE, Short.MAX_VALUE };
 	static final int[] INT_VALUES = new int[] { 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, Integer.MIN_VALUE, Integer.MAX_VALUE };
 	static final long[] LONG_VALUES = new long[] { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, Long.MIN_VALUE, Long.MAX_VALUE };
-	static final float[] FLOAT_VALUES = new float[] { 100.002F, Float.MIN_VALUE, Float.MAX_VALUE };
-	static final double[] DOUBLE_VALUES = new double[] { 100.002D, Double.MIN_VALUE, Double.MAX_VALUE };
+	static final float[] FLOAT_VALUES = new float[] { 100.002F, Float.MIN_VALUE, Float.MAX_VALUE, Float.NaN, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY };
+	static final double[] DOUBLE_VALUES = new double[] { 100.002D, Double.MIN_VALUE, Double.MAX_VALUE, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY };
 
-	static final Boolean[] BOOLEAN_OBJECTS = new Boolean[] { Boolean.FALSE, Boolean.TRUE };
-	static final Character[] CHARACTER_OBJECTS = new Character[] { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', Character.MAX_VALUE };
-	static final Byte[] BYTE_OBJECTS = new Byte[] { 0x04, Byte.MIN_VALUE, Byte.MAX_VALUE };
-	static final Short[] SHORT_OBJECTS = new Short[] { -120, Short.MIN_VALUE, Short.MAX_VALUE };
-	static final Integer[] INTEGER_OBJECTS = new Integer[] { 100, Integer.MIN_VALUE, Integer.MAX_VALUE };
-	static final Long[] LONG_OBJECTS = new Long[] { 1000L, Long.MIN_VALUE, Long.MAX_VALUE };
-	static final Float[] FLOAT_OBJECTS = new Float[] { 100.002F, Float.MIN_VALUE, Float.MAX_VALUE };
-	static final Double[] DOUBLE_OBJECTS = new Double[] { 100.002D, Double.MIN_VALUE, Double.MAX_VALUE };
+	static final Boolean[] BOOLEAN_OBJECTS = new Boolean[] { Boolean.FALSE, Boolean.TRUE, null };
+	static final Character[] CHARACTER_OBJECTS = new Character[] { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', Character.MAX_VALUE, null };
+	static final Byte[] BYTE_OBJECTS = new Byte[] { 0x04, Byte.MIN_VALUE, Byte.MAX_VALUE, null };
+	static final Short[] SHORT_OBJECTS = new Short[] { -120, Short.MIN_VALUE, Short.MAX_VALUE, null };
+	static final Integer[] INTEGER_OBJECTS = new Integer[] { 100, Integer.MIN_VALUE, Integer.MAX_VALUE, null };
+	static final Long[] LONG_OBJECTS = new Long[] { 1000L, Long.MIN_VALUE, Long.MAX_VALUE, null };
+	static final Float[] FLOAT_OBJECTS = new Float[] { 100.002F, Float.MIN_VALUE, Float.MAX_VALUE, null, Float.NaN, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY };
+	static final Double[] DOUBLE_OBJECTS = new Double[] { 100.002D, Double.MIN_VALUE, Double.MAX_VALUE, null, Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY };
 
-	static final String[] STRING_OBJECTS = new String[] { "", "中华人民共和国", "123,[{ABC]}:" };
+	static final String[] STRING_OBJECTS = new String[] { "", "中华人民共和国", "123,[{ABC]}:", null };
 	static final Date[] DATE_OBJECTS = new Date[] { new Date(), new Date(), new Date() };
-	static final LocalDate[] LOCALDATE_OBJECTS = new LocalDate[] { LocalDate.now(), LocalDate.MIN, LocalDate.MAX };
-	static final LocalTime[] LOCALTIME_OBJECTS = new LocalTime[] { LocalTime.now(), LocalTime.MIN, LocalTime.MAX };
-	static final LocalDateTime[] LOCALDATETIME_OBJECTS = new LocalDateTime[] { LocalDateTime.now(), LocalDateTime.MIN, LocalDateTime.MAX };
-	static final BigDecimal[] BIGDECIMAL_OBJECTS = new BigDecimal[] { BigDecimal.ONE, BigDecimal.ZERO, BigDecimal.TEN };
+	static final LocalDate[] LOCALDATE_OBJECTS = new LocalDate[] { LocalDate.now(), LocalDate.MIN, LocalDate.MAX, null };
+	static final LocalTime[] LOCALTIME_OBJECTS = new LocalTime[] { LocalTime.now(), LocalTime.MIN, LocalTime.MAX, null };
+	static final LocalDateTime[] LOCALDATETIME_OBJECTS = new LocalDateTime[] { LocalDateTime.now(), LocalDateTime.MIN, LocalDateTime.MAX, null };
+	static final BigDecimal[] BIGDECIMAL_OBJECTS = new BigDecimal[] { BigDecimal.ONE, BigDecimal.ZERO, BigDecimal.TEN, null };
 
 	// 值类型数组
 
