@@ -49,13 +49,21 @@ public final class ODBSDescription {
 		final Method[] methods = clazz.getMethods();
 		for (Method method : methods) {
 			if (ODBSReflect.canSerialize(method)) {
-				if (method.getName().startsWith("get") || method.getName().startsWith("is")) {
+				// 20250722 排除 is() set() get() 方法
+				// 这些方法无法在JSON时具有名称
+				if (method.getName().length() > 2 && method.getName().startsWith("is")) {
 					if (method.getParameterCount() == 0 && method.getReturnType() != Void.TYPE) {
 						getters.add(method);
 					}
 					continue;
 				}
-				if (method.getName().startsWith("set")) {
+				if (method.getName().length() > 3 && method.getName().startsWith("get")) {
+					if (method.getParameterCount() == 0 && method.getReturnType() != Void.TYPE) {
+						getters.add(method);
+					}
+					continue;
+				}
+				if (method.getName().length() > 3 && method.getName().startsWith("set")) {
 					if (method.getParameterCount() == 1 && method.getReturnType() == Void.TYPE) {
 						setters.add(method);
 					}
