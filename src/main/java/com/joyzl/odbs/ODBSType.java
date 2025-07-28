@@ -55,15 +55,27 @@ public final class ODBSType {
 		} else if (ODBSTypes.isArray(m)) {
 			return new ODBSType(0, m, make(odbs, null, main.getComponentType()));
 		} else if (ODBSTypes.isList(m)) {
-			return new ODBSType(0, m, make(odbs, null, classes[0]));
+			if (classes != null && classes.length > 0) {
+				return new ODBSType(0, m, make(odbs, null, classes[0]));
+			} else {
+				throw new IllegalStateException("未能识别List的子类型:" + main);
+			}
 		} else if (ODBSTypes.isSet(m)) {
-			return new ODBSType(0, m, make(odbs, null, classes[0]));
+			if (classes != null && classes.length > 0) {
+				return new ODBSType(0, m, make(odbs, null, classes[0]));
+			} else {
+				throw new IllegalStateException("未能识别Set的子类型:" + main);
+			}
 		} else if (ODBSTypes.isMap(m)) {
-			return new ODBSType(0, m, make(odbs, classes[0], classes[1]));
+			if (classes != null && classes.length > 1) {
+				return new ODBSType(0, m, make(odbs, classes[0], classes[1]));
+			} else {
+				throw new IllegalStateException("未能识别Map的子类型:" + main);
+			}
 		} else if (ODBSTypes.isAny(m)) {
 			return new ODBSType(0, m, null);
 		} else {
-			throw new IllegalStateException("值类型无效，不支持的类型:" + m);
+			throw new IllegalStateException("类型无效，不支持的类型:" + main);
 		}
 	}
 
