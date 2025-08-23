@@ -4,6 +4,9 @@
  */
 package com.joyzl.odbs;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
 /**
  * 类型
  * 
@@ -12,8 +15,11 @@ package com.joyzl.odbs;
  */
 public final class ODBSType {
 
+	/** 键类型,Map集合时才存在 */
 	private final int key;
+	/** 值类型,字段主类型 */
 	private final int value;
+	/** 值类型为数组或集合时,此为元素类型 */
 	private final ODBSType further;
 
 	private ODBSType(int k, int v, ODBSType f) {
@@ -41,6 +47,7 @@ public final class ODBSType {
 	 * @param classes 子类型
 	 * @return
 	 */
+	@Deprecated
 	public final static ODBSType make(ODBS odbs, Class<?> main, Class<?>... classes) {
 		int m = ODBSTypes.getType(main);
 
@@ -86,7 +93,8 @@ public final class ODBSType {
 	 * @param value Map值
 	 * @return
 	 */
-	public final static ODBSType make(ODBS odbs, Class<?> key, Class<?> value) {
+	@Deprecated
+	final static ODBSType make(ODBS odbs, Class<?> key, Class<?> value) {
 		int k = key == null ? ODBSTypes.UNKNOW : ODBSTypes.getType(key);
 		int v = value == null ? ODBSTypes.UNKNOW : ODBSTypes.getType(value);
 
@@ -197,5 +205,102 @@ public final class ODBSType {
 			}
 		}
 		return "X";
+	}
+
+	/** 类型匹配 */
+	public final static ODBSType make(ODBS odbs, Type key, Type value) {
+		int k = 0;
+		if (key != null) {
+			if (key instanceof Class<?> c) {
+				k = ODBSTypes.getType(c);
+				if (ODBSTypes.isValue(k)) {
+					// 值类型无须进一步匹配
+				} else if (ODBSTypes.isBase(k)) {
+					// 基本类型无须进一步匹配
+				} else if (ODBSTypes.isEnum(k)) {
+					// 获取具体枚举
+					k = odbs.findEnumType(c);
+				} else if (ODBSTypes.isEntity(k)) {
+					// 获取具体实体
+					k = odbs.findDescType(c);
+				} else if (ODBSTypes.isArray(k)) {
+					// 不支持数组为键
+					throw new IllegalStateException("无效键类型:" + c);
+				} else if (ODBSTypes.isList(k)) {
+					// 不支持集合为键
+					throw new IllegalStateException("无效键类型:" + c);
+				} else if (ODBSTypes.isSet(k)) {
+					// 不支持集合为键
+					throw new IllegalStateException("无效键类型:" + c);
+				} else if (ODBSTypes.isMap(k)) {
+					// 不支持集合为键
+					throw new IllegalStateException("无效键类型:" + c);
+				} else {
+					// 不支持未明确类型的键
+					throw new IllegalStateException("无效键类型:" + c);
+				}
+			} else if (key instanceof ParameterizedType) {
+				// 不支持泛型键
+				throw new IllegalStateException("无效键类型:" + key);
+			} else {
+				throw new IllegalStateException("无效键类型:" + key);
+			}
+		}
+
+		int v;
+		if (value instanceof Class<?> c) {
+			v = ODBSTypes.getType(c);
+			if (ODBSTypes.isValue(v)) {
+				return new ODBSType(k, v, null);
+			} else if (ODBSTypes.isBase(v)) {
+				return new ODBSType(k, v, null);
+			} else if (ODBSTypes.isEnum(v)) {
+				v = odbs.findEnumType(c);
+				return new ODBSType(k, v, null);
+			} else if (ODBSTypes.isEntity(v)) {
+				v = odbs.findDescType(c);
+				return new ODBSType(k, v, null);
+			} else if (ODBSTypes.isArray(v)) {
+				return new ODBSType(k, v, make(odbs, null, c.getComponentType()));
+			} else if (ODBSTypes.isList(v)) {
+				throw new IllegalStateException("无法继续匹配泛型:" + c);
+			} else if (ODBSTypes.isSet(v)) {
+				throw new IllegalStateException("无法继续匹配泛型:" + c);
+			} else if (ODBSTypes.isMap(v)) {
+				throw new IllegalStateException("无法继续匹配泛型:" + c);
+			} else if (ODBSTypes.isAny(v)) {
+				return new ODBSType(0, v, null);
+			} else {
+				throw new IllegalStateException("无效类型:" + c);
+			}
+		}
+		if (value instanceof ParameterizedType p) {
+			final Class<?> c = (Class<?>) p.getRawType();
+			v = ODBSTypes.getType(c);
+			if (ODBSTypes.isValue(v)) {
+				return new ODBSType(k, v, null);
+			} else if (ODBSTypes.isBase(v)) {
+				return new ODBSType(k, v, null);
+			} else if (ODBSTypes.isEnum(v)) {
+				v = odbs.findEnumType(c);
+				return new ODBSType(k, v, null);
+			} else if (ODBSTypes.isEntity(v)) {
+				v = odbs.findDescType(c);
+				return new ODBSType(k, v, null);
+			} else if (ODBSTypes.isArray(v)) {
+				return new ODBSType(k, v, make(odbs, null, c.getComponentType()));
+			} else if (ODBSTypes.isList(v)) {
+				return new ODBSType(k, v, make(odbs, null, p.getActualTypeArguments()[0]));
+			} else if (ODBSTypes.isSet(v)) {
+				return new ODBSType(k, v, make(odbs, null, p.getActualTypeArguments()[0]));
+			} else if (ODBSTypes.isMap(v)) {
+				return new ODBSType(k, v, make(odbs, p.getActualTypeArguments()[0], p.getActualTypeArguments()[1]));
+			} else if (ODBSTypes.isAny(v)) {
+				return new ODBSType(k, v, null);
+			} else {
+				throw new IllegalStateException("无效类型:" + p);
+			}
+		}
+		throw new IllegalStateException("无效类型:" + value);
 	}
 }

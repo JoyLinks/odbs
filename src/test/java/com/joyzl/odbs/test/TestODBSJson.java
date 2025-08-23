@@ -546,6 +546,80 @@ class TestODBSJson extends TestODBS {
 	}
 
 	@Test
+	void testMapList() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final Collection<EntityMapList> sources = new ArrayList<>();
+		sources.add(EntityMapList.createNullValue());
+		sources.add(EntityMapList.createEmptyValue());
+		sources.add(EntityMapList.createNormalValue());
+		JSON.writeEntities(sources, writer);
+		writer.flush();
+
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		Object targets = JSON.readEntities(EntityMapList.class, reader);
+		assertInstanceOf(Collection.class, targets);
+		// assertEquals(sources, targets);
+	}
+
+	@Test
+	void testMapListNullValues() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityMapList source = EntityMapList.createNullValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		print(new ByteArrayInputStream(output.toByteArray()));
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityMapList target = new EntityMapList();
+		target = (EntityMapList) JSON.readEntity(target, reader);
+		EntityMapList.assertEntity(source, target);
+	}
+
+	@Test
+	void testMapListEmptyValues() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityMapList source = EntityMapList.createEmptyValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		print(new ByteArrayInputStream(output.toByteArray()));
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityMapList target = new EntityMapList();
+		target = (EntityMapList) JSON.readEntity(target, reader);
+		EntityMapList.assertEntity(source, target);
+	}
+
+	@Test
+	void testMapListNormalValues() throws IOException, ParseException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+		final Writer writer = new OutputStreamWriter(output, "UTF-8");
+
+		final EntityMapList source = EntityMapList.createNormalValue();
+		JSON.writeEntity(source, writer);
+		writer.flush();
+
+		print(new ByteArrayInputStream(output.toByteArray()));
+		final InputStream input = new ByteArrayInputStream(output.toByteArray());
+		final Reader reader = new InputStreamReader(input, "UTF-8");
+
+		EntityMapList target = new EntityMapList();
+		target = (EntityMapList) JSON.readEntity(target, reader);
+		EntityMapList.assertEntity(source, target);
+	}
+
+	@Test
 	void testBaseIgnores() throws IOException, ParseException {
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 		final Writer writer = new OutputStreamWriter(output, "UTF-8");

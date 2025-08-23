@@ -18,6 +18,7 @@ import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
@@ -243,17 +244,32 @@ public final class ODBSReflect {
 	 * 
 	 * @return null / Class&lt;?&gt;[]
 	 */
+	@Deprecated
 	public final static Class<?>[] findGeneric(Method method) {
-		Type returnType = method.getGenericReturnType();
+		final Type returnType = method.getGenericReturnType();
 
-		if (returnType instanceof ParameterizedType) {
-			ParameterizedType param = (ParameterizedType) returnType;
-			Type[] actualTypes = param.getActualTypeArguments();
-			Class<?>[] classes = new Class<?>[actualTypes.length];
+		// 20250822 泛型类型中的类型还会有泛型
+		// 因此需要多层级遍历，否则 Map<String,List<LocalDate>> 中的 LocalDate 不会被发现
+
+		if (returnType instanceof ParameterizedType t1) {
+			final Type[] t1Types = t1.getActualTypeArguments();
+			Class<?>[] classes = new Class<?>[t1Types.length];
+
 			int index = 0;
-			for (Type type : actualTypes) {
-				if (type instanceof Class) {
-					classes[index++] = (Class<?>) type;
+			for (Type t1Type : t1Types) {
+				if (t1Type instanceof Class) {
+					classes[index++] = (Class<?>) t1Type;
+					continue;
+				}
+				// 第二层
+				if (t1Type instanceof ParameterizedType t2) {
+					classes[index++] = (Class<?>) t2.getRawType();
+
+					final Type[] t2Types = t2.getActualTypeArguments();
+					classes = Arrays.copyOf(classes, classes.length + t2Types.length);
+					for (Type t2Type : t2Types) {
+						classes[index++] = (Class<?>) t2Type;
+					}
 				}
 			}
 			return classes;
@@ -284,6 +300,7 @@ public final class ODBSReflect {
 	 * @param clazz
 	 * @return null / Class&lt;?&gt;[]
 	 */
+	@Deprecated
 	public final static Class<?>[] findGeneric(Class<?> clazz) {
 		Type type = clazz.getGenericSuperclass();
 		if (type instanceof ParameterizedType) {

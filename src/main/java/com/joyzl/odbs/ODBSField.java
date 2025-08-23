@@ -176,11 +176,20 @@ public final class ODBSField {
 	 */
 	public final void makeType(ODBS odbs) {
 		if (GETTER != null) {
-			type = ODBSType.make(odbs, GETTER.getReturnType(), ODBSReflect.findGeneric(GETTER));
+			if ("getValues".equals(GETTER.getName())) {
+				GETTER.toString();
+			}
+			// 20250823 旧的类型匹配方式丢失二级以下泛型
+			// type = ODBSType.make(odbs, GETTER.getReturnType(),
+			// ODBSReflect.findGeneric(GETTER));
+			type = ODBSType.make(odbs, null, GETTER.getGenericReturnType());
 			return;
 		}
 		if (SETTER != null) {
-			type = ODBSType.make(odbs, SETTER.getParameterTypes()[0], ODBSReflect.findGeneric(SETTER));
+			// 20250823 旧的类型匹配方式丢失二级以下泛型
+			// type = ODBSType.make(odbs, SETTER.getParameterTypes()[0],
+			// ODBSReflect.findGeneric(SETTER));
+			type = ODBSType.make(odbs, null, GETTER.getGenericParameterTypes()[0]);
 		}
 	}
 

@@ -71,7 +71,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("EMPTY:" + input.available());
+		System.out.println("EMPTY:" + input.available() + "Bytes");
 
 		final EntityEmpty target = new EntityEmpty();
 		BINARY.readEntity(target, input);
@@ -85,7 +85,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("NULL VALUE:" + input.available());
+		System.out.println("NULL VALUE:" + input.available() + "Bytes");
 
 		final EntityBase target = new EntityBase();
 		BINARY.readEntity(target, input);
@@ -100,7 +100,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("MIN VALUE:" + input.available());
+		System.out.println("MIN VALUE:" + input.available() + "Bytes");
 
 		final EntityBase target = new EntityBase();
 		BINARY.readEntity(target, input);
@@ -115,7 +115,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("MAX VALUE:" + input.available());
+		System.out.println("MAX VALUE:" + input.available() + "Bytes");
 
 		EntityBase target = new EntityBase();
 		target = (EntityBase) BINARY.readEntity(target, input);
@@ -130,7 +130,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("ARRAY NULL VALUES:" + input.available());
+		System.out.println("ARRAY NULL VALUES:" + input.available() + "Bytes");
 
 		EntityArray target = new EntityArray();
 		target = (EntityArray) BINARY.readEntity(target, input);
@@ -145,7 +145,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("ARRAY EMPTY VALUES:" + input.available());
+		System.out.println("ARRAY EMPTY VALUES:" + input.available() + "Bytes");
 
 		EntityArray target = new EntityArray();
 		target = (EntityArray) BINARY.readEntity(target, input);
@@ -160,7 +160,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("ARRAY NORMAL VALUES:" + input.available());
+		System.out.println("ARRAY NORMAL VALUES:" + input.available() + "Bytes");
 
 		EntityArray target = new EntityArray();
 		target = (EntityArray) BINARY.readEntity(target, input);
@@ -175,7 +175,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("ARRAY NULL VALUES:" + input.available());
+		System.out.println("ARRAY NULL VALUES:" + input.available() + "Bytes");
 
 		EntityVarArgs target = new EntityVarArgs();
 		target = (EntityVarArgs) BINARY.readEntity(target, input);
@@ -190,7 +190,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("ARRAY EMPTY VALUES:" + input.available());
+		System.out.println("ARRAY EMPTY VALUES:" + input.available() + "Bytes");
 
 		EntityVarArgs target = new EntityVarArgs();
 		target = (EntityVarArgs) BINARY.readEntity(target, input);
@@ -205,7 +205,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("ARRAY NORMAL VALUES:" + input.available());
+		System.out.println("ARRAY NORMAL VALUES:" + input.available() + "Bytes");
 
 		EntityVarArgs target = new EntityVarArgs();
 		target = (EntityVarArgs) BINARY.readEntity(target, input);
@@ -220,7 +220,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("SET NULL VALUES:" + input.available());
+		System.out.println("SET NULL VALUES:" + input.available() + "Bytes");
 
 		EntitySet target = new EntitySet();
 		target = (EntitySet) BINARY.readEntity(target, input);
@@ -235,7 +235,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("SET EMPTY VALUES:" + input.available());
+		System.out.println("SET EMPTY VALUES:" + input.available() + "Bytes");
 
 		EntitySet target = new EntitySet();
 		target = (EntitySet) BINARY.readEntity(target, input);
@@ -250,7 +250,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("SET NORMAL VALUES:" + input.available());
+		System.out.println("SET NORMAL VALUES:" + input.available() + "Bytes");
 
 		EntitySet target = new EntitySet();
 		target = (EntitySet) BINARY.readEntity(target, input);
@@ -265,7 +265,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("LIST NULL VALUES:" + input.available());
+		System.out.println("LIST NULL VALUES:" + input.available() + "Bytes");
 
 		EntityList target = new EntityList();
 		target = (EntityList) BINARY.readEntity(target, input);
@@ -280,7 +280,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("LIST EMPTY VALUES:" + input.available());
+		System.out.println("LIST EMPTY VALUES:" + input.available() + "Bytes");
 
 		EntityList target = new EntityList();
 		target = (EntityList) BINARY.readEntity(target, input);
@@ -295,7 +295,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("LIST NORMAL VALUES:" + input.available());
+		System.out.println("LIST NORMAL VALUES:" + input.available() + "Bytes");
 
 		EntityList target = new EntityList();
 		target = (EntityList) BINARY.readEntity(target, input);
@@ -310,7 +310,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("MAP NULL VALUES:" + input.available());
+		System.out.println("MAP NULL VALUES:" + input.available() + "Bytes");
 
 		EntityMap target = new EntityMap();
 		target = (EntityMap) BINARY.readEntity(target, input);
@@ -325,7 +325,7 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("MAP EMPTY VALUES:" + input.available());
+		System.out.println("MAP EMPTY VALUES:" + input.available() + "Bytes");
 
 		EntityMap target = new EntityMap();
 		target = (EntityMap) BINARY.readEntity(target, input);
@@ -340,11 +340,56 @@ class TestODBSBinary extends TestODBS {
 		BINARY.writeEntity(source, output);
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
-		System.out.println("MAP NORMAL VALUES:" + input.available());
+		System.out.println("MAP NORMAL VALUES:" + input.available() + "Bytes");
 
 		EntityMap target = new EntityMap();
 		target = (EntityMap) BINARY.readEntity(target, input);
 		EntityMap.assertEntity(source, target);
+	}
+
+	@Test
+	void testMapListNullValues() throws IOException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+		final EntityMapList source = EntityMapList.createNullValue();
+		BINARY.writeEntity(source, output);
+
+		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
+		System.out.println("MAP<List> NULL VALUES:" + input.available() + "Bytes");
+
+		EntityMapList target = new EntityMapList();
+		target = (EntityMapList) BINARY.readEntity(target, input);
+		EntityMapList.assertEntity(source, target);
+	}
+
+	@Test
+	void testMapListEmptyValues() throws IOException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+		final EntityMapList source = EntityMapList.createEmptyValue();
+		BINARY.writeEntity(source, output);
+
+		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
+		System.out.println("MAP<List> EMPTY VALUES:" + input.available() + "Bytes");
+
+		EntityMapList target = new EntityMapList();
+		target = (EntityMapList) BINARY.readEntity(target, input);
+		EntityMapList.assertEntity(source, target);
+	}
+
+	@Test
+	void testMapListNormalValues() throws IOException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+		final EntityMapList source = EntityMapList.createNormalValue();
+		BINARY.writeEntity(source, output);
+
+		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
+		System.out.println("MAP<List> NORMAL VALUES:" + input.available() + "Bytes");
+
+		EntityMapList target = new EntityMapList();
+		target = (EntityMapList) BINARY.readEntity(target, input);
+		EntityMapList.assertEntity(source, target);
 	}
 
 	@Test
