@@ -147,12 +147,16 @@ public final class ODBS {
 		});
 		for (String packega : packages) {
 			List<Class<?>> cs = ODBSReflect.scanClass(packega);
-			for (Class<?> clazz : cs) {
-				if (ODBSReflect.canSerialize(clazz)) {
-					if (clazz.isEnum()) {
-						enums.add(clazz);
-					} else {
-						classes.add(clazz);
+			if (cs == null || cs.isEmpty()) {
+				System.err.println("在模块或包未找到任何类：" + packega);
+			} else {
+				for (Class<?> clazz : cs) {
+					if (ODBSReflect.canSerialize(clazz)) {
+						if (clazz.isEnum()) {
+							enums.add(clazz);
+						} else {
+							classes.add(clazz);
+						}
 					}
 				}
 			}
