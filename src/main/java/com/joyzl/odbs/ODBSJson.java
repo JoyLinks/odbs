@@ -792,14 +792,14 @@ public final class ODBSJson {
 	/** [1,false,"string"] */
 	private final void readStrings(Collection<String> values, JSONCodec reader) throws IOException {
 		if (reader.readSkip() > 0) {
-			if (reader.lastChar() == JSONCodec.ARRAY_BEGIN) {
+			if (reader.isArrayBegin()) {
 				// 如果数据元素为基础数据类型，则全部按字符串读取，因为Java不支持JavaScript的混合类型
 				// ["A","B"]、[true,false]、[1,2,3]
 				do {
 					if (reader.readValue()) {
 						values.add(reader.getString());
 					}
-				} while (reader.lastChar() != JSONCodec.ARRAY_END);
+				} while (!reader.isArrayEnd());
 			} else {
 				throw new IOException("应为数组:" + reader.lastChar());
 			}
@@ -809,7 +809,7 @@ public final class ODBSJson {
 	/** [{...}] */
 	private final <T> void readEntities(ODBSDescription description, Collection<T> entities, JSONCodec reader) throws IOException {
 		if (reader.readSkip() > 0) {
-			if (reader.lastChar() == JSONCodec.ARRAY_BEGIN) {
+			if (reader.isArrayBegin()) {
 				// 开始读取根数组，如果数组元素为JSON对象则类型为指定的类型 [{},{}]
 				do {
 					if (reader.readSkip() == JSONCodec.OBJECT_BEGIN) {
@@ -1361,6 +1361,7 @@ public final class ODBSJson {
 	private final Object readEnum(ODBSType type, JSONCodec reader) throws IOException {
 		// "enum":{"value":1,"name":"USER","text":"用户"},
 		// "enum":{"value":null,"name":null,"text":null},
+		// "enum":"NAME"
 		// "enum":1,
 		// "enum":null,
 
@@ -1374,7 +1375,7 @@ public final class ODBSJson {
 							if (reader.isNull()) {
 								value = null;
 							} else {
-								value = enumeration.getConstant(Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
+								value = enumeration.getConstant(reader.getInt());
 							}
 						}
 					} else {
@@ -1385,13 +1386,26 @@ public final class ODBSJson {
 			}
 			reader.readSkip();
 			return value;
-		} else if (reader.readValue()) {
-			if (reader.isNull()) {
-				return null;
-			}
-			return enumeration.getConstant(Integer.parseInt(reader.getCharSequence(), 0, reader.getCharSequence().length(), 10));
 		} else {
-			throw new IOException("期望值:" + type);
+			if (reader.lastChar() == JSONCodec.QUOTES) {
+				if (reader.readValue()) {
+					// NAME
+					return enumeration.getConstant(reader.getCharSequence());
+				} else {
+					throw new IOException("期望值:" + type);
+				}
+			} else {
+				if (reader.readValue()) {
+					if (reader.isNull()) {
+						// null
+						return null;
+					}
+					// index
+					return enumeration.getConstant(reader.getInt());
+				} else {
+					throw new IOException("期望值:" + type);
+				}
+			}
 		}
 	}
 

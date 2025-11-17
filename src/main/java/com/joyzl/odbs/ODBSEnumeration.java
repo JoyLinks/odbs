@@ -68,6 +68,21 @@ public final class ODBSEnumeration {
 	}
 
 	/**
+	 * 通过枚举名称获取枚举常量
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public final Object getConstant(CharSequence name) {
+		for (int index = 0; index < VALUES.length; index++) {
+			if (VALUES[index].name().contentEquals(name)) {
+				return VALUES[index];
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * 通过枚举常量获取枚举代码值
 	 * 
 	 * @param value

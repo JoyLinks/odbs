@@ -85,6 +85,11 @@ final class JSONCodec {
 		c = -1;
 	}
 
+	/** 是否有双引号包围 */
+	public boolean hasQuotes() {
+		return quotes;
+	}
+
 	public boolean hasString() {
 		return sb.length() > 0;
 	}
@@ -209,11 +214,13 @@ final class JSONCodec {
 		// 数组对象通过']'和'}'结束返回后可能会残留','
 		// 可能有双引号，可能没有(JSON5)
 
-		if (readSkip() < 0) {
-			return false;
-		}
 		if (isStructure(c)) {
-			return false;
+			if (readSkip() < 0) {
+				return false;
+			}
+			if (isStructure(c)) {
+				return false;
+			}
 		}
 
 		sb.setLength(0);
@@ -281,11 +288,13 @@ final class JSONCodec {
 		// 对象{}或数组[]不是值
 		// 可能的结束标志 ,]}
 
-		if (readSkip() < 0) {
-			return false;
-		}
 		if (isStructure(c)) {
-			return false;
+			if (readSkip() < 0) {
+				return false;
+			}
+			if (isStructure(c)) {
+				return false;
+			}
 		}
 
 		// {key:value}
