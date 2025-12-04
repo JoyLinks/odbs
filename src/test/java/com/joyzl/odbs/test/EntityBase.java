@@ -56,6 +56,7 @@ public class EntityBase {
 	private EnumTexts enumTexts;
 	private EnumNative enumNative;
 	private EnumCodeTexts enumCodeTexts;
+	private EnumCodeTexts enumIgnore;
 
 	static EntityBase createNullValue() {
 		final EntityBase entity = new EntityBase();
@@ -429,9 +430,16 @@ public class EntityBase {
 
 	public void setEnumCodeTexts(EnumCodeTexts value) {
 		enumCodeTexts = value;
+		enumIgnore = value;
 	}
 
+	// 无设置的字段
 	public String getName() {
 		return "name";
+	}
+
+	// 无设置的字段
+	public EnumCodeTexts getEnumIgnore() {
+		return enumIgnore;
 	}
 }

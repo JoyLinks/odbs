@@ -205,23 +205,23 @@ class TestJSONCodec {
 		final JSONCodec codec = JSONCodec.instence(new ODBSJson(odbs), reader);
 
 		// []
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals(']', codec.lastChar());
 
 		// [1]
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals(']', codec.lastChar());
 
 		// [1,2]
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals(']', codec.lastChar());
 
 		// [内有注释]
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals(']', codec.lastChar());
 
 		// 多维数组
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals(']', codec.lastChar());
 
 		// END
@@ -234,27 +234,27 @@ class TestJSONCodec {
 		final JSONCodec codec = JSONCodec.instence(new ODBSJson(odbs), reader);
 
 		// {}
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals('}', codec.lastChar());
 
 		// {k:v}
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals('}', codec.lastChar());
 
 		// { key : value }
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals('}', codec.lastChar());
 
 		// { "key" : "value" , }
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals('}', codec.lastChar());
 
 		// {内有注释}
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals('}', codec.lastChar());
 
 		// {key:{k1:v1}}
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals('}', codec.lastChar());
 
 		// END
@@ -268,37 +268,37 @@ class TestJSONCodec {
 
 		// []
 		assertEquals('[', codec.readSkip());
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals(']', codec.lastChar());
 
 		// [1]
 		assertEquals('[', codec.readSkip());
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals(']', codec.lastChar());
 
 		// [1,2]
 		assertEquals('[', codec.readSkip());
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals(',', codec.lastChar());
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals(']', codec.lastChar());
 
 		// [内有注释]
 		assertEquals('[', codec.readSkip());
-		codec.readIgnore();
-		codec.readIgnore();
-		codec.readIgnore();
-		codec.readIgnore();
-		codec.readIgnore();
-		codec.readIgnore();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
 		assertEquals(']', codec.lastChar());
 
 		// 多维数组 [[],[]]
 		assertEquals('[', codec.readSkip());
-		codec.readIgnore();
-		codec.readIgnore();
-		codec.readIgnore();
-		codec.readIgnore();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
 		assertEquals(']', codec.lastChar());
 
 		// END
@@ -312,38 +312,38 @@ class TestJSONCodec {
 
 		// {}
 		assertEquals('{', codec.readSkip());
-		codec.readIgnore();
+		codec.readIgnoreValue();
 		assertEquals('}', codec.lastChar());
 
 		// {k:v}
 		assertEquals('{', codec.readSkip());
-		codec.readIgnore();
-		codec.readIgnore();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
 		assertEquals('}', codec.lastChar());
 
 		// { key : value }
 		assertEquals('{', codec.readSkip());
-		codec.readIgnore();
-		codec.readIgnore();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
 		assertEquals('}', codec.lastChar());
 
 		// { "key" : "value" , }
 		assertEquals('{', codec.readSkip());
-		codec.readIgnore();
-		codec.readIgnore();
-		codec.readIgnore();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
 		assertEquals('}', codec.lastChar());
 
 		// {内有注释}
 		assertEquals('{', codec.readSkip());
-		codec.readIgnore();
-		codec.readIgnore();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
 		assertEquals('}', codec.lastChar());
 
 		// {key:{k1:v1}}
 		assertEquals('{', codec.readSkip());
-		codec.readIgnore();
-		codec.readIgnore();
+		codec.readIgnoreValue();
+		codec.readIgnoreValue();
 		assertEquals('}', codec.readSkip());
 
 		// END

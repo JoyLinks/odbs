@@ -408,9 +408,9 @@ final class JSONCodec {
 	}
 
 	/**
-	 * 读取并忽略当前值
+	 * 读取并忽略当前值，返回true表示结束于数组或对象，需要下一步字符
 	 */
-	public void readIgnore() throws IOException {
+	public boolean readIgnoreValue() throws IOException {
 		// 忽略数组中单个值
 		// 忽略键值对中的值
 		// 忽略整个键值对
@@ -419,17 +419,20 @@ final class JSONCodec {
 		// 忽略整个对象
 
 		if (readSkip() < 0) {
-			return;
+			return false;
 		}
 		if (c == COMMA || c == OBJECT_END || c == ARRAY_END) {
-			return;
+			// 不能在这些位置忽略
+			// 只能忽略接下来是值的情形
+			return false;
 		}
 
-		if (c == ARRAY_BEGIN || c == OBJECT_BEGIN) {
+		if (c == ARRAY_BEGIN) {
+			// 忽略整个数组
 			int tag = 1;
 			do {
 				if (readSkip() < 0) {
-					return;
+					return false;
 				}
 				if (c == ARRAY_END || c == OBJECT_END) {
 					tag--;
@@ -440,19 +443,95 @@ final class JSONCodec {
 					continue;
 				}
 				if (readIgnoreField() < 0) {
-					return;
+					return false;
 				}
 				if (c == ARRAY_END || c == OBJECT_END) {
 					tag--;
 				}
 			} while (tag > 0);
+			// 此处继续推进会导致文件块溢出
+			// 既文件中存在连续写入的两个JSON块
+			// readSkip();
+			return true;
+		} else if (c == OBJECT_BEGIN) {
+			// 忽略整个对象
+			int tag = 1;
+			do {
+				if (readSkip() < 0) {
+					return false;
+				}
+				if (c == ARRAY_END || c == OBJECT_END) {
+					tag--;
+					continue;
+				}
+				if (c == ARRAY_BEGIN || c == OBJECT_BEGIN) {
+					tag++;
+					continue;
+				}
+				if (readIgnoreField() < 0) {
+					return false;
+				}
+				if (c == ARRAY_END || c == OBJECT_END) {
+					tag--;
+				}
+			} while (tag > 0);
+			// 此处继续推进会导致文件块溢出
+			// 既文件中存在连续写入的两个JSON块
+			// readSkip();
+			return true;
 		} else {
+			// 此方法如果位于对象最后一个字符时会推进到'}'
+			// 因此通过返回标识标记此情形
 			readIgnoreField();
+			return false;
 		}
+
+		/*-
+		{
+			"Caches": 1,
+			"Code": "W",
+			"Control": {
+				"value": 0,
+				"name": "READ_ONLY",
+				"text": "只读"
+			},
+			"Created": "2025-11-19 11:21:51",
+			"DeviceId": 3181751048339478,
+			"EnumUnit": "",
+			"Factor": 1,
+			"Fraction": 3,
+			"Id": 716843899682844,
+			"Ignore": 0.009999999776482582,
+			"Name": "公法线Wk",
+			"Rank": 1,
+			"Source": {
+				"value": 0,
+				"name": "EMPTY",
+				"text": "无"
+			},
+			"Target": {
+				"value": 8,
+				"name": "FLOAT",
+				"text": "单精度浮点数"
+			},
+			"Timestamp": 0,
+			"Unit": "mm",
+			"Updated": "2025-11-19 11:33:31",
+			"Value": {				
+				"Timestamp": 0,
+				"Type": {
+					"value": 0,
+					"name": "EMPTY",
+					"text": "无"
+				} // Type 字段被忽略时结束于 '}' 因此需要SKIP，否则上一级对象被结束
+			},
+			"ValueText": "0 mm" // 忽略此字段时，又不能SKIP最后一个'}'，尾部字段必须到结构字符才能断定结束
+		}
+		 */
 	}
 
 	/** 忽略值或键值 */
-	int readIgnoreField() throws IOException {
+	private int readIgnoreField() throws IOException {
 		if (c == COMMA) {
 			// ...],[...
 			return c;
@@ -490,7 +569,7 @@ final class JSONCodec {
 	 * 读取转义字符，必须在检测到转义标记字符'\'之后<br>
 	 * 续行符也由'\'开始，后跟:0A 0D U+2028 U+2029
 	 */
-	int readEscape() throws IOException {
+	private int readEscape() throws IOException {
 		c = reader.read();
 		if (c < 0) {
 			throw new EOFException();

@@ -873,9 +873,9 @@ public final class ODBSJson {
 				field = description.getField(KEY_NAME_FORMAT, reader.getString());
 				if (field == null) {
 					if (IGNORE_UNDEFINED_FIELD) {
-						reader.readIgnore();
+						reader.readIgnoreValue();
 					} else {
-						throw new IOException("未定义的字段:" + reader.getString());
+						throw new IOException("未定义的字段:" + description.getName() + " " + reader.getString());
 					}
 				} else {
 					if (field.hasSetter()) {
@@ -909,7 +909,14 @@ public final class ODBSJson {
 							throw new IllegalStateException("意外的字段类型 " + field.getType());
 						}
 					} else {
-						reader.readIgnore();
+						if (reader.readIgnoreValue()) {
+							// 20251204
+							// 当被忽略的字段是对象或数组时必须掠过结束符
+							// 否则会导致当前对象提前结束
+							if (reader.lastChar() == JSONCodec.OBJECT_END || reader.lastChar() == JSONCodec.ARRAY_END) {
+								reader.readSkip();
+							}
+						}
 					}
 				}
 			} else {
