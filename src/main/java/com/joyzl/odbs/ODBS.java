@@ -175,10 +175,14 @@ public final class ODBS {
 		// 为查找到的实体对象建立类型索引
 		index = 0;
 		odbs.DESCRIPTIONS = new ODBSDescription[classes.size()];
-		for (Class<?> clazz : classes) {
-			ODBSDescription description = new ODBSDescription(clazz, ODBSTypes.ENTITY + index);
-			odbs.CLASSES.put(clazz, odbs.DESCRIPTIONS[index] = description);
-			index++;
+		try {
+			for (Class<?> clazz : classes) {
+				ODBSDescription description = new ODBSDescription(clazz, ODBSTypes.ENTITY + index);
+				odbs.CLASSES.put(clazz, odbs.DESCRIPTIONS[index] = description);
+				index++;
+			}
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException(e);
 		}
 
 		// 遍历实体对象的所有Field(基于Bean的GetXXX/setXXX/isXXX)建立参与序列化/反序列化字段类型描述

@@ -52,6 +52,7 @@ public class EntityList {
 
 	private List<EntityBase> entityBases;
 	private List<EntityEmpty> entityEmpties;
+	private List<EntityValue> entityValues;
 
 	static EntityList createNullValue() {
 		final EntityList entity = new EntityList();
@@ -79,6 +80,7 @@ public class EntityList {
 
 		entity.setEntityBases(null);
 		entity.setEntityEmpties(null);
+		entity.setEntityValues(null);
 		return entity;
 	}
 
@@ -108,6 +110,7 @@ public class EntityList {
 
 		entity.setEntityBases(new ArrayList<>());
 		entity.setEntityEmpties(new ArrayList<>());
+		entity.setEntityValues(new ArrayList<>());
 		return entity;
 	}
 
@@ -137,6 +140,7 @@ public class EntityList {
 
 		entity.setEntityBases(Arrays.asList(EntityBase.createNullValue(), EntityBase.createMinValue(), EntityBase.createMaxValue()));
 		entity.setEntityEmpties(Arrays.asList(new EntityEmpty(), new EntityEmpty(), new EntityEmpty()));
+		entity.setEntityValues(Arrays.asList(new EntityValue1(), new EntityValue2(), new EntityValue2()));
 		return entity;
 	}
 
@@ -172,6 +176,11 @@ public class EntityList {
 			assertEquals(a.getEntityEmpties().size(), b.getEntityEmpties().size());
 		} else {
 			assertEquals(a.getEntityEmpties(), b.getEntityEmpties());
+		}
+		if (a.getEntityValues() != null && b.getEntityValues() != null) {
+			assertEquals(a.getEntityValues().size(), b.getEntityValues().size());
+		} else {
+			assertEquals(a.getEntityValues(), b.getEntityValues());
 		}
 	}
 
@@ -333,5 +342,13 @@ public class EntityList {
 
 	public void setEntityEmpties(List<EntityEmpty> values) {
 		entityEmpties = values;
+	}
+
+	public List<EntityValue> getEntityValues() {
+		return entityValues;
+	}
+
+	public void setEntityValues(List<EntityValue> values) {
+		entityValues = values;
 	}
 }

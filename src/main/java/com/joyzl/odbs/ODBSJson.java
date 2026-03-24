@@ -144,7 +144,10 @@ public final class ODBSJson {
 	private final void writeEntity(int type, Object entity, JSONCodec writer) throws IOException {
 		ODBSDescription description = odbs.findDesc(type);
 		if (description == null) {
-			throw new RuntimeException("对象描述索引不存在" + type);
+			description = odbs.findDesc(entity.getClass());
+			if (description == null) {
+				throw new RuntimeException("对象描述索引不存在" + entity.getClass());
+			}
 		}
 		if (description.getSourceClass() == entity.getClass()) {
 			// 实例与定义相同
@@ -414,7 +417,13 @@ public final class ODBSJson {
 			}
 			writer.writeTag(JSONCodec.ARRAY_END);
 		} else {
-			throw new IllegalStateException("意外的数组值类型:" + type);
+			final int length = Array.getLength(values);
+			writer.writeTag(JSONCodec.ARRAY_BEGIN);
+			for (int index = 0; index < length; index++) {
+				writeEntity(type.value(), Array.get(values, index), writer);
+			}
+			writer.writeTag(JSONCodec.ARRAY_END);
+			// throw new IllegalStateException("意外的数组值类型:" + type);
 		}
 	}
 
@@ -599,7 +608,13 @@ public final class ODBSJson {
 			}
 			writer.writeTag(JSONCodec.ARRAY_END);
 		} else {
-			throw new IllegalStateException("意外的List值类型:" + type);
+			writer.writeTag(JSONCodec.ARRAY_BEGIN);
+			int length = values.size();
+			for (int index = 0; index < length; index++) {
+				writeEntity(type.value(), values.get(index), writer);
+			}
+			writer.writeTag(JSONCodec.ARRAY_END);
+			// throw new IllegalStateException("意外的List值类型:" + type);
 		}
 	}
 
@@ -647,7 +662,12 @@ public final class ODBSJson {
 			}
 			writer.writeTag(JSONCodec.ARRAY_END);
 		} else {
-			throw new IllegalStateException("意外的Set值类型:" + type);
+			writer.writeTag(JSONCodec.ARRAY_BEGIN);
+			for (Object value : values) {
+				writeEntity(type.value(), value, writer);
+			}
+			writer.writeTag(JSONCodec.ARRAY_END);
+			// throw new IllegalStateException("意外的Set值类型:" + type);
 		}
 	}
 
@@ -703,7 +723,13 @@ public final class ODBSJson {
 				}
 				writer.writeTag(JSONCodec.OBJECT_END);
 			} else {
-				throw new IllegalStateException("意外的Map值类型:" + type);
+				writer.writeTag(JSONCodec.OBJECT_BEGIN);
+				for (Map.Entry<?, ?> value : values.entrySet()) {
+					writeKey(type.key(), value.getKey(), writer);
+					writeEntity(type.value(), value.getValue(), writer);
+				}
+				writer.writeTag(JSONCodec.OBJECT_END);
+				// throw new IllegalStateException("意外的Map值类型:" + type);
 			}
 		} else if (ODBSTypes.isEntity(type.key())) {
 			throw new IllegalStateException("不支持Entity作为Map键类型:" + type);
@@ -1131,7 +1157,13 @@ public final class ODBSJson {
 					list.add(readMap(null, type.further(), reader));
 				}
 			} else {
-				throw new IllegalStateException("意外的List值类型 " + type);
+				while (reader.lastChar() != JSONCodec.ARRAY_END) {
+					if (reader.readSkip() == JSONCodec.OBJECT_BEGIN) {
+						reader.readIgnoreValue();
+						list.add(null);
+					}
+				}
+				// throw new IllegalStateException("意外的List值类型 " + type);
 			}
 			reader.readSkip();
 		} else {
@@ -1241,7 +1273,22 @@ public final class ODBSJson {
 				// GO TO ELSE
 			}
 		} else {
-			throw new IllegalStateException("意外的数组值类型 " + type);
+			// [{}] 对象数组（类型不明确）
+			if (reader.readSkip() == JSONCodec.ARRAY_BEGIN) {
+				final List<Object> values = new ArrayList<>();
+				while (reader.lastChar() != JSONCodec.ARRAY_END) {
+					if (reader.readSkip() == JSONCodec.OBJECT_BEGIN) {
+						reader.readIgnoreValue();
+						values.add(null);
+					}
+				}
+				reader.readSkip();
+				// 返回数组
+				return values.toArray((Object[]) Array.newInstance(type.valueClass(), values.size()));
+			} else {
+				// GO TO ELSE
+			}
+			// throw new IllegalStateException("意外的数组值类型 " + type);
 		}
 
 		// ELSE

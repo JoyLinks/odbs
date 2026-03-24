@@ -30,7 +30,7 @@ public final class ODBSDescription {
 	private Class<?> override;
 	private Constructor<?> override_constructor;
 
-	public ODBSDescription(Class<?> clazz, int index) {
+	public ODBSDescription(Class<?> clazz, int index) throws IllegalAccessException {
 		CLASS = clazz;
 		NAME = clazz.getCanonicalName();
 		INDEX = index;

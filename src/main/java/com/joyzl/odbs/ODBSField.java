@@ -4,7 +4,8 @@
  */
 package com.joyzl.odbs;
 
-import java.lang.reflect.InvocationTargetException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
@@ -18,16 +19,15 @@ import java.util.Map;
 public final class ODBSField {
 
 	private final String[] NAMES;
-	private final Method GETTER;
-	private final Method SETTER;
+	private final Method GETTER, SETTER;
+	private final MethodHandle GET, SET;
 
 	private final Object defaultValue;
 	private ODBSType type;
 
-	ODBSField(Method getter, Method setter) {
+	ODBSField(Method getter, Method setter) throws IllegalAccessException {
 		GETTER = getter;
 		SETTER = setter;
-
 		// getUser/isUser -> User
 		// 20230713 为JSON预制多种名称格式
 		if (getter != null) {
@@ -40,10 +40,16 @@ public final class ODBSField {
 		if (getter != null) {
 			getter.setAccessible(true);
 			getterType = getter.getReturnType();
+			GET = MethodHandles.publicLookup().unreflect(getter);
+		} else {
+			GET = null;
 		}
 		if (setter != null) {
 			setter.setAccessible(true);
 			setterType = setter.getParameterTypes()[0];
+			SET = MethodHandles.publicLookup().unreflect(setter);
+		} else {
+			SET = null;
 		}
 
 		if (getterType != null && setterType != null) {
@@ -92,19 +98,145 @@ public final class ODBSField {
 
 	@SuppressWarnings("unchecked")
 	public final <T> T getValue(Object instence) {
-		// TODO 是否可改进为org.ow2.asm方案
 		try {
 			return (T) GETTER.invoke(instence);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName(), e);
+		}
+	}
+
+	public final boolean booleanValue(Object instence) {
+		try {
+			return (boolean) GET.invokeExact(instence);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName(), e);
+		}
+	}
+
+	public final byte byteValue(Object instence) {
+		try {
+			return (byte) GET.invokeExact(instence);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName(), e);
+		}
+	}
+
+	public final char charValue(Object instence) {
+		try {
+			return (char) GET.invokeExact(instence);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName(), e);
+		}
+	}
+
+	public final short shortValue(Object instence) {
+		try {
+			return (short) GET.invokeExact(instence);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName(), e);
+		}
+	}
+
+	public final int integerValue(Object instence) {
+		try {
+			return (int) GET.invokeExact(instence);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName(), e);
+		}
+	}
+
+	public final long longValue(Object instence) {
+		try {
+			return (long) GET.invokeExact(instence);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName(), e);
+		}
+	}
+
+	public final float floatValue(Object instence) {
+		try {
+			return (float) GET.invokeExact(instence);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName(), e);
+		}
+	}
+
+	public final double doubleValue(Object instence) {
+		try {
+			return (double) GET.invokeExact(instence);
+		} catch (Throwable e) {
 			throw new RuntimeException(instence.getClass() + "." + getName(), e);
 		}
 	}
 
 	public final void setValue(Object instence, Object value) {
-		// TODO 是否可改进为org.ow2.asm方案
 		try {
 			SETTER.invoke(instence, value);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName() + ":" + value, e);
+		}
+	}
+
+	public final void setValue(Object instence, boolean value) {
+		try {
+			SET.invokeExact(instence, value);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName() + ":" + value, e);
+		}
+	}
+
+	public final void setValue(Object instence, byte value) {
+		try {
+			SET.invokeExact(instence, value);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName() + ":" + value, e);
+		}
+	}
+
+	public final void setValue(Object instence, char value) {
+		try {
+			SET.invokeExact(instence, value);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName() + ":" + value, e);
+		}
+	}
+
+	public final void setValue(Object instence, short value) {
+		try {
+			SET.invokeExact(instence, value);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName() + ":" + value, e);
+		}
+	}
+
+	public final void setValue(Object instence, int value) {
+		try {
+			SET.invokeExact(instence, value);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName() + ":" + value, e);
+		}
+	}
+
+	public final void setValue(Object instence, long value) {
+		try {
+			SET.invokeExact(instence, value);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName() + ":" + value, e);
+		}
+	}
+
+	public final void setValue(Object instence, float value) {
+		try {
+			SET.invokeExact(instence, value);
+		} catch (Throwable e) {
+			throw new RuntimeException(instence.getClass() + "." + getName() + ":" + value, e);
+		}
+	}
+
+	public final void setValue(Object instence, double value) {
+		try {
+			SET.invokeExact(instence, value);
+		} catch (Throwable e) {
 			throw new RuntimeException(instence.getClass() + "." + getName() + ":" + value, e);
 		}
 	}
@@ -133,7 +265,7 @@ public final class ODBSField {
 		} else {
 			try {
 				SETTER.invoke(instence, defaultValue);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			} catch (Throwable e) {
 				throw new RuntimeException(instence.getClass() + "." + getName(), e);
 			}
 		}
@@ -150,9 +282,9 @@ public final class ODBSField {
 		// 如果是值类型 默认值 0 / false
 		// 如果是对象类型 默认值 null
 		try {
-			final Object value = GETTER.invoke(instence);
+			final Object value = GET.invoke(instence);
 			return value == null || value == defaultValue || value.equals(defaultValue);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (Throwable e) {
 			throw new RuntimeException(instence.getClass() + "." + getName(), e);
 		}
 	}
@@ -190,16 +322,19 @@ public final class ODBSField {
 		}
 	}
 
+	/** 字段方法是否成对 */
 	public boolean isPaired() {
-		return SETTER != null && GETTER != null;
+		return SET != null && GET != null;
 	}
 
+	/** 字段方法是否具有设置值方法 */
 	public boolean hasSetter() {
-		return SETTER != null;
+		return SET != null;
 	}
 
+	/** 字段方法是否具有获取值方法 */
 	public boolean hasGetter() {
-		return GETTER != null;
+		return GET != null;
 	}
 
 	@Override

@@ -21,10 +21,14 @@ public final class ODBSType {
 	private final int value;
 	/** 值类型为数组或集合时,此为元素类型 */
 	private final ODBSType further;
+	/** 原始类型 */
+	private final Class<?> keyClass, valueClass;
 
-	private ODBSType(int k, int v, ODBSType f) {
+	private ODBSType(int k, Class<?> kc, int v, Class<?> vc, ODBSType f) {
 		key = k;
+		keyClass = kc;
 		value = v;
+		valueClass = vc;
 		further = f;
 	}
 
@@ -32,8 +36,16 @@ public final class ODBSType {
 		return key;
 	}
 
+	public Class<?> keyClass() {
+		return keyClass;
+	}
+
 	public int value() {
 		return value;
+	}
+
+	public Class<?> valueClass() {
+		return valueClass;
 	}
 
 	public ODBSType further() {
@@ -52,35 +64,35 @@ public final class ODBSType {
 		int m = ODBSTypes.getType(main);
 
 		if (ODBSTypes.isValue(m)) {
-			return new ODBSType(0, m, null);
+			return new ODBSType(0, null, m, main, null);
 		} else if (ODBSTypes.isBase(m)) {
-			return new ODBSType(0, m, null);
+			return new ODBSType(0, null, m, main, null);
 		} else if (ODBSTypes.isEnum(m)) {
-			return new ODBSType(0, odbs.findEnumType(main), null);
+			return new ODBSType(0, null, odbs.findEnumType(main), main, null);
 		} else if (ODBSTypes.isEntity(m)) {
-			return new ODBSType(0, odbs.findDescType(main), null);
+			return new ODBSType(0, null, odbs.findDescType(main), main, null);
 		} else if (ODBSTypes.isArray(m)) {
-			return new ODBSType(0, m, make(odbs, null, main.getComponentType()));
+			return new ODBSType(0, null, m, main, make(odbs, null, main.getComponentType()));
 		} else if (ODBSTypes.isList(m)) {
 			if (classes != null && classes.length > 0) {
-				return new ODBSType(0, m, make(odbs, null, classes[0]));
+				return new ODBSType(0, null, m, main, make(odbs, null, classes[0]));
 			} else {
 				throw new IllegalStateException("未能识别List的子类型:" + main);
 			}
 		} else if (ODBSTypes.isSet(m)) {
 			if (classes != null && classes.length > 0) {
-				return new ODBSType(0, m, make(odbs, null, classes[0]));
+				return new ODBSType(0, null, m, main, make(odbs, null, classes[0]));
 			} else {
 				throw new IllegalStateException("未能识别Set的子类型:" + main);
 			}
 		} else if (ODBSTypes.isMap(m)) {
 			if (classes != null && classes.length > 1) {
-				return new ODBSType(0, m, make(odbs, classes[0], classes[1]));
+				return new ODBSType(0, null, m, main, make(odbs, classes[0], classes[1]));
 			} else {
 				throw new IllegalStateException("未能识别Map的子类型:" + main);
 			}
 		} else if (ODBSTypes.isAny(m)) {
-			return new ODBSType(0, m, null);
+			return new ODBSType(0, null, m, main, null);
 		} else {
 			throw new IllegalStateException("类型无效，不支持的类型:" + main);
 		}
@@ -100,79 +112,79 @@ public final class ODBSType {
 
 		if (k == ODBSTypes.UNKNOW) {
 			if (ODBSTypes.isValue(v)) {
-				return new ODBSType(k, v, null);
+				return new ODBSType(k, key, v, value, null);
 			} else if (ODBSTypes.isBase(v)) {
-				return new ODBSType(k, v, null);
+				return new ODBSType(k, key, v, value, null);
 			} else if (ODBSTypes.isEnum(v)) {
-				return new ODBSType(k, odbs.findEnumType(value), null);
+				return new ODBSType(k, key, odbs.findEnumType(value), value, null);
 			} else if (ODBSTypes.isEntity(v)) {
-				return new ODBSType(k, odbs.findDescType(value), null);
+				return new ODBSType(k, key, odbs.findDescType(value), value, null);
 			} else if (ODBSTypes.isArray(v)) {
-				return new ODBSType(k, v, make(odbs, null, value.getComponentType()));
+				return new ODBSType(k, key, v, value, make(odbs, null, value.getComponentType()));
 			} else if (ODBSTypes.isList(v)) {
-				return new ODBSType(k, v, make(odbs, null, ODBSReflect.findListGeneric(value)));
+				return new ODBSType(k, key, v, value, make(odbs, null, ODBSReflect.findListGeneric(value)));
 			} else if (ODBSTypes.isSet(v)) {
-				return new ODBSType(k, v, make(odbs, null, ODBSReflect.findSetGeneric(value)));
+				return new ODBSType(k, key, v, value, make(odbs, null, ODBSReflect.findSetGeneric(value)));
 			} else if (ODBSTypes.isMap(v)) {
 				Class<?>[] classes = ODBSReflect.findMapGeneric(value);
-				return new ODBSType(k, v, make(odbs, classes[0], classes[1]));
+				return new ODBSType(k, key, v, value, make(odbs, classes[0], classes[1]));
 			} else {
 				throw new IllegalStateException("值类型无效，不支持的类型:" + v);
 			}
 		} else if (ODBSTypes.isBase(k)) {
 			if (ODBSTypes.isBase(v)) {
-				return new ODBSType(k, v, null);
+				return new ODBSType(k, key, v, value, null);
 			} else if (ODBSTypes.isEnum(v)) {
-				return new ODBSType(k, odbs.findEnumType(value), null);
+				return new ODBSType(k, key, odbs.findEnumType(value), value, null);
 			} else if (ODBSTypes.isEntity(v)) {
-				return new ODBSType(k, odbs.findDescType(value), null);
+				return new ODBSType(k, key, odbs.findDescType(value), value, null);
 			} else if (ODBSTypes.isArray(v)) {
-				return new ODBSType(k, v, make(odbs, key, value.getComponentType()));
+				return new ODBSType(k, key, v, value, make(odbs, key, value.getComponentType()));
 			} else if (ODBSTypes.isList(v)) {
-				return new ODBSType(k, v, make(odbs, key, ODBSReflect.findListGeneric(value)));
+				return new ODBSType(k, key, v, value, make(odbs, key, ODBSReflect.findListGeneric(value)));
 			} else if (ODBSTypes.isSet(v)) {
-				return new ODBSType(k, v, make(odbs, key, ODBSReflect.findSetGeneric(value)));
+				return new ODBSType(k, key, v, value, make(odbs, key, ODBSReflect.findSetGeneric(value)));
 			} else if (ODBSTypes.isMap(v)) {
 				Class<?>[] classes = ODBSReflect.findMapGeneric(value);
-				return new ODBSType(k, v, make(odbs, classes[0], classes[1]));
+				return new ODBSType(k, key, v, value, make(odbs, classes[0], classes[1]));
 			} else {
 				throw new IllegalStateException("值类型无效，不支持的类型:" + v);
 			}
 		} else if (ODBSTypes.isEnum(k)) {
 			if (ODBSTypes.isBase(v)) {
-				return new ODBSType(odbs.findEnumType(key), v, null);
+				return new ODBSType(odbs.findEnumType(key), key, v, value, null);
 			} else if (ODBSTypes.isEnum(v)) {
-				return new ODBSType(odbs.findEnumType(key), odbs.findEnumType(value), null);
+				return new ODBSType(odbs.findEnumType(key), key, odbs.findEnumType(value), value, null);
 			} else if (ODBSTypes.isEntity(v)) {
-				return new ODBSType(odbs.findEnumType(key), odbs.findDescType(value), null);
+				return new ODBSType(odbs.findEnumType(key), key, odbs.findDescType(value), value, null);
 			} else if (ODBSTypes.isArray(v)) {
-				return new ODBSType(odbs.findEnumType(key), v, make(odbs, null, value.getComponentType()));
+				return new ODBSType(odbs.findEnumType(key), key, v, value, make(odbs, null, value.getComponentType()));
 			} else if (ODBSTypes.isList(v)) {
-				return new ODBSType(odbs.findEnumType(key), v, make(odbs, null, ODBSReflect.findListGeneric(value)));
+				return new ODBSType(odbs.findEnumType(key), key, v, value, make(odbs, null, ODBSReflect.findListGeneric(value)));
 			} else if (ODBSTypes.isSet(v)) {
-				return new ODBSType(odbs.findEnumType(key), v, make(odbs, null, ODBSReflect.findSetGeneric(value)));
+				return new ODBSType(odbs.findEnumType(key), key, v, value, make(odbs, null, ODBSReflect.findSetGeneric(value)));
 			} else if (ODBSTypes.isMap(v)) {
 				Class<?>[] classes = ODBSReflect.findMapGeneric(value);
-				return new ODBSType(odbs.findEnumType(key), v, make(odbs, classes[0], classes[1]));
+				return new ODBSType(odbs.findEnumType(key), key, v, value, make(odbs, classes[0], classes[1]));
 			} else {
 				throw new IllegalStateException("值类型无效，不支持的类型:" + v);
 			}
 		} else if (ODBSTypes.isEntity(k)) {
 			if (ODBSTypes.isBase(v)) {
-				return new ODBSType(odbs.findDescType(key), v, null);
+				return new ODBSType(odbs.findDescType(key), key, v, value, null);
 			} else if (ODBSTypes.isEnum(v)) {
-				return new ODBSType(odbs.findDescType(key), odbs.findEnumType(value), null);
+				return new ODBSType(odbs.findDescType(key), key, odbs.findEnumType(value), value, null);
 			} else if (ODBSTypes.isEntity(v)) {
-				return new ODBSType(odbs.findDescType(key), odbs.findDescType(value), null);
+				return new ODBSType(odbs.findDescType(key), key, odbs.findDescType(value), value, null);
 			} else if (ODBSTypes.isArray(v)) {
-				return new ODBSType(odbs.findDescType(key), v, make(odbs, null, value.getComponentType()));
+				return new ODBSType(odbs.findDescType(key), key, v, value, make(odbs, null, value.getComponentType()));
 			} else if (ODBSTypes.isList(v)) {
-				return new ODBSType(odbs.findDescType(key), v, make(odbs, null, ODBSReflect.findListGeneric(value)));
+				return new ODBSType(odbs.findDescType(key), key, v, value, make(odbs, null, ODBSReflect.findListGeneric(value)));
 			} else if (ODBSTypes.isSet(v)) {
-				return new ODBSType(odbs.findDescType(key), v, make(odbs, null, ODBSReflect.findSetGeneric(value)));
+				return new ODBSType(odbs.findDescType(key), key, v, value, make(odbs, null, ODBSReflect.findSetGeneric(value)));
 			} else if (ODBSTypes.isMap(v)) {
 				Class<?>[] classes = ODBSReflect.findMapGeneric(value);
-				return new ODBSType(odbs.findDescType(key), v, make(odbs, classes[0], classes[1]));
+				return new ODBSType(odbs.findDescType(key), key, v, value, make(odbs, classes[0], classes[1]));
 			} else {
 				throw new IllegalStateException("值类型无效，不支持的类型:" + v);
 			}
@@ -210,9 +222,11 @@ public final class ODBSType {
 	/** 类型匹配 */
 	public final static ODBSType make(ODBS odbs, Type key, Type value) {
 		int k = 0;
+		Class<?> kc = null;
 		if (key != null) {
 			if (key instanceof Class<?> c) {
 				k = ODBSTypes.getType(c);
+				kc = c;
 				if (ODBSTypes.isValue(k)) {
 					// 值类型无须进一步匹配
 				} else if (ODBSTypes.isBase(k)) {
@@ -248,20 +262,22 @@ public final class ODBSType {
 		}
 
 		int v;
+		Class<?> vc = null;
 		if (value instanceof Class<?> c) {
 			v = ODBSTypes.getType(c);
+			vc = c;
 			if (ODBSTypes.isValue(v)) {
-				return new ODBSType(k, v, null);
+				return new ODBSType(k, kc, v, c, null);
 			} else if (ODBSTypes.isBase(v)) {
-				return new ODBSType(k, v, null);
+				return new ODBSType(k, kc, v, c, null);
 			} else if (ODBSTypes.isEnum(v)) {
 				v = odbs.findEnumType(c);
-				return new ODBSType(k, v, null);
+				return new ODBSType(k, kc, v, c, null);
 			} else if (ODBSTypes.isEntity(v)) {
 				v = odbs.findDescType(c);
-				return new ODBSType(k, v, null);
+				return new ODBSType(k, kc, v, c, null);
 			} else if (ODBSTypes.isArray(v)) {
-				return new ODBSType(k, v, make(odbs, null, c.getComponentType()));
+				return new ODBSType(k, kc, v, c, make(odbs, null, c.getComponentType()));
 			} else if (ODBSTypes.isList(v)) {
 				throw new IllegalStateException("无法继续匹配泛型:" + c);
 			} else if (ODBSTypes.isSet(v)) {
@@ -269,7 +285,7 @@ public final class ODBSType {
 			} else if (ODBSTypes.isMap(v)) {
 				throw new IllegalStateException("无法继续匹配泛型:" + c);
 			} else if (ODBSTypes.isAny(v)) {
-				return new ODBSType(0, v, null);
+				return new ODBSType(0, kc, v, c, null);
 			} else {
 				throw new IllegalStateException("无效类型:" + c);
 			}
@@ -278,25 +294,25 @@ public final class ODBSType {
 			final Class<?> c = (Class<?>) p.getRawType();
 			v = ODBSTypes.getType(c);
 			if (ODBSTypes.isValue(v)) {
-				return new ODBSType(k, v, null);
+				return new ODBSType(k, kc, v, vc, null);
 			} else if (ODBSTypes.isBase(v)) {
-				return new ODBSType(k, v, null);
+				return new ODBSType(k, kc, v, vc, null);
 			} else if (ODBSTypes.isEnum(v)) {
 				v = odbs.findEnumType(c);
-				return new ODBSType(k, v, null);
+				return new ODBSType(k, kc, v, vc, null);
 			} else if (ODBSTypes.isEntity(v)) {
 				v = odbs.findDescType(c);
-				return new ODBSType(k, v, null);
+				return new ODBSType(k, kc, v, vc, null);
 			} else if (ODBSTypes.isArray(v)) {
-				return new ODBSType(k, v, make(odbs, null, c.getComponentType()));
+				return new ODBSType(k, kc, v, vc, make(odbs, null, c.getComponentType()));
 			} else if (ODBSTypes.isList(v)) {
-				return new ODBSType(k, v, make(odbs, null, p.getActualTypeArguments()[0]));
+				return new ODBSType(k, kc, v, vc, make(odbs, null, p.getActualTypeArguments()[0]));
 			} else if (ODBSTypes.isSet(v)) {
-				return new ODBSType(k, v, make(odbs, null, p.getActualTypeArguments()[0]));
+				return new ODBSType(k, kc, v, vc, make(odbs, null, p.getActualTypeArguments()[0]));
 			} else if (ODBSTypes.isMap(v)) {
-				return new ODBSType(k, v, make(odbs, p.getActualTypeArguments()[0], p.getActualTypeArguments()[1]));
+				return new ODBSType(k, kc, v, vc, make(odbs, p.getActualTypeArguments()[0], p.getActualTypeArguments()[1]));
 			} else if (ODBSTypes.isAny(v)) {
-				return new ODBSType(k, v, null);
+				return new ODBSType(k, kc, v, vc, null);
 			} else {
 				throw new IllegalStateException("无效类型:" + p);
 			}

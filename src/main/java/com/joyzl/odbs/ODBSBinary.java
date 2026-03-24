@@ -65,7 +65,10 @@ public final class ODBSBinary extends ODBSTypes {
 	private final void writeEntity(int type, Object entity, DataOutput writer) throws IOException {
 		ODBSDescription description = odbs.findDesc(type);
 		if (description == null) {
-			throw new RuntimeException("对象描述索引不存在" + type);
+			description = odbs.findDesc(entity.getClass());
+			if (description == null) {
+				throw new RuntimeException("对象描述不存在" + entity.getClass());
+			}
 		}
 		if (description.getSourceClass() == entity.getClass()) {
 			// 实例与定义相同
@@ -123,7 +126,9 @@ public final class ODBSBinary extends ODBSTypes {
 					} else if (ODBSTypes.isAny(field.getType().value())) {
 						writeObject(value, writer);
 					} else {
-						throw new IllegalStateException("不支持的数据类型" + entity.getClass() + " " + field.getName());
+						writeEntity(field.getType().value(), value, writer);
+						// throw new IllegalStateException("不支持的数据类型" +
+						// entity.getClass() + " " + field.getName());
 					}
 				}
 			}
@@ -190,7 +195,12 @@ public final class ODBSBinary extends ODBSTypes {
 				writeMap(type.further(), (Map<?, ?>) Array.get(values, index), writer);
 			}
 		} else {
-			throw new IllegalStateException("意外的数组值类型:" + type);
+			final int length = Array.getLength(values);
+			writer.writeVarint(length);
+			for (int index = 0; index < length; index++) {
+				writeEntity(type.value(), Array.get(values, index), writer);
+			}
+			// throw new IllegalStateException("意外的数组值类型:" + type);
 		}
 	}
 
@@ -226,7 +236,10 @@ public final class ODBSBinary extends ODBSTypes {
 				writeMap(type.further(), (Map<?, ?>) values.get(index), writer);
 			}
 		} else {
-			throw new IllegalStateException("意外的List值类型:" + type);
+			for (int index = 0; index < length; index++) {
+				writeEntity(type.value(), values.get(index), writer);
+			}
+			// throw new IllegalStateException("意外的List值类型:" + type);
 		}
 	}
 
@@ -261,7 +274,10 @@ public final class ODBSBinary extends ODBSTypes {
 				writeMap(type.further(), (Map<?, ?>) value, writer);
 			}
 		} else {
-			throw new IllegalStateException("意外的Set值类型:" + type);
+			for (Object value : values) {
+				writeEntity(type.value(), value, writer);
+			}
+			// throw new IllegalStateException("意外的Set值类型:" + type);
 		}
 	}
 
@@ -304,7 +320,11 @@ public final class ODBSBinary extends ODBSTypes {
 					writeMap(type.further(), (Map<?, ?>) value.getValue(), writer);
 				}
 			} else {
-				throw new IllegalStateException("意外的Map值类型 " + type);
+				for (Map.Entry<?, ?> value : values.entrySet()) {
+					writeBase(type.key(), value.getKey(), writer);
+					writeEntity(type.value(), value.getValue(), writer);
+				}
+				// throw new IllegalStateException("意外的Map值类型 " + type);
 			}
 		} else if (ODBSTypes.isEnum(type.key())) {
 			if (ODBSTypes.isBase(type.value())) {
@@ -343,7 +363,11 @@ public final class ODBSBinary extends ODBSTypes {
 					writeMap(type.further(), (Map<?, ?>) value.getValue(), writer);
 				}
 			} else {
-				throw new IllegalStateException("意外的Map值类型 " + type);
+				for (Map.Entry<?, ?> value : values.entrySet()) {
+					writeEnum(type.key(), value.getKey(), writer);
+					writeEntity(type.value(), value.getValue(), writer);
+				}
+				// throw new IllegalStateException("意外的Map值类型 " + type);
 			}
 		} else if (ODBSTypes.isEntity(type.key())) {
 			if (ODBSTypes.isBase(type.value())) {
@@ -382,7 +406,11 @@ public final class ODBSBinary extends ODBSTypes {
 					writeMap(type.further(), (Map<?, ?>) value.getValue(), writer);
 				}
 			} else {
-				throw new IllegalStateException("意外的Map值类型:" + type);
+				for (Map.Entry<?, ?> value : values.entrySet()) {
+					writeEntity(type.key(), value.getKey(), writer);
+					writeEntity(type.value(), value.getValue(), writer);
+				}
+				// throw new IllegalStateException("意外的Map值类型:" + type);
 			}
 		} else if (ODBSTypes.isArray(type.key())) {
 			throw new IllegalStateException("不支持Array作为Map键类型:" + type);
@@ -737,7 +765,9 @@ public final class ODBSBinary extends ODBSTypes {
 			} else if (ODBSTypes.isAny(field.getType().value())) {
 				field.setValue(entity, readObject(reader));
 			} else {
-				throw new IllegalStateException("意外的字段数据类型:" + field.getType());
+				field.setValue(entity, readEntity(field.getType().value(), reader));
+				// throw new IllegalStateException("意外的字段数据类型:" +
+				// field.getType());
 			}
 
 			index = reader.readVarint();
@@ -808,7 +838,12 @@ public final class ODBSBinary extends ODBSTypes {
 			}
 			return values;
 		} else {
-			throw new IllegalStateException("意外的数组值类型:" + type);
+			Object values = Array.newInstance(type.valueClass(), length);
+			for (int index = 0; index < length; index++) {
+				Array.set(values, index, readEntity(type.value(), reader));
+			}
+			return values;
+			// throw new IllegalStateException("意外的数组值类型:" + type);
 		}
 	}
 
@@ -845,7 +880,10 @@ public final class ODBSBinary extends ODBSTypes {
 				values.add(readMap(type.further(), null, reader));
 			}
 		} else {
-			throw new IllegalStateException("意外的List值类型:" + type);
+			while (length-- > 0) {
+				values.add(readEntity(type.value(), reader));
+			}
+			// throw new IllegalStateException("意外的List值类型:" + type);
 		}
 		return values;
 	}
@@ -883,7 +921,10 @@ public final class ODBSBinary extends ODBSTypes {
 				values.add(readMap(type.further(), null, reader));
 			}
 		} else {
-			throw new IllegalStateException("意外的Set值类型 " + type);
+			while (length-- > 0) {
+				values.add(readEntity(type.value(), reader));
+			}
+			// throw new IllegalStateException("意外的Set值类型 " + type);
 		}
 		return values;
 	}
@@ -926,7 +967,10 @@ public final class ODBSBinary extends ODBSTypes {
 					values.put(readBase(type.key(), reader), readMap(type.further(), null, reader));
 				}
 			} else {
-				throw new IllegalStateException("意外的Map值类型:" + type);
+				while (length-- > 0) {
+					values.put(readBase(type.key(), reader), readEntity(type.value(), reader));
+				}
+				// throw new IllegalStateException("意外的Map值类型:" + type);
 			}
 		} else if (ODBSTypes.isEnum(type.key())) {
 			if (ODBSTypes.isBase(type.value())) {
@@ -958,7 +1002,10 @@ public final class ODBSBinary extends ODBSTypes {
 					values.put(readEnum(type.key(), reader), readMap(type.further(), null, reader));
 				}
 			} else {
-				throw new IllegalStateException("意外的Map值类型:" + type);
+				while (length-- > 0) {
+					values.put(readEnum(type.key(), reader), readEntity(type.value(), reader));
+				}
+				// throw new IllegalStateException("意外的Map值类型:" + type);
 			}
 		} else if (ODBSTypes.isEntity(type.key())) {
 			if (ODBSTypes.isBase(type.value())) {
@@ -990,7 +1037,10 @@ public final class ODBSBinary extends ODBSTypes {
 					values.put(readEntity(type.key(), reader), readMap(type.further(), null, reader));
 				}
 			} else {
-				throw new IllegalStateException("意外的Map值类型:" + type);
+				while (length-- > 0) {
+					values.put(readEntity(type.key(), reader), readEntity(type.value(), reader));
+				}
+				// throw new IllegalStateException("意外的Map值类型:" + type);
 			}
 		} else if (ODBSTypes.isArray(type.key())) {
 			throw new IllegalStateException("不支持Array作为Map键类型:" + type);

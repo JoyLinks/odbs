@@ -86,6 +86,7 @@ public class EntityArray {
 
 	private EntityBase[] entityBases;
 	private EntityEmpty[] entityEmpties;
+	private EntityValue[] entityValues;
 
 	static EntityArray createNullValue() {
 		final EntityArray entity = new EntityArray();
@@ -121,6 +122,7 @@ public class EntityArray {
 
 		entity.setEntityBases(null);
 		entity.setEntityEmpties(null);
+		entity.setEntityValues(null);
 		return entity;
 	}
 
@@ -158,6 +160,7 @@ public class EntityArray {
 
 		entity.setEntityBases(new EntityBase[0]);
 		entity.setEntityEmpties(new EntityEmpty[0]);
+		entity.setEntityValues(new EntityValue[0]);
 		return entity;
 	}
 
@@ -195,6 +198,7 @@ public class EntityArray {
 
 		entity.setEntityBases(new EntityBase[] { EntityBase.createNullValue(), EntityBase.createMinValue(), EntityBase.createMaxValue() });
 		entity.setEntityEmpties(new EntityEmpty[] { new EntityEmpty(), new EntityEmpty() });
+		entity.setEntityValues(new EntityValue[] { new EntityValue1(), new EntityValue2() });
 		return entity;
 	}
 
@@ -239,6 +243,10 @@ public class EntityArray {
 
 		if (a.getEntityEmpties() != null && b.getEntityEmpties() != null) {
 			assertEquals(a.getEntityEmpties().length, b.getEntityEmpties().length);
+		}
+
+		if (a.getEntityValues() != null && b.getEntityValues() != null) {
+			assertEquals(a.getEntityValues().length, b.getEntityValues().length);
 		}
 	}
 
@@ -464,5 +472,13 @@ public class EntityArray {
 
 	public void setEntityEmpties(EntityEmpty[] values) {
 		entityEmpties = values;
+	}
+
+	public EntityValue[] getEntityValues() {
+		return entityValues;
+	}
+
+	public void setEntityValues(EntityValue[] values) {
+		entityValues = values;
 	}
 }

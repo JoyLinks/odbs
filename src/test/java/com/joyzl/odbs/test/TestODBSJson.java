@@ -25,11 +25,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.joyzl.odbs.JSONName;
@@ -44,18 +41,6 @@ class TestODBSJson extends TestODBS {
 		JSON = new ODBSJson(odbs);
 		JSON.setIgnoreNull(true);
 		// JSON.setIgnoreNull(false);
-	}
-
-	@AfterAll
-	static void tearDownAfterClass() throws Exception {
-	}
-
-	@BeforeEach
-	void setUp() throws Exception {
-	}
-
-	@AfterEach
-	void tearDown() throws Exception {
 	}
 
 	void print(InputStream input) throws IOException {
