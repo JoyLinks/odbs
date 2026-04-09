@@ -13,10 +13,6 @@ package com.joyzl.odbs;
 public enum JSONName {
 
 	/**
-	 * 默认，保持JavaBean格式，getUserName() UserName
-	 */
-	DEFAULT,
-	/**
 	 * 大骆驼（帕斯卡），PascalCase， getUserName() UserName
 	 */
 	UPPER_CAMEL_CASE,
@@ -46,28 +42,13 @@ public enum JSONName {
 
 	/**
 	 * 根据标准的JavaBean方法名称生成多种键名格式，数组索引对应{@link JSONName}枚举索引。<br>
-	 * getUserName() ->
-	 * [UserName,UserName,userName,user-name,user_name,username]
+	 * UserName -> [UserName,userName,user-name,user_name,username]
 	 * 
 	 * @param name
 	 * @return String[]
 	 */
 	public static String[] precut(String name) {
 		final String[] names = new String[JSONName.values().length];
-
-		// getUser/isUser -> User
-		if (name.startsWith("is")) {
-			name = name.substring(2);
-		} else if (name.startsWith("get")) {
-			name = name.substring(3);
-		} else if (name.startsWith("set")) {
-			name = name.substring(3);
-		} else {
-			throw new IllegalArgumentException("方法名无效");
-		}
-
-		// DEFAULT
-		names[DEFAULT.ordinal()] = name;
 
 		if (name.length() > 1) {
 			// UPPER_CAMEL_CASE
@@ -121,5 +102,38 @@ public enum JSONName {
 			throw new IllegalArgumentException("方法名称/键名不能为空字符串");
 		}
 		return names;
+	}
+
+	/** 检查键名是否匹配方法名称 */
+	public static boolean match(String[] names, JSONName format, CharSequence name) {
+		if (names[format.ordinal()].contentEquals(name)) {
+			return true;
+		}
+		for (int i = 0; i < names.length; i++) {
+			if (i != format.ordinal()) {
+				if (names[i].contentEquals(name)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	////////////////////////////////////////////////////////////////////////////////
+
+	public final static String[] NAMES = new String[] { "Name", "name", "name", "name", "name", "NAME" };
+	public final static String[] VALUES = new String[] { "Value", "value", "value", "value", "value", "VALUE" };
+	public final static String[] TEXTS = new String[] { "Text", "text", "text", "text", "text", "TEXT" };
+
+	public static String NAME(JSONName value) {
+		return NAMES[value.ordinal()];
+	}
+
+	public static String TEXT(JSONName value) {
+		return TEXTS[value.ordinal()];
+	}
+
+	public static String VALUE(JSONName value) {
+		return VALUES[value.ordinal()];
 	}
 }

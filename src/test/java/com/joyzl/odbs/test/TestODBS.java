@@ -25,6 +25,7 @@ class TestODBS {
 
 	@Test
 	void test() {
+
 	}
 
 	class EntityExtend extends EntityBase {

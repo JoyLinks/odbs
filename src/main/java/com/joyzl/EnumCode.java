@@ -14,6 +14,8 @@ import java.util.Arrays;
  */
 public interface EnumCode {
 
+	String name();
+
 	int code();
 
 	/**

@@ -88,6 +88,10 @@ public class EntityArray {
 	private EntityEmpty[] entityEmpties;
 	private EntityValue[] entityValues;
 
+	// 多维数组
+
+	private byte[][] bytes;
+
 	static EntityArray createNullValue() {
 		final EntityArray entity = new EntityArray();
 		entity.setBooleanValues(null);
@@ -480,5 +484,13 @@ public class EntityArray {
 
 	public void setEntityValues(EntityValue[] values) {
 		entityValues = values;
+	}
+
+	public byte[][] getBytes() {
+		return bytes;
+	}
+
+	public void setBytes(byte[][] values) {
+		bytes = values;
 	}
 }

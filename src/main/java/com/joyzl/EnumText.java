@@ -11,5 +11,9 @@ package com.joyzl;
  */
 public interface EnumText {
 
+	String name();
+
+	int ordinal();
+
 	String text();
 }

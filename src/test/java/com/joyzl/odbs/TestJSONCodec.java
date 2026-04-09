@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 
 class TestJSONCodec {
 
-	final ODBS odbs = ODBS.initialize(new String[0]);
 	final String array = """
 			//空数组
 			[]
@@ -50,79 +49,82 @@ class TestJSONCodec {
 			*/
 			value
 			}
-			{key:{k1:v1}}
+			{key:{k1:v1},kby:{k2:v2}}
 			""";
 
 	@Test
 	void testReadArray() throws Exception {
 		final StringReader reader = new StringReader(array);
-		final JSONCodec codec = JSONCodec.instence(new ODBSJson(odbs), reader);
+		final JSONReader codec = JSONReader.instance(reader);
 
 		// 读取规则每次读值应判断结束标志
 		// 读取器不能过滤尾随逗号，应由读取者判断
 
 		// []
-		assertEquals('[', codec.readSkip());
-		assertFalse(codec.readValue());
-		assertEquals(']', codec.lastChar());
+		codec.beginArray();
+		assertFalse(codec.readNext());
 
 		// [1]
-		assertEquals('[', codec.readSkip());
+		codec.beginArray();
+		assertTrue(codec.readNext());
 		assertTrue(codec.readValue());
 		assertEquals("1", codec.getString());
-		assertEquals(']', codec.lastChar());
+		assertFalse(codec.readNext());
 
 		// [1,2]
-		assertEquals('[', codec.readSkip());
+		codec.beginArray();
+		assertTrue(codec.readNext());
 		assertTrue(codec.readValue());
 		assertEquals("1", codec.getString());
-		assertEquals(',', codec.lastChar());
+		assertTrue(codec.readNext());
 		assertTrue(codec.readValue());
 		assertEquals("2", codec.getString());
-		assertEquals(']', codec.lastChar());
+		assertFalse(codec.readNext());
 
 		// [内有注释]
-		assertEquals('[', codec.readSkip());
+		codec.beginArray();
+		assertTrue(codec.readNext());
 		assertTrue(codec.readValue());
 		assertEquals("1", codec.getString());
-		assertEquals(',', codec.lastChar());
+		assertTrue(codec.readNext());
 		assertTrue(codec.readValue());
 		assertEquals("2", codec.getString());
-		assertEquals(',', codec.lastChar());
+		assertTrue(codec.readNext());
 		assertTrue(codec.readValue());
 		assertEquals("3", codec.getString());
-		assertEquals(',', codec.lastChar());
+		assertTrue(codec.readNext());
 		assertTrue(codec.readValue());
 		assertEquals("4", codec.getString());
-		assertEquals(',', codec.lastChar());
+		assertTrue(codec.readNext());
 		assertTrue(codec.readValue());
 		assertEquals("AB", codec.getString());
-		assertEquals(',', codec.lastChar());
-		assertFalse(codec.readValue());
-		assertEquals(']', codec.lastChar());
+		assertFalse(codec.readNext());
 
 		// [[...],[...]]
-		assertEquals('[', codec.readSkip());
-		assertFalse(codec.readValue());
-		assertEquals('[', codec.lastChar());
+		codec.beginArray();
+		assertTrue(codec.readNext());
+
+		codec.beginArray();
+		assertTrue(codec.readNext());
 		assertTrue(codec.readValue());
 		assertEquals("a1", codec.getString());
-		assertEquals(',', codec.lastChar());
+		assertTrue(codec.readNext());
 		assertTrue(codec.readValue());
 		assertEquals("b1", codec.getString());
-		assertEquals(']', codec.lastChar());
+		assertFalse(codec.readNext());
 
-		assertEquals(',', codec.readSkip());
+		assertTrue(codec.readNext());
 
-		assertEquals('[', codec.readSkip());
+		codec.beginArray();
+		assertTrue(codec.readNext());
 		assertTrue(codec.readValue());
 		assertEquals("a2", codec.getString());
-		assertEquals(',', codec.lastChar());
+		assertTrue(codec.readNext());
 		assertTrue(codec.readValue());
 		assertEquals("b2", codec.getString());
-		assertEquals(']', codec.lastChar());
+		assertFalse(codec.readNext());
 
-		assertEquals(']', codec.readSkip());
+		assertFalse(codec.readNext());
 
 		// END
 		assertEquals('\n', reader.read());
@@ -131,69 +133,70 @@ class TestJSONCodec {
 	@Test
 	void testReadObject() throws Exception {
 		final StringReader reader = new StringReader(object);
-		final JSONCodec codec = JSONCodec.instence(new ODBSJson(odbs), reader);
+		final JSONReader codec = JSONReader.instance(reader);
 
 		// 读取规则每次读键值应判断结束标志
 		// 读取器不能过滤尾随逗号，应由读取者判断
 
 		// {}
-		assertEquals('{', codec.readSkip());
+		codec.beginObject();
 		assertFalse(codec.readKey());
-		assertEquals('}', codec.lastChar());
 
 		// {k:v}
-		assertEquals('{', codec.readSkip());
+		codec.beginObject();
 		assertTrue(codec.readKey());
 		assertEquals("k", codec.getString());
-		assertEquals(':', codec.lastChar());
 		assertTrue(codec.readValue());
 		assertEquals("v", codec.getString());
-		assertEquals('}', codec.lastChar());
+		assertFalse(codec.readKey());
 
 		// { key : value }
-		assertEquals('{', codec.readSkip());
+		codec.beginObject();
 		assertTrue(codec.readKey());
 		assertEquals("key", codec.getString());
-		assertEquals(':', codec.lastChar());
 		assertTrue(codec.readValue());
 		assertEquals("value", codec.getString());
-		assertEquals('}', codec.lastChar());
+		assertFalse(codec.readKey());
 
 		// { "key" : "value" , }
-		assertEquals('{', codec.readSkip());
+		codec.beginObject();
 		assertTrue(codec.readKey());
 		assertEquals("key", codec.getString());
-		assertEquals(':', codec.lastChar());
 		assertTrue(codec.readValue());
 		assertEquals("value", codec.getString());
-		assertEquals(',', codec.lastChar());
-		assertFalse(codec.readValue());
-		assertEquals('}', codec.lastChar());
+		assertFalse(codec.readKey());
 
 		// {内有注释}
-		assertEquals('{', codec.readSkip());
+		codec.beginObject();
 		assertTrue(codec.readKey());
 		assertEquals("key", codec.getString());
-		assertEquals(':', codec.lastChar());
 		assertTrue(codec.readValue());
 		assertEquals("value", codec.getString());
-		assertEquals('}', codec.lastChar());
+		assertFalse(codec.readKey());
 
-		// {key:{k1:v1}}
-		assertEquals('{', codec.readSkip());
+		// {key:{k1:v1},kby:{k2:v2}}
+		codec.beginObject();
 		assertTrue(codec.readKey());
 		assertEquals("key", codec.getString());
-		assertEquals(':', codec.lastChar());
 
-		assertEquals('{', codec.readSkip());
+		codec.beginObject();
 		assertTrue(codec.readKey());
 		assertEquals("k1", codec.getString());
-		assertEquals(':', codec.lastChar());
 		assertTrue(codec.readValue());
 		assertEquals("v1", codec.getString());
-		assertEquals('}', codec.lastChar());
+		assertFalse(codec.readKey());
 
-		assertEquals('}', codec.readSkip());
+		assertTrue(codec.readKey());
+		assertEquals("kby", codec.getString());
+
+		codec.beginObject();
+		assertTrue(codec.readKey());
+		assertEquals("k2", codec.getString());
+		assertTrue(codec.readValue());
+		assertEquals("v2", codec.getString());
+		assertFalse(codec.readKey());
+
+		assertFalse(codec.readKey());
 
 		// END
 		assertEquals('\n', reader.read());
@@ -202,104 +205,47 @@ class TestJSONCodec {
 	@Test
 	void testIgnoreArray() throws Exception {
 		final StringReader reader = new StringReader(array);
-		final JSONCodec codec = JSONCodec.instence(new ODBSJson(odbs), reader);
+		final JSONReader codec = JSONReader.instance(reader);
 
 		// []
-		codec.readIgnoreValue();
-		assertEquals(']', codec.lastChar());
+		codec.beginArray();
+		assertFalse(codec.readNext());
 
 		// [1]
-		codec.readIgnoreValue();
-		assertEquals(']', codec.lastChar());
+		codec.beginArray();
+		assertTrue(codec.readNext());
+		codec.readIgnore();
+		assertFalse(codec.readNext());
 
 		// [1,2]
-		codec.readIgnoreValue();
-		assertEquals(']', codec.lastChar());
+		codec.beginArray();
+		assertTrue(codec.readNext());
+		codec.readIgnore();
+		assertTrue(codec.readNext());
+		codec.readIgnore();
+		assertFalse(codec.readNext());
 
 		// [内有注释]
-		codec.readIgnoreValue();
-		assertEquals(']', codec.lastChar());
+		codec.beginArray();
+		assertTrue(codec.readNext());
+		codec.readIgnore();
+		assertTrue(codec.readNext());
+		codec.readIgnore();
+		assertTrue(codec.readNext());
+		codec.readIgnore();
+		assertTrue(codec.readNext());
+		codec.readIgnore();
+		assertTrue(codec.readNext());
+		codec.readIgnore();
+		assertFalse(codec.readNext());
 
 		// 多维数组
-		codec.readIgnoreValue();
-		assertEquals(']', codec.lastChar());
-
-		// END
-		assertEquals('\n', reader.read());
-	}
-
-	@Test
-	void testIgnoreObject() throws Exception {
-		final StringReader reader = new StringReader(object);
-		final JSONCodec codec = JSONCodec.instence(new ODBSJson(odbs), reader);
-
-		// {}
-		codec.readIgnoreValue();
-		assertEquals('}', codec.lastChar());
-
-		// {k:v}
-		codec.readIgnoreValue();
-		assertEquals('}', codec.lastChar());
-
-		// { key : value }
-		codec.readIgnoreValue();
-		assertEquals('}', codec.lastChar());
-
-		// { "key" : "value" , }
-		codec.readIgnoreValue();
-		assertEquals('}', codec.lastChar());
-
-		// {内有注释}
-		codec.readIgnoreValue();
-		assertEquals('}', codec.lastChar());
-
-		// {key:{k1:v1}}
-		codec.readIgnoreValue();
-		assertEquals('}', codec.lastChar());
-
-		// END
-		assertEquals('\n', reader.read());
-	}
-
-	@Test
-	void testIgnoreArrayValue() throws Exception {
-		final StringReader reader = new StringReader(array);
-		final JSONCodec codec = JSONCodec.instence(new ODBSJson(odbs), reader);
-
-		// []
-		assertEquals('[', codec.readSkip());
-		codec.readIgnoreValue();
-		assertEquals(']', codec.lastChar());
-
-		// [1]
-		assertEquals('[', codec.readSkip());
-		codec.readIgnoreValue();
-		assertEquals(']', codec.lastChar());
-
-		// [1,2]
-		assertEquals('[', codec.readSkip());
-		codec.readIgnoreValue();
-		assertEquals(',', codec.lastChar());
-		codec.readIgnoreValue();
-		assertEquals(']', codec.lastChar());
-
-		// [内有注释]
-		assertEquals('[', codec.readSkip());
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		assertEquals(']', codec.lastChar());
-
-		// 多维数组 [[],[]]
-		assertEquals('[', codec.readSkip());
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		assertEquals(']', codec.lastChar());
+		codec.beginArray();
+		assertTrue(codec.readNext());
+		codec.readIgnore();
+		assertTrue(codec.readNext());
+		codec.readIgnore();
+		assertFalse(codec.readNext());
 
 		// END
 		assertEquals('\n', reader.read());
@@ -308,62 +254,46 @@ class TestJSONCodec {
 	@Test
 	void testIgnoreObjectValue() throws Exception {
 		final StringReader reader = new StringReader(object);
-		final JSONCodec codec = JSONCodec.instence(new ODBSJson(odbs), reader);
+		final JSONReader codec = JSONReader.instance(reader);
 
 		// {}
-		assertEquals('{', codec.readSkip());
-		codec.readIgnoreValue();
-		assertEquals('}', codec.lastChar());
+		codec.beginObject();
+		assertFalse(codec.readKey());
 
 		// {k:v}
-		assertEquals('{', codec.readSkip());
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		assertEquals('}', codec.lastChar());
+		codec.beginObject();
+		codec.readKey();
+		codec.readIgnore();
+		assertFalse(codec.readKey());
 
 		// { key : value }
-		assertEquals('{', codec.readSkip());
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		assertEquals('}', codec.lastChar());
+		codec.beginObject();
+		codec.readKey();
+		codec.readIgnore();
+		assertFalse(codec.readKey());
 
 		// { "key" : "value" , }
-		assertEquals('{', codec.readSkip());
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		assertEquals('}', codec.lastChar());
+		codec.beginObject();
+		codec.readKey();
+		codec.readIgnore();
+		assertFalse(codec.readKey());
 
 		// {内有注释}
-		assertEquals('{', codec.readSkip());
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		assertEquals('}', codec.lastChar());
+		codec.beginObject();
+		codec.readKey();
+		codec.readIgnore();
+		assertFalse(codec.readKey());
 
-		// {key:{k1:v1}}
-		assertEquals('{', codec.readSkip());
-		codec.readIgnoreValue();
-		codec.readIgnoreValue();
-		assertEquals('}', codec.readSkip());
+		// {key:{k1:v1},kby:{k2:v2}}
+		codec.beginObject();
+		codec.readKey();
+		codec.readIgnore();
+		codec.readKey();
+		codec.readIgnore();
+		assertFalse(codec.readKey());
 
 		// END
 		assertEquals('\n', reader.read());
 	}
 
-	@Test
-	void testNumber() throws Exception {
-		final ODBSJson json = new ODBSJson(odbs);
-
-		// 小数点为首的数字（JSON 标准中，小数点前必须有最少一个数字）
-		// 小数点后没有数字（JSON 标准中，小数点后必须有最少一个数字）
-
-		assertEquals(0.8, json.getNumberFormat().parse(".8"));
-		assertEquals(8L, json.getNumberFormat().parse("8."));
-
-		// 十六进制 0X 0x
-		// 二进制 0B 0b
-
-		Integer.parseInt("A", 16);
-
-	}
 }

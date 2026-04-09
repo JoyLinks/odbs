@@ -4,8 +4,13 @@
  */
 package com.joyzl.odbs.test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterAll;
@@ -60,5 +65,21 @@ class TestODBSReflect {
 		assertTrue(items.size() > 0);
 		items = ODBSReflect.scanClass("com.joyzl");
 		assertTrue(items.size() > 0);
+	}
+
+	// @Test
+	void testMethodHandle() throws Throwable {
+		// 可变参数暂无法支持
+		Method method = EntityVarArgs.class.getMethod("setEntityBases", EntityBase[].class);
+		method.setAccessible(true);
+		MethodHandle handler = MethodHandles.publicLookup().unreflect(method);
+		assertEquals(1, method.getParameterCount());
+
+		handler = handler.asType(MethodType.methodType(void.class, Object.class, method.getParameterTypes()[0]));
+
+		final Object entity = new EntityVarArgs();
+		final Object value = new EntityBase[0];
+		handler.invokeExact(entity, (Object[]) null);
+		handler.invokeExact(entity, value);
 	}
 }

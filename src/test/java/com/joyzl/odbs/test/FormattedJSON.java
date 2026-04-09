@@ -4,7 +4,7 @@
  */
 package com.joyzl.odbs.test;
 
-public class FormattedJSON {
+class FormattedJSON {
 
 	final static String FORAMTTED_JSON = """
 			{

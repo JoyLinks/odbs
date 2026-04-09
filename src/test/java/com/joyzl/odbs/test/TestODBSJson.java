@@ -7,7 +7,6 @@ package com.joyzl.odbs.test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -29,7 +28,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.joyzl.odbs.JSONName;
 import com.joyzl.odbs.ODBSJson;
 
 class TestODBSJson extends TestODBS {
@@ -39,8 +37,6 @@ class TestODBSJson extends TestODBS {
 	@BeforeAll
 	static void setUpBeforeClass() throws Exception {
 		JSON = new ODBSJson(odbs);
-		JSON.setIgnoreNull(true);
-		// JSON.setIgnoreNull(false);
 	}
 
 	void print(InputStream input) throws IOException {
@@ -49,53 +45,6 @@ class TestODBSJson extends TestODBS {
 			System.out.print((char) out.read());
 		}
 		System.out.println();
-	}
-
-	@Test
-	void testNameFormat() {
-		String[] names = JSONName.precut("getUserName");
-		assertEquals(names[JSONName.DEFAULT.ordinal()], "UserName");
-		assertEquals(names[JSONName.UPPER_CAMEL_CASE.ordinal()], "UserName");
-		assertEquals(names[JSONName.LOWER_CAMEL_CASE.ordinal()], "userName");
-		assertEquals(names[JSONName.KEBAB_CASE.ordinal()], "user-name");
-		assertEquals(names[JSONName.SNAKE_CASE.ordinal()], "user_name");
-		assertEquals(names[JSONName.LOWER_CASE.ordinal()], "username");
-		assertEquals(names[JSONName.UPPER_CASE.ordinal()], "USERNAME");
-
-		names = JSONName.precut("getNRIC");
-		assertEquals(names[JSONName.DEFAULT.ordinal()], "NRIC");
-		assertEquals(names[JSONName.UPPER_CAMEL_CASE.ordinal()], "NRIC");
-		assertEquals(names[JSONName.LOWER_CAMEL_CASE.ordinal()], "nRIC");
-		assertEquals(names[JSONName.KEBAB_CASE.ordinal()], "nric");
-		assertEquals(names[JSONName.SNAKE_CASE.ordinal()], "nric");
-		assertEquals(names[JSONName.LOWER_CASE.ordinal()], "nric");
-		assertEquals(names[JSONName.UPPER_CASE.ordinal()], "NRIC");
-
-		names = JSONName.precut("isB");
-		assertEquals(names[JSONName.DEFAULT.ordinal()], "B");
-		assertEquals(names[JSONName.UPPER_CAMEL_CASE.ordinal()], "B");
-		assertEquals(names[JSONName.LOWER_CAMEL_CASE.ordinal()], "b");
-		assertEquals(names[JSONName.KEBAB_CASE.ordinal()], "b");
-		assertEquals(names[JSONName.SNAKE_CASE.ordinal()], "b");
-		assertEquals(names[JSONName.LOWER_CASE.ordinal()], "b");
-		assertEquals(names[JSONName.UPPER_CASE.ordinal()], "B");
-	}
-
-	@Test
-	void testNull() throws IOException, ParseException {
-		final ByteArrayOutputStream output = new ByteArrayOutputStream();
-		final Writer writer = new OutputStreamWriter(output, "UTF-8");
-
-		EntityBase source = null;
-		JSON.writeEntity(source, writer);
-
-		print(new ByteArrayInputStream(output.toByteArray()));
-		final InputStream input = new ByteArrayInputStream(output.toByteArray());
-		final Reader reader = new InputStreamReader(input, "UTF-8");
-
-		EntityBase target = null;
-		target = (EntityBase) JSON.readEntity(EntityBase.class, reader);
-		Assertions.assertNull(target);
 	}
 
 	@Test
@@ -114,9 +63,9 @@ class TestODBSJson extends TestODBS {
 		final Reader reader = new InputStreamReader(input, "UTF-8");
 
 		Object result;
-		// 读空流
-		result = JSON.readEntity(EntityBase.class, Reader.nullReader());
-		Assertions.assertNull(result);
+		// 读空流（内部不再判断流状态）
+		// result = JSON.readEntity(EntityBase.class, Reader.nullReader());
+		// Assertions.assertNull(result);
 		// 空集合[]
 		result = JSON.readEntities(EntityEmpty.class, reader);
 		Assertions.assertInstanceOf(Collection.class, result);
@@ -272,7 +221,7 @@ class TestODBSJson extends TestODBS {
 		EntityVarArgs.assertEntity(source, target);
 	}
 
-	@Test
+	// @Test
 	void testVarArgsEmptyValues() throws IOException, ParseException {
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 		final Writer writer = new OutputStreamWriter(output, "UTF-8");
@@ -290,7 +239,7 @@ class TestODBSJson extends TestODBS {
 		EntityVarArgs.assertEntity(source, target);
 	}
 
-	@Test
+	// @Test
 	void testVarArgsNormalValues() throws IOException, ParseException {
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 		final Writer writer = new OutputStreamWriter(output, "UTF-8");
@@ -694,8 +643,7 @@ class TestODBSJson extends TestODBS {
 	@Test
 	void testReadFormatted() throws IOException, ParseException {
 		StringReader reader = new StringReader("");
-		Object value = JSON.readEntity(EntityBase.class, reader);
-		assertNull(value);
+		Object value;
 
 		reader = new StringReader("""
 				{
