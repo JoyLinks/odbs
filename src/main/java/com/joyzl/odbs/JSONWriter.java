@@ -91,6 +91,16 @@ final class JSONWriter extends JSONCodec {
 		writer.write(JSONCodec.COLON);
 	}
 
+	/** writeKeyBegin() writeValue() writeKeyEnd() */
+	public void writeKeyBegin() throws IOException {
+		writeKeyComma();
+	}
+
+	/** writeKeyBegin() writeValue() writeKeyEnd() */
+	public void writeKeyEnd() throws IOException {
+		writer.write(JSONCodec.COLON);
+	}
+
 	/** value */
 	public void writeValue(int value) throws IOException {
 		writeValueComma();

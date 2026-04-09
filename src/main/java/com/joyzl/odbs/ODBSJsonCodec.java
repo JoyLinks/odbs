@@ -358,11 +358,11 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 			else if (key.type() == Date.class)
 				k = in.getDate(DATE_FORMAT);
 			else if (key.type() == LocalTime.class)
-				k = in.getLocalTime(DATE_FORMATTER);
+				k = in.getLocalTime(TIME_FORMATTER);
 			else if (key.type() == LocalDate.class)
 				k = in.getLocalDate(DATE_FORMATTER);
 			else if (key.type() == LocalDateTime.class)
-				k = in.getLocalDateTime(DATE_FORMATTER);
+				k = in.getLocalDateTime(DATE_TIME_FORMATTER);
 			else if (key.type() == String.class)
 				k = in.getString();
 			else
@@ -711,7 +711,10 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 		Entry<?, ?> entry;
 		while (i.hasNext()) {
 			entry = i.next();
-			out.writeKey(entry.getKey().toString());
+			out.writeKeyBegin();
+			key.write(entry.getKey(), this, out);
+			out.writeKeyEnd();
+			// out.writeKey(entry.getKey().toString());
 			value.write(entry.getValue(), this, out);
 		}
 		out.endObject();
