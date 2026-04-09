@@ -11,7 +11,7 @@ import java.lang.reflect.Method;
  * 
  * @author ZhangXi 2026年4月7日
  */
-public class TypeObject extends ODBSType {
+final class TypeObject extends ODBSType {
 
 	private final Class<?> type;
 

@@ -5,7 +5,7 @@ package com.joyzl.odbs;
  * 
  * @author ZhangXi 2026年4月7日
  */
-public abstract class JSONCodec {
+abstract class JSONCodec {
 
 	final static char SPACE = ' ';
 	final static char ESCAPE = '\\';

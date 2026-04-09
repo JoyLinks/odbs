@@ -6,7 +6,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 
-public class TypeEnum extends ODBSType {
+final class TypeEnum extends ODBSType {
 
 	private final Class<? extends Enum<?>> CLASS;
 	private final Enum<?>[] constants;

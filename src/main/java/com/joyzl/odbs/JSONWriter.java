@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.function.Supplier;
 
-public final class JSONWriter extends JSONCodec {
+final class JSONWriter extends JSONCodec {
 
 	private final static ThreadLocal<JSONWriter> JSON_WRITER = ThreadLocal.withInitial(new Supplier<JSONWriter>() {
 		@Override

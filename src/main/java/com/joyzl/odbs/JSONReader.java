@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.function.Supplier;
 
-public final class JSONReader extends JSONCodec {
+final class JSONReader extends JSONCodec {
 
 	private final static ThreadLocal<JSONReader> JSON_READER = ThreadLocal.withInitial(new Supplier<JSONReader>() {
 		@Override

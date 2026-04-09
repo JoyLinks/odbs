@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 
 import com.joyzl.EnumText;
 
-public class TypeEnumText extends ODBSType {
+final class TypeEnumText extends ODBSType {
 
 	private final Class<? extends EnumText> CLASS;
 	private final EnumText[] constants;
