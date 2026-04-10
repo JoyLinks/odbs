@@ -25,8 +25,14 @@ class TestODBSTime extends TestODBS {
 	@Test
 	void testBinary() throws Exception {
 		final ByteArrayOutputStream output = new ByteArrayOutputStream(1024);
-		final EntityBase source = EntityBase.createMaxValue();
+		final EntityBase source = EntityBase.createMinValue();
 		final int size = 1000000;
+
+		// 预热
+		for (int i = 0; i < 100; i++) {
+			output.reset();
+			BINARY.writeEntity(source, output);
+		}
 
 		long time = System.currentTimeMillis();
 		for (int i = 0; i < size; i++) {
@@ -39,13 +45,24 @@ class TestODBSTime extends TestODBS {
 
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
 		final EntityBase target = new EntityBase();
-		time = System.currentTimeMillis();
-		for (int i = 0; i < size; i++) {
+
+		// 预热
+		for (int i = 0; i < 100; i++) {
 			input.mark(0);
 			BINARY.readEntity(target, input);
 			input.reset();
 		}
+
+		Object v = null;
+		time = System.currentTimeMillis();
+		for (int i = 0; i < size; i++) {
+			input.mark(0);
+			v = BINARY.readEntity(target, input);
+			input.reset();
+		}
 		time = System.currentTimeMillis() - time;
+
+		v.toString();
 		System.out.println("ODBS Binary read " + size + " :" + time + " ms");
 		EntityBase.assertEntity(source, target);
 

@@ -122,4 +122,8 @@ public final class ODBSBinary extends ODBSBinaryCodec {
 			throw new IOException("ODBS Binary 类型无效");
 		}
 	}
+
+	public ODBS odbs() {
+		return odbs;
+	}
 }

@@ -85,4 +85,8 @@ public final class ODBSJson extends ODBSJsonCodec {
 			values.add(in.getString());
 		}
 	}
+
+	public ODBS odbs() {
+		return odbs;
+	}
 }
