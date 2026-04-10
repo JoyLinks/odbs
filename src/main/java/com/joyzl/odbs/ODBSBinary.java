@@ -55,12 +55,9 @@ public final class ODBSBinary extends ODBSBinaryCodec {
 	}
 
 	public final <T> List<T> readEntities(InputStream in) throws IOException {
-		if (in.available() > 0) {
-			final List<T> entities = new ArrayList<>();
-			readEntities(entities, (DataInput) new BigEndianInputStream(in));
-			return entities;
-		}
-		return null;
+		final List<T> entities = new ArrayList<>();
+		readEntities(entities, (DataInput) new BigEndianInputStream(in));
+		return entities;
 	}
 
 	public <T> List<T> readEntities(DataInput input) throws IOException {
@@ -70,9 +67,7 @@ public final class ODBSBinary extends ODBSBinaryCodec {
 	}
 
 	public <T> void readEntities(Collection<T> entities, InputStream in) throws IOException {
-		if (in.available() > 0) {
-			readEntities(entities, (DataInput) new BigEndianInputStream(in));
-		}
+		readEntities(entities, (DataInput) new BigEndianInputStream(in));
 	}
 
 	public <T> void readEntities(Collection<T> entities, DataInput in) throws IOException {
@@ -83,10 +78,7 @@ public final class ODBSBinary extends ODBSBinaryCodec {
 	}
 
 	public <T> T readEntity(InputStream in) throws IOException {
-		if (in.available() > 0) {
-			return readEntity(null, (DataInput) new BigEndianInputStream(in));
-		}
-		return null;
+		return readEntity(null, (DataInput) new BigEndianInputStream(in));
 	}
 
 	public <T> T readEntity(DataInput in) throws IOException {
@@ -100,10 +92,7 @@ public final class ODBSBinary extends ODBSBinaryCodec {
 	}
 
 	public <T> T readEntity(T instence, InputStream in) throws IOException {
-		if (in.available() > 0) {
-			return readEntity(instence, (DataInput) new BigEndianInputStream(in));
-		}
-		return null;
+		return readEntity(instence, (DataInput) new BigEndianInputStream(in));
 	}
 
 	public <T> T readEntity(T entity, DataInput in) throws IOException {

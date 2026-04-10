@@ -91,6 +91,11 @@ final class ODBSMethod {
 		return JSONName.match(names, format, name);
 	}
 
+	@Override
+	public String toString() {
+		return names[0];
+	}
+
 	public ODBSType resolve(Type type, Map<?, ODBSType> types) {
 		if (type instanceof Class<?> c) {
 			// 原始类型、普通类、数组、枚举

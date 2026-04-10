@@ -54,7 +54,7 @@ final class TypeObject extends ODBSType {
 
 	@Override
 	<O, I> void read(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, I in) throws IOException {
-		final Object value = codec.readObject(in, this, entity);
+		final Object value = codec.readObject(in, this, null);
 		try {
 			method.set().invokeExact(entity, value);
 		} catch (Throwable e) {

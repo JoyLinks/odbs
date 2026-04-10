@@ -45,7 +45,12 @@ class TestODBSBinary extends TestODBS {
 		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
 
 		final EntityBase target = new EntityBase();
-		BINARY.readEntity(target, input);
+		try {
+			BINARY.readEntity(target, input);
+		} catch (Exception ex) {
+			e = ex;
+		}
+		assertNotNull(e);
 	}
 
 	@Test
@@ -407,5 +412,21 @@ class TestODBSBinary extends TestODBS {
 		bases.clear();
 		BINARY.readEntities(bases, input);
 		assertEquals(bases.size(), 2);
+	}
+
+	@Test
+	void testOther() throws IOException {
+		final ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+		EntityOther entity = new EntityOther();
+		EntityValue2 value = new EntityValue2();
+		value.setValue(10);
+		entity.setValue(value);
+
+		BINARY.writeEntity(entity, output);
+
+		final ByteArrayInputStream input = new ByteArrayInputStream(output.toByteArray());
+
+		BINARY.readEntity(entity, input);
 	}
 }
