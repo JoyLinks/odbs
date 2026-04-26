@@ -46,14 +46,14 @@ final class TypeEntity extends ODBSType {
 	@Override
 	void give(Object entity, ODBSMethod method) {
 		try {
-			method.set().invokeExact(entity, null);
+			method.set().invokeExact(entity, (Object) null);
 		} catch (Throwable e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	@Override
-	<O, I> void write1(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write1(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		final Object value;
 		try {
 			value = method.get().invokeExact(entity);
@@ -67,12 +67,12 @@ final class TypeEntity extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write2(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write2(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		write1(entity, method, codec, out);
 	}
 
 	@Override
-	<O, I> void read(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> void read(Object entity, ODBSMethod method, ODBSDecode<I> codec, I in) throws IOException {
 		final Object value = codec.readEntity(in, this, null);
 		try {
 			method.set().invokeExact(entity, value);
@@ -82,12 +82,12 @@ final class TypeEntity extends ODBSType {
 	}
 
 	@Override
-	<O, I> Object read(ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> Object read(ODBSDecode<I> codec, I in) throws IOException {
 		return codec.readEntity(in, this, null);
 	}
 
 	@Override
-	<O, I> void write(Object value, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write(Object value, ODBSEncode<O> codec, O out) throws IOException {
 		codec.writeEntity(out, this, value);
 	}
 
@@ -125,10 +125,14 @@ final class TypeEntity extends ODBSType {
 		return index;
 	}
 
-	public void override(Class<?> c) throws NoSuchMethodException, SecurityException {
+	public void override(Class<?> c) {
 		if (CLASS.isAssignableFrom(c)) {
-			constructor = c.getConstructor();
-			override = c;
+			try {
+				constructor = c.getConstructor();
+				override = c;
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
 		} else {
 			throw new IllegalArgumentException(c + "未继承自" + CLASS);
 		}

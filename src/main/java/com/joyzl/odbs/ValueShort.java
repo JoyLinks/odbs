@@ -28,7 +28,7 @@ final class ValueShort extends ValueType {
 	}
 
 	@Override
-	<O, I> void write1(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write1(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		final short value;
 		try {
 			value = (short) method.get().invokeExact(entity);
@@ -42,7 +42,7 @@ final class ValueShort extends ValueType {
 	}
 
 	@Override
-	<O, I> void write2(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write2(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		final short value;
 		try {
 			value = (short) method.get().invokeExact(entity);
@@ -54,7 +54,7 @@ final class ValueShort extends ValueType {
 	}
 
 	@Override
-	<O, I> void read(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> void read(Object entity, ODBSMethod method, ODBSDecode<I> codec, I in) throws IOException {
 		final short value = codec.readShort(in);
 		try {
 			method.set().invokeExact(entity, value);
@@ -64,12 +64,12 @@ final class ValueShort extends ValueType {
 	}
 
 	@Override
-	<O, I> Object read(ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> Object read(ODBSDecode<I> codec, I in) throws IOException {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	<O, I> void write(Object value, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write(Object value, ODBSEncode<O> codec, O out) throws IOException {
 		throw new UnsupportedOperationException();
 	}
 

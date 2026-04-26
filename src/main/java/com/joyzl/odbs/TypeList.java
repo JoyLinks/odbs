@@ -31,7 +31,7 @@ final class TypeList extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write1(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write1(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		final List<Object> values;
 		try {
 			values = (List<Object>) method.get().invokeExact(entity);
@@ -45,12 +45,12 @@ final class TypeList extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write2(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write2(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		write1(entity, method, codec, out);
 	}
 
 	@Override
-	<O, I> void read(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> void read(Object entity, ODBSMethod method, ODBSDecode<I> codec, I in) throws IOException {
 		List<Object> values;
 		try {
 			values = (List<Object>) method.get().invokeExact(entity);
@@ -69,7 +69,7 @@ final class TypeList extends ODBSType {
 	}
 
 	@Override
-	<O, I> Object read(ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> Object read(ODBSDecode<I> codec, I in) throws IOException {
 		final List<Object> values = new ArrayList<>();
 		codec.readList(in, type, values);
 		return values;
@@ -77,7 +77,7 @@ final class TypeList extends ODBSType {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	<O, I> void write(Object value, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write(Object value, ODBSEncode<O> codec, O out) throws IOException {
 		codec.writeList(out, type, (List<Object>) value);
 	}
 

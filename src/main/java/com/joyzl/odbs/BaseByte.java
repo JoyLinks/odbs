@@ -28,7 +28,7 @@ final class BaseByte extends BaseType {
 	}
 
 	@Override
-	<O, I> void write1(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write1(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		final Byte value;
 		try {
 			value = (Byte) method.get().invokeExact(entity);
@@ -42,7 +42,7 @@ final class BaseByte extends BaseType {
 	}
 
 	@Override
-	<O, I> void read(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> void read(Object entity, ODBSMethod method, ODBSDecode<I> codec, I in) throws IOException {
 		final Byte value = Byte.valueOf(codec.readByte(in));
 		try {
 			method.set().invokeExact(entity, value);
@@ -52,12 +52,12 @@ final class BaseByte extends BaseType {
 	}
 
 	@Override
-	<O, I> Object read(ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> Object read(ODBSDecode<I> codec, I in) throws IOException {
 		return codec.readByte(in);
 	}
 
 	@Override
-	<O, I> void write(Object value, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write(Object value, ODBSEncode<O> codec, O out) throws IOException {
 		codec.writeByte(out, ((Byte) value).byteValue());
 	}
 

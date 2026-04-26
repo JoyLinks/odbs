@@ -31,7 +31,7 @@ final class TypeEnum extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write1(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write1(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		final Enum<?> value;
 		try {
 			value = (Enum<?>) method.get().invokeExact(entity);
@@ -45,12 +45,12 @@ final class TypeEnum extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write2(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write2(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		write1(entity, method, codec, out);
 	}
 
 	@Override
-	<O, I> void read(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> void read(Object entity, ODBSMethod method, ODBSDecode<I> codec, I in) throws IOException {
 		final int value = codec.readEnum(in);
 		try {
 			if (value >= 0 && value < constants.length) {
@@ -64,7 +64,7 @@ final class TypeEnum extends ODBSType {
 	}
 
 	@Override
-	<O, I> Enum<?> read(ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> Enum<?> read(ODBSDecode<I> codec, I in) throws IOException {
 		final int value = codec.readEnum(in);
 		if (value >= 0 && value < constants.length) {
 			return constants[value];
@@ -74,7 +74,7 @@ final class TypeEnum extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write(Object value, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write(Object value, ODBSEncode<O> codec, O out) throws IOException {
 		codec.writeEnum(out, (Enum<?>) value);
 	}
 

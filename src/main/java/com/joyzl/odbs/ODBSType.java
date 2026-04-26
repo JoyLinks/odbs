@@ -27,17 +27,19 @@ abstract class ODBSType {
 	abstract void give(Object entity, ODBSMethod method);
 
 	/** 编码实例方法值，非空值和默认值编码 */
-	abstract <O, I> void write1(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException;
+	abstract <O> void write1(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException;
 
 	/** 编码实例方法值，返回是否被编码标识，非空值均编码 */
-	abstract <O, I> void write2(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException;
+	abstract <O> void write2(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException;
+
+	/** 编码值 */
+	abstract <O> void write(Object value, ODBSEncode<O> codec, O out) throws IOException;
 
 	/** 解码实例方法值 */
-	abstract <O, I> void read(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, I in) throws IOException;
+	abstract <I> void read(Object entity, ODBSMethod method, ODBSDecode<I> codec, I in) throws IOException;
 
-	abstract <O, I> Object read(ODBSCodec<O, I> codec, I in) throws IOException;
-
-	abstract <O, I> void write(Object value, ODBSCodec<O, I> codec, O out) throws IOException;
+	/** 解码值 */
+	abstract <I> Object read(ODBSDecode<I> codec, I in) throws IOException;
 
 	@Override
 	public String toString() {

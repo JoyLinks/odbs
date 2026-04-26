@@ -10,7 +10,7 @@ import java.io.IOException;
 abstract class BaseType extends ODBSType {
 
 	@Override
-	<O, I> void write2(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write2(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		write1(entity, method, codec, out);
 	}
 }

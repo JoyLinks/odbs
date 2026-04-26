@@ -109,7 +109,7 @@ final class ODBSMethod {
 				return o;
 			}
 			if (c.isArray())
-				return new TypeArray(resolve(c.getComponentType(), types));
+				return new ArrayType(resolve(c.getComponentType(), types));
 			else if (Map.class.isAssignableFrom(c))
 				return new TypeMap(null, null);
 			else if (Set.class.isAssignableFrom(c))
@@ -128,7 +128,7 @@ final class ODBSMethod {
 			if (type instanceof Class<?> c) {
 				if (c.isArray()) {
 					ODBSType o = resolve(c.getComponentType(), types);
-					return new TypeArray(o);
+					return new ArrayType(o);
 				} else if (Map.class.isAssignableFrom(c)) {
 					ODBSType key = resolve(p.getActualTypeArguments()[0], types);
 					ODBSType value = resolve(p.getActualTypeArguments()[1], types);

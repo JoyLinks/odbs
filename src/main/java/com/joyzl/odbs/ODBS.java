@@ -46,6 +46,21 @@ public final class ODBS {
 		return initialize(names);
 	}
 
+	/**
+	 * 初始化定义用于序列化的实体类型
+	 * <p>
+	 * 将在指定的多个包中查找所有的对象类型定义，扫描对象的方法和类型建立类型描述。<br>
+	 * 确保指定的包中包含所有需要进行序列化的对象类型和枚举类型。<br>
+	 * ODBS序列化为了保证性能，不会对类的版本和差异进行任何检查，因此序列化和反序列化的包结构及类必须完全相同。<br>
+	 * 不要将不需要进行序列化的对象或与序列化完全无关的对象放入被扫描的包中。<br>
+	 * 如果对象类型在本地进行了继承，并且希望实例化为本地的对象可通过{@link #override(String...)}静态方法进行覆盖<br>
+	 * </p>
+	 * <p>
+	 * 注意：此方法须耗费较多时间建立类型描述细节。
+	 * </p>
+	 * 
+	 * @param packages 指定多个包名称 "com.joyzl.common.entities"
+	 */
 	@SuppressWarnings("unchecked")
 	public final static ODBS initialize(String... packages) {
 		// 扫描序列化类型（枚举和类）
@@ -95,6 +110,35 @@ public final class ODBS {
 		return new ODBS(entities);
 	}
 
+	/**
+	 * 扫描需要被覆盖的对象类型
+	 * 
+	 * @param packages 指定多个包名称 "com.joyzl.common.entities"
+	 */
+	public void override(String... packages) {
+		for (String packega : packages) {
+			List<Class<?>> cs = ODBSReflect.scanClass(packega);
+			for (Class<?> clazz : cs) {
+				if (ODBSReflect.canSerialize(clazz)) {
+					TypeEntity type = get(clazz.getSuperclass());
+					if (type != null) {
+						type.override(clazz);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * 指定单个被继承覆盖的对象类型
+	 */
+	public void override(Class<?> clazz) {
+		TypeEntity type = get(clazz.getSuperclass());
+		if (type != null) {
+			type.override(clazz);
+		}
+	}
+
 	/** 计算用户定义类型和参与序列化方法的签名 */
 	private byte[] sign(TypeEntity[] types) {
 		try {
@@ -135,6 +179,24 @@ public final class ODBS {
 	@Override
 	public String toString() {
 		return "ODBS Types " + typeSize();
+	}
+
+	/** 指定名称查找实体类型 */
+	public Class<?> findClass(CharSequence name) {
+		final TypeEntity type = find(name);
+		if (type != null) {
+			return type.type();
+		}
+		return null;
+	}
+
+	/** 指定名称查找实体类型并返回新的实例 */
+	public <T> T findClassInstance(CharSequence name) {
+		final TypeEntity type = find(name);
+		if (type != null) {
+			return type.newInstance();
+		}
+		return null;
 	}
 
 	/** 获取序列化定义类型的签名 */

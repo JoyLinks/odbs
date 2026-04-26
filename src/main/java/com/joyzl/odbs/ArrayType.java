@@ -7,11 +7,11 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
-final class TypeArray extends ODBSType {
+final class ArrayType extends ODBSType {
 
 	private final ODBSType type;
 
-	public TypeArray(ODBSType t) {
+	public ArrayType(ODBSType t) {
 		type = t;
 	}
 
@@ -30,7 +30,7 @@ final class TypeArray extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write1(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write1(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		final Object values;
 		try {
 			values = method.get().invokeExact(entity);
@@ -44,12 +44,12 @@ final class TypeArray extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write2(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write2(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		write1(entity, method, codec, out);
 	}
 
 	@Override
-	<O, I> void read(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> void read(Object entity, ODBSMethod method, ODBSDecode<I> codec, I in) throws IOException {
 		Object values;
 		try {
 			values = method.get().invokeExact(entity);
@@ -65,12 +65,12 @@ final class TypeArray extends ODBSType {
 	}
 
 	@Override
-	<O, I> Object read(ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> Object read(ODBSDecode<I> codec, I in) throws IOException {
 		return codec.readArray(in, type, null);
 	}
 
 	@Override
-	<O, I> void write(Object values, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write(Object values, ODBSEncode<O> codec, O out) throws IOException {
 		codec.writeArray(out, type, values);
 	}
 
@@ -85,7 +85,13 @@ final class TypeArray extends ODBSType {
 		if (method.getParameterCount() == 0) {
 			return handler.asType(MethodType.methodType(Object.class, Object.class));
 		} else if (method.getParameterCount() == 1) {
-			return handler.asType(MethodType.methodType(void.class, Object.class, Object.class));
+			if (method.isVarArgs()) {
+				// 可变参数作为固定单个数组参数
+				// 否则会将传入的数组视为可变参数的单个值，这将导致类型失败
+				return handler.asFixedArity().asType(MethodType.methodType(void.class, Object.class, Object.class));
+			} else {
+				return handler.asType(MethodType.methodType(void.class, Object.class, Object.class));
+			}
 		} else {
 			throw new RuntimeException("方法无效" + method);
 		}

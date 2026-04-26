@@ -32,7 +32,7 @@ final class TypeMap extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write1(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write1(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		final Map<?, ?> values;
 		try {
 			values = (Map<Object, Object>) method.get().invokeExact(entity);
@@ -46,12 +46,12 @@ final class TypeMap extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write2(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write2(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		write1(entity, method, codec, out);
 	}
 
 	@Override
-	<O, I> void read(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> void read(Object entity, ODBSMethod method, ODBSDecode<I> codec, I in) throws IOException {
 		Map<Object, Object> values;
 		try {
 			values = (Map<Object, Object>) method.get().invokeExact(entity);
@@ -75,7 +75,7 @@ final class TypeMap extends ODBSType {
 	}
 
 	@Override
-	<O, I> Object read(ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> Object read(ODBSDecode<I> codec, I in) throws IOException {
 		final Map<Object, Object> values = new HashMap<>();
 		codec.readMap(in, key, value, values);
 		return values;
@@ -83,7 +83,7 @@ final class TypeMap extends ODBSType {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	<O, I> void write(Object values, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write(Object values, ODBSEncode<O> codec, O out) throws IOException {
 		codec.writeMap(out, key, value, (Map<Object, Object>) values);
 	}
 

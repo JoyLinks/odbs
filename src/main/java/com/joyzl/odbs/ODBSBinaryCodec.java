@@ -20,7 +20,7 @@ import com.joyzl.EnumText;
 import com.joyzl.codec.DataInput;
 import com.joyzl.codec.DataOutput;
 
-abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
+abstract class ODBSBinaryCodec implements ODBSEncode<DataOutput>, ODBSDecode<DataInput> {
 
 	protected final ODBS odbs;
 
@@ -29,7 +29,7 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	Object readArray(DataInput in, ODBSType type, Object values) throws IOException {
+	public Object readArray(DataInput in, ODBSType type, Object values) throws IOException {
 		final int size = in.readVarint();
 		if (values == null) {
 			values = type.newArray(size);
@@ -92,40 +92,40 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	BigDecimal readBigDecimal(DataInput in) throws IOException {
+	public BigDecimal readBigDecimal(DataInput in) throws IOException {
 		return in.readDecimal();
 	}
 
 	@Override
-	BigInteger readBigInteger(DataInput in) throws IOException {
+	public BigInteger readBigInteger(DataInput in) throws IOException {
 		final byte[] bytes = new byte[in.readUnsignedByte()];
 		in.readFully(bytes);
 		return new BigInteger(bytes);
 	}
 
 	@Override
-	boolean readBool(DataInput in) {
+	public boolean readBool(DataInput in) {
 		return true;
 	}
 
 	@Override
-	boolean readBoolea(DataInput in) throws IOException {
+	public boolean readBoolea(DataInput in) throws IOException {
 		return in.readBoolean();
 	}
 
 	@Override
-	byte readByte(DataInput in) throws IOException {
+	public byte readByte(DataInput in) throws IOException {
 		return in.readByte();
 	}
 
 	@Override
-	char readChar(DataInput in) throws IOException {
+	public char readChar(DataInput in) throws IOException {
 		return in.readChar();
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	<V> void readCollection(DataInput in, ODBSType type, Collection<V> values) throws IOException {
+	public <V> void readCollection(DataInput in, ODBSType type, Collection<V> values) throws IOException {
 		final int size = in.readVarint();
 		for (int i = 0; i < size; i++) {
 			values.add((V) type.read(this, in));
@@ -133,48 +133,48 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	Date readDate(DataInput in) throws IOException {
+	public Date readDate(DataInput in) throws IOException {
 		return in.readDate();
 	}
 
 	@Override
-	double readDouble(DataInput in) throws IOException {
+	public double readDouble(DataInput in) throws IOException {
 		return in.readDouble();
 	}
 
 	@Override
-	int readEnum(DataInput in) throws IOException {
+	public int readEnum(DataInput in) throws IOException {
 		return in.readVarint();
 	}
 
 	@Override
-	int readEnumCode(DataInput in) throws IOException {
+	public int readEnumCode(DataInput in) throws IOException {
 		return in.readVarint();
 	}
 
 	@Override
-	int readEnumCodeText(DataInput in) throws IOException {
+	public int readEnumCodeText(DataInput in) throws IOException {
 		return in.readVarint();
 	}
 
 	@Override
-	int readEnumText(DataInput in) throws IOException {
+	public int readEnumText(DataInput in) throws IOException {
 		return in.readVarint();
 	}
 
 	@Override
-	float readFloat(DataInput in) throws IOException {
+	public float readFloat(DataInput in) throws IOException {
 		return in.readFloat();
 	}
 
 	@Override
-	int readInt(DataInput in) throws IOException {
+	public int readInt(DataInput in) throws IOException {
 		return in.readVarint();
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	<V> void readList(DataInput in, ODBSType value, List<V> values) throws IOException {
+	public <V> void readList(DataInput in, ODBSType value, List<V> values) throws IOException {
 		int size = in.readVarint();
 		while (size-- > 0) {
 			values.add((V) value.read(this, in));
@@ -182,28 +182,28 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	LocalDate readLocalDate(DataInput in) throws IOException {
+	public LocalDate readLocalDate(DataInput in) throws IOException {
 		return in.readLocalDate();
 	}
 
 	@Override
-	LocalDateTime readLocalDateTime(DataInput in) throws IOException {
+	public LocalDateTime readLocalDateTime(DataInput in) throws IOException {
 		return in.readLocalDateTime();
 	}
 
 	@Override
-	LocalTime readLocalTime(DataInput in) throws IOException {
+	public LocalTime readLocalTime(DataInput in) throws IOException {
 		return in.readLocalTime();
 	}
 
 	@Override
-	long readLong(DataInput in) throws IOException {
+	public long readLong(DataInput in) throws IOException {
 		return in.readLong();
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	<K, V> void readMap(DataInput in, ODBSType key, ODBSType value, Map<K, V> values) throws IOException {
+	public <K, V> void readMap(DataInput in, ODBSType key, ODBSType value, Map<K, V> values) throws IOException {
 		int size = in.readVarint();
 		while (size-- > 0) {
 			values.put((K) key.read(this, in), (V) value.read(this, in));
@@ -211,7 +211,7 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	<T> T readEntity(DataInput in, TypeEntity type, T entity) throws IOException {
+	public <T> T readEntity(DataInput in, TypeEntity type, T entity) throws IOException {
 		if (entity == null) {
 			entity = type.newInstance();
 		}
@@ -236,7 +236,7 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	Object readObject(DataInput in, TypeObject type, Object value) throws IOException {
+	public Object readObject(DataInput in, TypeObject type, Object value) throws IOException {
 		final TypeEntity t = odbs.get(in.readVarint());
 		if (t != null) {
 			return readEntity(in, t, value);
@@ -247,7 +247,7 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	<V> void readSet(DataInput in, ODBSType type, Set<V> values) throws IOException {
+	public <V> void readSet(DataInput in, ODBSType type, Set<V> values) throws IOException {
 		final int size = in.readVarint();
 		for (int i = 0; i < size; i++) {
 			values.add((V) type.read(this, in));
@@ -255,17 +255,17 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	short readShort(DataInput in) throws IOException {
+	public short readShort(DataInput in) throws IOException {
 		return in.readShort();
 	}
 
 	@Override
-	String readString(DataInput in) throws IOException {
+	public String readString(DataInput in) throws IOException {
 		return in.readString();
 	}
 
 	@Override
-	void writeArray(DataOutput out, ODBSType value, Object values) throws IllegalArgumentException, IOException {
+	public void writeArray(DataOutput out, ODBSType value, Object values) throws IllegalArgumentException, IOException {
 		if (value instanceof ValueType) {
 			// 为值数组提供特殊处理
 			// 避免值被装箱为对象
@@ -328,39 +328,39 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	void writeBigDecimal(DataOutput out, BigDecimal value) throws IOException {
+	public void writeBigDecimal(DataOutput out, BigDecimal value) throws IOException {
 		out.writeDecimal(value);
 	}
 
 	@Override
-	void writeBigInteger(DataOutput out, BigInteger value) throws IOException {
+	public void writeBigInteger(DataOutput out, BigInteger value) throws IOException {
 		final byte[] bytes = value.toByteArray();
 		out.writeByte(bytes.length);
 		out.write(bytes);
 	}
 
 	@Override
-	void writeBoolean(DataOutput out, boolean value) throws IOException {
+	public void writeBoolean(DataOutput out, boolean value) throws IOException {
 		// 省略编码，因为始终为true才编码，false为默认值不输出
 	}
 
 	@Override
-	void writeBoolean(DataOutput out, Boolean value) throws IOException {
+	public void writeBoolean(DataOutput out, Boolean value) throws IOException {
 		out.writeBoolean(value.booleanValue());
 	}
 
 	@Override
-	void writeByte(DataOutput out, byte value) throws IOException {
+	public void writeByte(DataOutput out, byte value) throws IOException {
 		out.writeByte(value);
 	}
 
 	@Override
-	void writeChar(DataOutput out, char value) throws IOException {
+	public void writeChar(DataOutput out, char value) throws IOException {
 		out.writeChar(value);
 	}
 
 	@Override
-	void writeCollection(DataOutput out, ODBSType value, Collection<?> values) throws IOException {
+	public void writeCollection(DataOutput out, ODBSType value, Collection<?> values) throws IOException {
 		out.writeVarint(values.size());
 		for (Object v : values) {
 			value.write(v, this, out);
@@ -368,52 +368,52 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	void writeDate(DataOutput out, Date value) throws IOException {
+	public void writeDate(DataOutput out, Date value) throws IOException {
 		out.writeDate(value);
 	}
 
 	@Override
-	void writeDouble(DataOutput out, double value) throws IOException {
+	public void writeDouble(DataOutput out, double value) throws IOException {
 		out.writeDouble(value);
 	}
 
 	@Override
-	void writeEnum(DataOutput out, Enum<?> value) throws IOException {
+	public void writeEnum(DataOutput out, Enum<?> value) throws IOException {
 		out.writeVarint(value.ordinal());
 	}
 
 	@Override
-	void writeEnumCode(DataOutput out, EnumCode value) throws IOException {
+	public void writeEnumCode(DataOutput out, EnumCode value) throws IOException {
 		out.writeVarint(value.code());
 	}
 
 	@Override
-	void writeEnumCodeText(DataOutput out, EnumCodeText value) throws IOException {
+	public void writeEnumCodeText(DataOutput out, EnumCodeText value) throws IOException {
 		out.writeVarint(value.code());
 	}
 
 	@Override
-	void writeEnumText(DataOutput out, EnumText value) throws IOException {
+	public void writeEnumText(DataOutput out, EnumText value) throws IOException {
 		out.writeVarint(value.ordinal());
 	}
 
 	@Override
-	void writeField(DataOutput out, ODBSMethod method) throws IOException {
+	public void writeField(DataOutput out, ODBSMethod method) throws IOException {
 		out.writeVarint(method.index());
 	}
 
 	@Override
-	void writeFloat(DataOutput out, float value) throws IOException {
+	public void writeFloat(DataOutput out, float value) throws IOException {
 		out.writeFloat(value);
 	}
 
 	@Override
-	void writeInt(DataOutput out, int value) throws IOException {
+	public void writeInt(DataOutput out, int value) throws IOException {
 		out.writeVarint(value);
 	}
 
 	@Override
-	void writeList(DataOutput out, ODBSType value, List<?> values) throws IOException {
+	public void writeList(DataOutput out, ODBSType value, List<?> values) throws IOException {
 		out.writeVarint(values.size());
 		for (int i = 0; i < values.size(); i++) {
 			value.write(values.get(i), this, out);
@@ -421,27 +421,27 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	void writeLocalDateTime(DataOutput out, LocalDateTime value) throws IOException {
+	public void writeLocalDateTime(DataOutput out, LocalDateTime value) throws IOException {
 		out.writeLocalDateTime(value);
 	}
 
 	@Override
-	void writeLocaleDate(DataOutput out, LocalDate value) throws IOException {
+	public void writeLocaleDate(DataOutput out, LocalDate value) throws IOException {
 		out.writeLocalDate(value);
 	}
 
 	@Override
-	void writeLocalTime(DataOutput out, LocalTime value) throws IOException {
+	public void writeLocalTime(DataOutput out, LocalTime value) throws IOException {
 		out.writeLocalTime(value);
 	}
 
 	@Override
-	void writeLong(DataOutput out, long value) throws IOException {
+	public void writeLong(DataOutput out, long value) throws IOException {
 		out.writeLong(value);
 	}
 
 	@Override
-	void writeMap(DataOutput out, ODBSType key, ODBSType value, Map<?, ?> values) throws IOException {
+	public void writeMap(DataOutput out, ODBSType key, ODBSType value, Map<?, ?> values) throws IOException {
 		out.writeVarint(values.size());
 		for (Entry<?, ?> entry : values.entrySet()) {
 			key.write(entry.getKey(), this, out);
@@ -450,7 +450,7 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	void writeEntity(DataOutput out, TypeEntity type, Object value) throws IOException {
+	public void writeEntity(DataOutput out, TypeEntity type, Object value) throws IOException {
 		// 实体字段编码
 		ODBSMethod method;
 		for (int index = 0; index < type.methods().length; index++) {
@@ -464,7 +464,7 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	void writeObject(DataOutput out, TypeObject type, Object value) throws IOException {
+	public void writeObject(DataOutput out, TypeObject type, Object value) throws IOException {
 		final TypeEntity t = odbs.get(value.getClass());
 		if (t == null) {
 			throw new IOException("ODBS Binary 类型无效");
@@ -477,7 +477,7 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	void writeSet(DataOutput out, ODBSType value, Set<?> values) throws IOException {
+	public void writeSet(DataOutput out, ODBSType value, Set<?> values) throws IOException {
 		out.writeVarint(values.size());
 		for (Object v : values) {
 			value.write(v, this, out);
@@ -485,12 +485,12 @@ abstract class ODBSBinaryCodec extends ODBSCodec<DataOutput, DataInput> {
 	}
 
 	@Override
-	void writeShort(DataOutput out, short value) throws IOException {
+	public void writeShort(DataOutput out, short value) throws IOException {
 		out.writeShort(value);
 	}
 
 	@Override
-	void writeString(DataOutput out, String value) throws IOException {
+	public void writeString(DataOutput out, String value) throws IOException {
 		out.writeString(value);
 	}
 }

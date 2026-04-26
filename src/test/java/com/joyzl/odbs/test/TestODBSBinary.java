@@ -157,7 +157,7 @@ class TestODBSBinary extends TestODBS {
 		EntityArray.assertEntity(source, target);
 	}
 
-	// @Test
+	@Test
 	void testVarArgsNullValues() throws IOException {
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 
@@ -172,7 +172,7 @@ class TestODBSBinary extends TestODBS {
 		EntityVarArgs.assertEntity(source, target);
 	}
 
-	// @Test
+	@Test
 	void testVarArgsEmptyValues() throws IOException {
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 
@@ -187,7 +187,7 @@ class TestODBSBinary extends TestODBS {
 		EntityVarArgs.assertEntity(source, target);
 	}
 
-	// @Test
+	@Test
 	void testVarArgsNormalValues() throws IOException {
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 
@@ -202,7 +202,7 @@ class TestODBSBinary extends TestODBS {
 		EntityVarArgs.assertEntity(source, target);
 	}
 
-	// @Test
+	@Test
 	void testSetNullValues() throws IOException {
 		final ByteArrayOutputStream output = new ByteArrayOutputStream();
 

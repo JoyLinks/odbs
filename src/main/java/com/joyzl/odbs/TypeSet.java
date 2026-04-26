@@ -31,7 +31,7 @@ final class TypeSet extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write1(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write1(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		final Set<Object> values;
 		try {
 			values = (Set<Object>) method.get().invokeExact(entity);
@@ -45,12 +45,12 @@ final class TypeSet extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write2(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write2(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		write1(entity, method, codec, out);
 	}
 
 	@Override
-	<O, I> void read(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> void read(Object entity, ODBSMethod method, ODBSDecode<I> codec, I in) throws IOException {
 		Set<Object> values;
 		try {
 			values = (Set<Object>) method.get().invokeExact(entity);
@@ -69,7 +69,7 @@ final class TypeSet extends ODBSType {
 	}
 
 	@Override
-	<O, I> Object read(ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> Object read(ODBSDecode<I> codec, I in) throws IOException {
 		final Set<Object> values = new HashSet<>();
 		codec.readSet(in, type, values);
 		return values;
@@ -77,7 +77,7 @@ final class TypeSet extends ODBSType {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	<O, I> void write(Object value, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write(Object value, ODBSEncode<O> codec, O out) throws IOException {
 		codec.writeSet(out, type, (Set<Object>) value);
 	}
 

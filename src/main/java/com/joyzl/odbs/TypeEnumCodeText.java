@@ -33,7 +33,7 @@ final class TypeEnumCodeText extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write1(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write1(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		final EnumCodeText value;
 		try {
 			value = (EnumCodeText) method.get().invokeExact(entity);
@@ -47,12 +47,12 @@ final class TypeEnumCodeText extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write2(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write2(Object entity, ODBSMethod method, ODBSEncode<O> codec, O out) throws IOException {
 		write1(entity, method, codec, out);
 	}
 
 	@Override
-	<O, I> void read(Object entity, ODBSMethod method, ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> void read(Object entity, ODBSMethod method, ODBSDecode<I> codec, I in) throws IOException {
 		final EnumCodeText value = read(codec, in);
 		try {
 			method.set().invokeExact(entity, value);
@@ -62,7 +62,7 @@ final class TypeEnumCodeText extends ODBSType {
 	}
 
 	@Override
-	<O, I> EnumCodeText read(ODBSCodec<O, I> codec, I in) throws IOException {
+	<I> EnumCodeText read(ODBSDecode<I> codec, I in) throws IOException {
 		final int code = codec.readEnumCode(in);
 		for (int i = 0; i < constants.length; i++) {
 			if (constants[i].code() == code) {
@@ -73,7 +73,7 @@ final class TypeEnumCodeText extends ODBSType {
 	}
 
 	@Override
-	<O, I> void write(Object value, ODBSCodec<O, I> codec, O out) throws IOException {
+	<O> void write(Object value, ODBSEncode<O> codec, O out) throws IOException {
 		codec.writeEnumCodeText(out, (EnumCodeText) value);
 	}
 

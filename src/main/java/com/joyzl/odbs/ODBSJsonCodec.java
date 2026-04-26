@@ -23,7 +23,7 @@ import com.joyzl.EnumCode;
 import com.joyzl.EnumCodeText;
 import com.joyzl.EnumText;
 
-abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
+abstract class ODBSJsonCodec implements ODBSEncode<JSONWriter>, ODBSDecode<JSONReader> {
 
 	protected final ODBS odbs;
 
@@ -131,7 +131,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	////////////////////////////////////////////////////////////////////////////////
 
 	@Override
-	Object readArray(JSONReader in, ODBSType value, Object values) throws IOException {
+	public Object readArray(JSONReader in, ODBSType value, Object values) throws IOException {
 		in.beginArray();
 		if (values == null) {
 			values = value.newArray(100);
@@ -273,7 +273,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	<T> T readEntity(JSONReader in, TypeEntity type, T entity) throws IOException {
+	public <T> T readEntity(JSONReader in, TypeEntity type, T entity) throws IOException {
 		in.beginObject();
 		if (entity == null) {
 			entity = type.newInstance();
@@ -295,7 +295,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	Object readObject(JSONReader in, TypeObject type, Object value) throws IOException {
+	public Object readObject(JSONReader in, TypeObject type, Object value) throws IOException {
 		in.beginObject();
 		if (in.readKey()) {
 			if (KEY_TYPE.contentEquals(in.chars())) {
@@ -329,7 +329,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	<K, V> void readMap(JSONReader in, ODBSType key, ODBSType value, Map<K, V> values) throws IOException {
+	public <K, V> void readMap(JSONReader in, ODBSType key, ODBSType value, Map<K, V> values) throws IOException {
 		in.beginObject();
 		Object k;
 		while (in.readKey()) {
@@ -374,7 +374,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	<V> void readCollection(JSONReader in, ODBSType value, Collection<V> values) throws IOException {
+	public <V> void readCollection(JSONReader in, ODBSType value, Collection<V> values) throws IOException {
 		in.beginArray();
 		while (in.readNext()) {
 			values.add((V) value.read(this, in));
@@ -383,7 +383,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	<V> void readList(JSONReader in, ODBSType value, List<V> values) throws IOException {
+	public <V> void readList(JSONReader in, ODBSType value, List<V> values) throws IOException {
 		in.beginArray();
 		while (in.readNext()) {
 			values.add((V) value.read(this, in));
@@ -392,7 +392,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	<V> void readSet(JSONReader in, ODBSType value, Set<V> values) throws IOException {
+	public <V> void readSet(JSONReader in, ODBSType value, Set<V> values) throws IOException {
 		in.beginArray();
 		while (in.readNext()) {
 			values.add((V) value.read(this, in));
@@ -400,27 +400,27 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	int readEnum(JSONReader in) throws IOException {
+	public int readEnum(JSONReader in) throws IOException {
 		return in.readEnumValue(KEY_NAME_FORMAT);
 	}
 
 	@Override
-	int readEnumCode(JSONReader in) throws IOException {
+	public int readEnumCode(JSONReader in) throws IOException {
 		return in.readEnumValue(KEY_NAME_FORMAT);
 	}
 
 	@Override
-	int readEnumCodeText(JSONReader in) throws IOException {
+	public int readEnumCodeText(JSONReader in) throws IOException {
 		return in.readEnumValue(KEY_NAME_FORMAT);
 	}
 
 	@Override
-	int readEnumText(JSONReader in) throws IOException {
+	public int readEnumText(JSONReader in) throws IOException {
 		return in.readEnumValue(KEY_NAME_FORMAT);
 	}
 
 	@Override
-	LocalDate readLocalDate(JSONReader in) throws IOException {
+	public LocalDate readLocalDate(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getLocalDate(DATE_FORMATTER);
 		}
@@ -428,7 +428,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	LocalDateTime readLocalDateTime(JSONReader in) throws IOException {
+	public LocalDateTime readLocalDateTime(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getLocalDateTime(DATE_TIME_FORMATTER);
 		}
@@ -436,7 +436,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	LocalTime readLocalTime(JSONReader in) throws IOException {
+	public LocalTime readLocalTime(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getLocalTime(TIME_FORMATTER);
 		}
@@ -444,7 +444,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	long readLong(JSONReader in) throws IOException {
+	public long readLong(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getLong();
 		}
@@ -452,7 +452,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	short readShort(JSONReader in) throws IOException {
+	public short readShort(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getShort();
 		}
@@ -460,7 +460,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	String readString(JSONReader in) throws IOException {
+	public String readString(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getString();
 		}
@@ -468,7 +468,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	BigDecimal readBigDecimal(JSONReader in) throws IOException {
+	public BigDecimal readBigDecimal(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getBigDecimal();
 		}
@@ -476,7 +476,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	BigInteger readBigInteger(JSONReader in) throws IOException {
+	public BigInteger readBigInteger(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getBigInteger();
 		}
@@ -484,7 +484,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	boolean readBool(JSONReader in) throws IOException {
+	public boolean readBool(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getBoolean();
 		}
@@ -492,7 +492,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	boolean readBoolea(JSONReader in) throws IOException {
+	public boolean readBoolea(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getBoolean();
 		}
@@ -500,7 +500,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	byte readByte(JSONReader in) throws IOException {
+	public byte readByte(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getByte();
 		}
@@ -508,7 +508,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	char readChar(JSONReader in) throws IOException {
+	public char readChar(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getChar();
 		}
@@ -516,7 +516,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	Date readDate(JSONReader in) throws IOException {
+	public Date readDate(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getDate(DATE_FORMAT);
 		}
@@ -524,7 +524,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	double readDouble(JSONReader in) throws IOException {
+	public double readDouble(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getDouble();
 		}
@@ -532,7 +532,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	float readFloat(JSONReader in) throws IOException {
+	public float readFloat(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getFloat();
 		}
@@ -540,7 +540,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	int readInt(JSONReader in) throws IOException {
+	public int readInt(JSONReader in) throws IOException {
 		if (in.readValue()) {
 			return in.getInt();
 		}
@@ -548,7 +548,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	void writeArray(JSONWriter out, ODBSType value, Object values) throws IllegalArgumentException, IOException {
+	public void writeArray(JSONWriter out, ODBSType value, Object values) throws IllegalArgumentException, IOException {
 		if (value instanceof ValueType) {
 			// 为值数组提供特殊处理
 			// 避免值被装箱为对象
@@ -622,7 +622,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	void writeCollection(JSONWriter out, ODBSType value, Collection<?> values) throws IOException {
+	public void writeCollection(JSONWriter out, ODBSType value, Collection<?> values) throws IOException {
 		out.beginArray();
 		final Iterator<?> i = values.iterator();
 		while (i.hasNext()) {
@@ -632,7 +632,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	void writeEnum(JSONWriter out, Enum<?> value) throws IOException {
+	public void writeEnum(JSONWriter out, Enum<?> value) throws IOException {
 		out.beginObject();
 		// "name":"xxx"
 		out.writeKey(JSONName.NAME(KEY_NAME_FORMAT));
@@ -644,7 +644,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	void writeEnumCode(JSONWriter out, EnumCode value) throws IOException {
+	public void writeEnumCode(JSONWriter out, EnumCode value) throws IOException {
 		out.beginObject();
 		// "name":"xxx"
 		out.writeKey(JSONName.NAME(KEY_NAME_FORMAT));
@@ -656,7 +656,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	void writeEnumCodeText(JSONWriter out, EnumCodeText value) throws IOException {
+	public void writeEnumCodeText(JSONWriter out, EnumCodeText value) throws IOException {
 		out.beginObject();
 		// "name":"xxx"
 		out.writeKey(JSONName.NAME(KEY_NAME_FORMAT));
@@ -671,7 +671,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	void writeEnumText(JSONWriter out, EnumText value) throws IOException {
+	public void writeEnumText(JSONWriter out, EnumText value) throws IOException {
 		out.beginObject();
 		// "name":"xxx"
 		out.writeKey(JSONName.NAME(KEY_NAME_FORMAT));
@@ -686,7 +686,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	void writeList(JSONWriter out, ODBSType value, List<?> values) throws IOException {
+	public void writeList(JSONWriter out, ODBSType value, List<?> values) throws IOException {
 		out.beginArray();
 		for (int i = 0; i < values.size(); i++) {
 			value.write(values.get(i), this, out);
@@ -695,7 +695,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	void writeSet(JSONWriter out, ODBSType value, Set<?> values) throws IOException {
+	public void writeSet(JSONWriter out, ODBSType value, Set<?> values) throws IOException {
 		out.beginArray();
 		final Iterator<?> i = values.iterator();
 		while (i.hasNext()) {
@@ -705,7 +705,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	void writeMap(JSONWriter out, ODBSType key, ODBSType value, Map<?, ?> values) throws IOException {
+	public void writeMap(JSONWriter out, ODBSType key, ODBSType value, Map<?, ?> values) throws IOException {
 		out.beginObject();
 		final Iterator<? extends Map.Entry<?, ?>> i = values.entrySet().iterator();
 		Entry<?, ?> entry;
@@ -721,12 +721,12 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	void writeField(JSONWriter out, ODBSMethod method) throws IOException {
+	public void writeField(JSONWriter out, ODBSMethod method) throws IOException {
 		out.writeKey(method.name(KEY_NAME_FORMAT));
 	}
 
 	@Override
-	void writeEntity(JSONWriter out, TypeEntity type, Object value) throws IOException {
+	public void writeEntity(JSONWriter out, TypeEntity type, Object value) throws IOException {
 		out.beginObject();
 		// 实体字段编码
 		ODBSMethod method;
@@ -740,7 +740,7 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	void writeObject(JSONWriter out, TypeObject type, Object value) throws IOException {
+	public void writeObject(JSONWriter out, TypeObject type, Object value) throws IOException {
 		final TypeEntity t = odbs.get(value.getClass());
 		if (t == null) {
 			throw new IOException("ODBS JSON 类型无效");
@@ -762,82 +762,82 @@ abstract class ODBSJsonCodec extends ODBSCodec<JSONWriter, JSONReader> {
 	}
 
 	@Override
-	void writeBigDecimal(JSONWriter out, BigDecimal value) throws IOException {
+	public void writeBigDecimal(JSONWriter out, BigDecimal value) throws IOException {
 		out.writeValue(value);
 	}
 
 	@Override
-	void writeBigInteger(JSONWriter out, BigInteger value) throws IOException {
+	public void writeBigInteger(JSONWriter out, BigInteger value) throws IOException {
 		out.writeValue(value);
 	}
 
 	@Override
-	void writeBoolean(JSONWriter out, boolean value) throws IOException {
+	public void writeBoolean(JSONWriter out, boolean value) throws IOException {
 		out.writeValue(value);
 	}
 
 	@Override
-	void writeBoolean(JSONWriter out, Boolean value) throws IOException {
+	public void writeBoolean(JSONWriter out, Boolean value) throws IOException {
 		out.writeValue(value);
 	}
 
 	@Override
-	void writeByte(JSONWriter out, byte value) throws IOException {
+	public void writeByte(JSONWriter out, byte value) throws IOException {
 		out.writeValue(value);
 	}
 
 	@Override
-	void writeChar(JSONWriter out, char value) throws IOException {
+	public void writeChar(JSONWriter out, char value) throws IOException {
 		out.writeValue(value);
 	}
 
 	@Override
-	void writeDate(JSONWriter out, Date value) throws IOException {
+	public void writeDate(JSONWriter out, Date value) throws IOException {
 		out.writeValue(DATE_FORMAT, value);
 	}
 
 	@Override
-	void writeDouble(JSONWriter out, double value) throws IOException {
+	public void writeDouble(JSONWriter out, double value) throws IOException {
 		out.writeValue(value);
 	}
 
 	@Override
-	void writeFloat(JSONWriter out, float value) throws IOException {
+	public void writeFloat(JSONWriter out, float value) throws IOException {
 		out.writeValue(value);
 	}
 
 	@Override
-	void writeInt(JSONWriter out, int value) throws IOException {
+	public void writeInt(JSONWriter out, int value) throws IOException {
 		out.writeValue(value);
 	}
 
 	@Override
-	void writeLocalDateTime(JSONWriter out, LocalDateTime value) throws IOException {
+	public void writeLocalDateTime(JSONWriter out, LocalDateTime value) throws IOException {
 		out.writeValue(DATE_TIME_FORMATTER, value);
 	}
 
 	@Override
-	void writeLocaleDate(JSONWriter out, LocalDate value) throws IOException {
+	public void writeLocaleDate(JSONWriter out, LocalDate value) throws IOException {
 		out.writeValue(DATE_FORMATTER, value);
 	}
 
 	@Override
-	void writeLocalTime(JSONWriter out, LocalTime value) throws IOException {
+	public void writeLocalTime(JSONWriter out, LocalTime value) throws IOException {
 		out.writeValue(TIME_FORMATTER, value);
 	}
 
 	@Override
-	void writeLong(JSONWriter out, long value) throws IOException {
+	public void writeLong(JSONWriter out, long value) throws IOException {
 		out.writeValue(value);
 	}
 
 	@Override
-	void writeShort(JSONWriter out, short value) throws IOException {
+	public void writeShort(JSONWriter out, short value) throws IOException {
 		out.writeValue(value);
 	}
 
 	@Override
-	void writeString(JSONWriter out, String value) throws IOException {
+	public void writeString(JSONWriter out, String value) throws IOException {
 		out.writeValue(value);
 	}
 }
