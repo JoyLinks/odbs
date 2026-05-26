@@ -222,17 +222,17 @@ public final class ODBSReflect {
 	/**
 	 * 查找指定类型的指定注解，将自动递归超类
 	 * 
-	 * @param o 实体实例
-	 * @param clazz 注解类型
+	 * @param clazz 实体实例
+	 * @param ann 注解类型
 	 * 
 	 * @param <T> 注解类型
 	 * @return 注解实例
 	 */
-	public final static <T extends Annotation> T findAnnotation(Class<?> o, Class<T> clazz) {
-		if (o != null) {
-			T a = o.getAnnotation(clazz);
+	public final static <T extends Annotation> T findAnnotation(Class<?> clazz, Class<T> ann) {
+		if (clazz != null) {
+			T a = clazz.getAnnotation(ann);
 			if (a == null) {
-				return findAnnotation(o.getSuperclass(), clazz);
+				return findAnnotation(clazz.getSuperclass(), ann);
 			}
 			return a;
 		}
@@ -340,6 +340,7 @@ public final class ODBSReflect {
 	 * @param clazz
 	 * @return 范型类型 / 抛出异常
 	 */
+	@Deprecated
 	public final static Class<?> findListGeneric(Class<?> clazz) {
 		Class<?>[] classes = ODBSReflect.findGeneric(clazz);
 		if (classes != null && classes.length == 1) {
@@ -355,6 +356,7 @@ public final class ODBSReflect {
 	 * @param clazz
 	 * @return 范型类型 / 抛出异常
 	 */
+	@Deprecated
 	public final static Class<?> findSetGeneric(Class<?> clazz) {
 		Class<?>[] classes = ODBSReflect.findGeneric(clazz);
 		if (classes != null && classes.length == 1) {
@@ -370,6 +372,7 @@ public final class ODBSReflect {
 	 * @param clazz
 	 * @return 范型类型,数组0为键,1为值 / 抛出异常
 	 */
+	@Deprecated
 	public final static Class<?>[] findMapGeneric(Class<?> clazz) {
 		Class<?>[] classes = ODBSReflect.findGeneric(clazz);
 		if (classes != null && classes.length == 2) {
@@ -385,6 +388,7 @@ public final class ODBSReflect {
 	 * @param clazz
 	 * @return 范型类型 / 抛出异常
 	 */
+	@Deprecated
 	public final static Class<?> findCollectionGeneric(Class<?> clazz) {
 		Class<?>[] classes = ODBSReflect.findGeneric(clazz);
 		if (classes != null && classes.length == 1) {
@@ -477,6 +481,12 @@ public final class ODBSReflect {
 		}
 		if (pkg != null) {
 			pkg = pkg.replace('.', '/');
+			// 20260526
+			// com/joyzl/scada/driver/dl 匹配 com/joyzl/scada/driver/dlt645 包内的资源
+			// 导致扫描了错误的包并抛出异常，因此必须增加尾部 '/' 切断路径
+			if (!pkg.endsWith("/")) {
+				pkg += '/';
+			}
 		}
 		final List<String> resources = new ArrayList<>();
 		try (ModuleReader reader = optional.get().reference().open()) {
@@ -487,11 +497,9 @@ public final class ODBSReflect {
 				if (resource.endsWith("/")) {
 					continue;
 				}
-				if (pkg != null && !resource.startsWith(pkg)) {
-					continue;
+				if (pkg == null || resource.startsWith(pkg)) {
+					resources.add(resource);
 				}
-				resources.add(resource);
-				// System.out.println(resource);
 			}
 			return resources;
 		} catch (IOException ex) {
@@ -516,7 +524,6 @@ public final class ODBSReflect {
 	 */
 	public final static List<String> scanPackage(String name) {
 		final String path = name.replace('.', '/');
-		// System.out.println("scanPackage:" + name);
 		try {
 			URL url;
 			final List<String> resources = new ArrayList<>();
@@ -525,7 +532,6 @@ public final class ODBSReflect {
 			final Enumeration<URL> urls = ClassLoader.getSystemClassLoader().getResources(path);
 			while (urls.hasMoreElements()) {
 				url = urls.nextElement();
-				// System.out.println(url);
 				if (url == null) {
 				} else if ("file".equalsIgnoreCase(url.getProtocol())) {
 					scanPackage(new File(url.toURI()), path, resources);
