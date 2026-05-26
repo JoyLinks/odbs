@@ -1,7 +1,6 @@
 package com.joyzl.odbs;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DateFormat;
@@ -13,19 +12,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
-import com.joyzl.EnumCode;
-import com.joyzl.EnumCodeText;
-import com.joyzl.EnumText;
+final class ODBSJsonDecode implements ODBSDecode<JSONReader> {
 
-abstract class ODBSJsonCodec implements ODBSEncode<JSONWriter>, ODBSDecode<JSONReader> {
-
-	protected final ODBS odbs;
+	private final ODBS odbs;
 
 	/** 输出键名格式 */
 	private JSONName KEY_NAME_FORMAT = JSONName.UPPER_CAMEL_CASE;
@@ -40,7 +33,7 @@ abstract class ODBSJsonCodec implements ODBSEncode<JSONWriter>, ODBSDecode<JSONR
 	/** 表示类型的键 */
 	private String KEY_TYPE = "*";
 
-	public ODBSJsonCodec(ODBS odbs) {
+	public ODBSJsonDecode(ODBS odbs) {
 		this.odbs = odbs;
 	}
 
@@ -54,7 +47,7 @@ abstract class ODBSJsonCodec implements ODBSEncode<JSONWriter>, ODBSDecode<JSONR
 	/**
 	 * 设置类型键，当类型不明确时通过此键值指定类型名称
 	 */
-	public void getKeyType(String value) {
+	public void setKeyType(String value) {
 		KEY_TYPE = value;
 	}
 
@@ -545,299 +538,5 @@ abstract class ODBSJsonCodec implements ODBSEncode<JSONWriter>, ODBSDecode<JSONR
 			return in.getInt();
 		}
 		return 0;
-	}
-
-	@Override
-	public void writeArray(JSONWriter out, ODBSType value, Object values) throws IllegalArgumentException, IOException {
-		if (value instanceof ValueType) {
-			// 为值数组提供特殊处理
-			// 避免值被装箱为对象
-			if (value.type() == byte.class) {
-				final byte[] v = (byte[]) values;
-				out.beginArray();
-				for (int i = 0; i < v.length; i++) {
-					out.writeValue(v[i]);
-				}
-				out.endArray();
-			} else if (value.type() == int.class) {
-				final int[] v = (int[]) values;
-				out.beginArray();
-				for (int i = 0; i < v.length; i++) {
-					out.writeValue(v[i]);
-				}
-				out.endArray();
-			} else if (value.type() == char.class) {
-				final char[] v = (char[]) values;
-				out.beginArray();
-				for (int i = 0; i < v.length; i++) {
-					out.writeValue(v[i]);
-				}
-				out.endArray();
-			} else if (value.type() == short.class) {
-				final short[] v = (short[]) values;
-				out.beginArray();
-				for (int i = 0; i < v.length; i++) {
-					out.writeValue(v[i]);
-				}
-				out.endArray();
-			} else if (value.type() == float.class) {
-				final float[] v = (float[]) values;
-				out.beginArray();
-				for (int i = 0; i < v.length; i++) {
-					out.writeValue(v[i]);
-				}
-				out.endArray();
-			} else if (value.type() == double.class) {
-				final double[] v = (double[]) values;
-				out.beginArray();
-				for (int i = 0; i < v.length; i++) {
-					out.writeValue(v[i]);
-				}
-				out.endArray();
-			} else if (value.type() == long.class) {
-				final long[] v = (long[]) values;
-				out.beginArray();
-				for (int i = 0; i < v.length; i++) {
-					out.writeValue(v[i]);
-				}
-				out.endArray();
-			} else if (value.type() == boolean.class) {
-				final boolean[] v = (boolean[]) values;
-				out.beginArray();
-				for (int i = 0; i < v.length; i++) {
-					out.writeValue(v[i]);
-				}
-				out.endArray();
-			} else {
-				throw new IOException("未知值类型");
-			}
-		} else {
-			final int size = Array.getLength(values);
-			out.beginArray();
-			for (int i = 0; i < size; i++) {
-				value.write(Array.get(values, i), this, out);
-			}
-			out.endArray();
-		}
-	}
-
-	@Override
-	public void writeCollection(JSONWriter out, ODBSType value, Collection<?> values) throws IOException {
-		out.beginArray();
-		final Iterator<?> i = values.iterator();
-		while (i.hasNext()) {
-			value.write(i.next(), this, out);
-		}
-		out.endArray();
-	}
-
-	@Override
-	public void writeEnum(JSONWriter out, Enum<?> value) throws IOException {
-		out.beginObject();
-		// "name":"xxx"
-		out.writeKey(JSONName.NAME(KEY_NAME_FORMAT));
-		out.writeValue(value.name());
-		// ,"value":0
-		out.writeKey(JSONName.VALUE(KEY_NAME_FORMAT));
-		out.writeValue(value.ordinal());
-		out.endObject();
-	}
-
-	@Override
-	public void writeEnumCode(JSONWriter out, EnumCode value) throws IOException {
-		out.beginObject();
-		// "name":"xxx"
-		out.writeKey(JSONName.NAME(KEY_NAME_FORMAT));
-		out.writeValue(value.name());
-		// ,"value":0
-		out.writeKey(JSONName.VALUE(KEY_NAME_FORMAT));
-		out.writeValue(value.code());
-		out.endObject();
-	}
-
-	@Override
-	public void writeEnumCodeText(JSONWriter out, EnumCodeText value) throws IOException {
-		out.beginObject();
-		// "name":"xxx"
-		out.writeKey(JSONName.NAME(KEY_NAME_FORMAT));
-		out.writeValue(value.name());
-		// "text":"xxx"
-		out.writeKey(JSONName.TEXT(KEY_NAME_FORMAT));
-		out.writeValue(value.text());
-		// ,"value":0
-		out.writeKey(JSONName.VALUE(KEY_NAME_FORMAT));
-		out.writeValue(value.code());
-		out.endObject();
-	}
-
-	@Override
-	public void writeEnumText(JSONWriter out, EnumText value) throws IOException {
-		out.beginObject();
-		// "name":"xxx"
-		out.writeKey(JSONName.NAME(KEY_NAME_FORMAT));
-		out.writeValue(value.name());
-		// "text":"xxx"
-		out.writeKey(JSONName.TEXT(KEY_NAME_FORMAT));
-		out.writeValue(value.text());
-		// ,"value":0
-		out.writeKey(JSONName.VALUE(KEY_NAME_FORMAT));
-		out.writeValue(value.ordinal());
-		out.endObject();
-	}
-
-	@Override
-	public void writeList(JSONWriter out, ODBSType value, List<?> values) throws IOException {
-		out.beginArray();
-		for (int i = 0; i < values.size(); i++) {
-			value.write(values.get(i), this, out);
-		}
-		out.endArray();
-	}
-
-	@Override
-	public void writeSet(JSONWriter out, ODBSType value, Set<?> values) throws IOException {
-		out.beginArray();
-		final Iterator<?> i = values.iterator();
-		while (i.hasNext()) {
-			value.write(i.next(), this, out);
-		}
-		out.endArray();
-	}
-
-	@Override
-	public void writeMap(JSONWriter out, ODBSType key, ODBSType value, Map<?, ?> values) throws IOException {
-		out.beginObject();
-		final Iterator<? extends Map.Entry<?, ?>> i = values.entrySet().iterator();
-		Entry<?, ?> entry;
-		while (i.hasNext()) {
-			entry = i.next();
-			out.writeKeyBegin();
-			key.write(entry.getKey(), this, out);
-			out.writeKeyEnd();
-			// out.writeKey(entry.getKey().toString());
-			value.write(entry.getValue(), this, out);
-		}
-		out.endObject();
-	}
-
-	@Override
-	public void writeField(JSONWriter out, ODBSMethod method) throws IOException {
-		out.writeKey(method.name(KEY_NAME_FORMAT));
-	}
-
-	@Override
-	public void writeEntity(JSONWriter out, TypeEntity type, Object value) throws IOException {
-		out.beginObject();
-		// 实体字段编码
-		ODBSMethod method;
-		for (int index = 0; index < type.methods().length; index++) {
-			method = type.methods()[index];
-			if (method.get() != null) {
-				method.type().write2(value, method, this, out);
-			}
-		}
-		out.endObject();
-	}
-
-	@Override
-	public void writeObject(JSONWriter out, TypeObject type, Object value) throws IOException {
-		final TypeEntity t = odbs.get(value.getClass());
-		if (t == null) {
-			throw new IOException("ODBS JSON 类型无效");
-		}
-
-		out.beginObject();
-		// 输出类型标记
-		out.writeKey(KEY_TYPE);
-		out.writeValue(t.name());
-		// 实体字段编码
-		ODBSMethod method;
-		for (int index = 0; index < t.methods().length; index++) {
-			method = t.methods()[index];
-			if (method.get() != null) {
-				method.type().write2(value, method, this, out);
-			}
-		}
-		out.endObject();
-	}
-
-	@Override
-	public void writeBigDecimal(JSONWriter out, BigDecimal value) throws IOException {
-		out.writeValue(value);
-	}
-
-	@Override
-	public void writeBigInteger(JSONWriter out, BigInteger value) throws IOException {
-		out.writeValue(value);
-	}
-
-	@Override
-	public void writeBoolean(JSONWriter out, boolean value) throws IOException {
-		out.writeValue(value);
-	}
-
-	@Override
-	public void writeBoolean(JSONWriter out, Boolean value) throws IOException {
-		out.writeValue(value);
-	}
-
-	@Override
-	public void writeByte(JSONWriter out, byte value) throws IOException {
-		out.writeValue(value);
-	}
-
-	@Override
-	public void writeChar(JSONWriter out, char value) throws IOException {
-		out.writeValue(value);
-	}
-
-	@Override
-	public void writeDate(JSONWriter out, Date value) throws IOException {
-		out.writeValue(DATE_FORMAT, value);
-	}
-
-	@Override
-	public void writeDouble(JSONWriter out, double value) throws IOException {
-		out.writeValue(value);
-	}
-
-	@Override
-	public void writeFloat(JSONWriter out, float value) throws IOException {
-		out.writeValue(value);
-	}
-
-	@Override
-	public void writeInt(JSONWriter out, int value) throws IOException {
-		out.writeValue(value);
-	}
-
-	@Override
-	public void writeLocalDateTime(JSONWriter out, LocalDateTime value) throws IOException {
-		out.writeValue(DATE_TIME_FORMATTER, value);
-	}
-
-	@Override
-	public void writeLocaleDate(JSONWriter out, LocalDate value) throws IOException {
-		out.writeValue(DATE_FORMATTER, value);
-	}
-
-	@Override
-	public void writeLocalTime(JSONWriter out, LocalTime value) throws IOException {
-		out.writeValue(TIME_FORMATTER, value);
-	}
-
-	@Override
-	public void writeLong(JSONWriter out, long value) throws IOException {
-		out.writeValue(value);
-	}
-
-	@Override
-	public void writeShort(JSONWriter out, short value) throws IOException {
-		out.writeValue(value);
-	}
-
-	@Override
-	public void writeString(JSONWriter out, String value) throws IOException {
-		out.writeValue(value);
 	}
 }
