@@ -51,13 +51,9 @@ final class TypeEnum extends ODBSType {
 
 	@Override
 	<I> void read(Object entity, ODBSMethod method, ODBSDecode<I> codec, I in) throws IOException {
-		final int value = codec.readEnum(in);
+		final Enum<?> value = read(codec, in);
 		try {
-			if (value >= 0 && value < constants.length) {
-				method.set().invokeExact(entity, constants[value]);
-			} else {
-				method.set().invokeExact(entity, (Enum<?>) null);
-			}
+			method.set().invokeExact(entity, value);
 		} catch (Throwable e) {
 			throw new RuntimeException(e);
 		}
