@@ -44,8 +44,8 @@ public enum JSONName {
 	 * 根据标准的JavaBean方法名称生成多种键名格式，数组索引对应{@link JSONName}枚举索引。<br>
 	 * UserName -> [UserName,userName,user-name,user_name,username]
 	 * 
-	 * @param name
-	 * @return String[]
+	 * @param name 方法名，不含前缀(get/set/is)
+	 * @return String[] 返回6种格式方法名
 	 */
 	public static String[] precut(String name) {
 		final String[] names = new String[JSONName.values().length];
@@ -64,19 +64,37 @@ public enum JSONName {
 			// KEBAB_CASE
 			// SNAKE_CASE
 			// 注意：特殊格式 getNRIC,getMyNRIC,getMyNRICNumber
-			char c = 0;
+			int u = 0;
+			char c, p = 0;
 			final StringBuilder KEBAB = new StringBuilder();
 			final StringBuilder SNAKE = new StringBuilder();
 			for (int index = 0; index < name.length(); index++) {
+				c = name.charAt(index);
 				if (index > 0) {
-					if (Character.isLowerCase(c) && Character.isUpperCase(name.charAt(index))) {
-						KEBAB.append(HYPHEN);
-						SNAKE.append(UNDERLINE);
+					if (Character.isLowerCase(p)) {
+						if (Character.isUpperCase(c)) {
+							KEBAB.append(HYPHEN);
+							SNAKE.append(UNDERLINE);
+							u = 1;
+						}
+					} else {
+						if (Character.isUpperCase(c)) {
+							// 记录连续大写数量
+							u++;
+						} else if (u > 1) {
+							KEBAB.deleteCharAt(index);
+							KEBAB.append(HYPHEN);
+							KEBAB.append(Character.toLowerCase(p));
+							SNAKE.deleteCharAt(index);
+							SNAKE.append(UNDERLINE);
+							SNAKE.append(Character.toLowerCase(p));
+							u = 0;
+						}
 					}
 				}
-				c = name.charAt(index);
 				KEBAB.append(Character.toLowerCase(c));
 				SNAKE.append(Character.toLowerCase(c));
+				p = c;
 			}
 			names[KEBAB_CASE.ordinal()] = KEBAB.toString();
 			names[SNAKE_CASE.ordinal()] = SNAKE.toString();
@@ -111,12 +129,28 @@ public enum JSONName {
 		}
 		for (int i = 0; i < names.length; i++) {
 			if (i != format.ordinal()) {
-				if (names[i].contentEquals(name)) {
+				if (same(names[i], name)) {
 					return true;
 				}
 			}
 		}
 		return false;
+	}
+
+	/** 比较键名不区分大小写，未考虑语言差异 */
+	public final static boolean same(CharSequence a, CharSequence b) {
+		if (a.length() != b.length()) {
+			return false;
+		}
+		int ca, cb;
+		for (int index = 0; index < a.length(); index++) {
+			ca = a.charAt(index);
+			cb = b.charAt(index);
+			if (ca != cb && (ca ^ cb) != 32) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////

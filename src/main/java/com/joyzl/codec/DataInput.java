@@ -345,10 +345,13 @@ public interface DataInput extends java.io.DataInput {
 	}
 
 	/** 读取UTF8字符，调用者应确保CharBuffer长度合适 */
+	@Deprecated
 	default void readUTF8(CharBuffer buffer) throws IOException {
 		if (buffer.isReadOnly()) {
 			throw new ReadOnlyBufferException();
 		}
+		// TODO 未判断字节流长度导致超度
+		// int read() 方法在 network 被占用，麻烦了
 		int code;
 		while (buffer.hasRemaining()) {
 			code = readUTF8();

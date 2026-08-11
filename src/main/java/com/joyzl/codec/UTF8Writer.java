@@ -1078,4 +1078,37 @@ public interface UTF8Writer {
 		}
 		*/
 	}
+
+	default void writeFloat(float value) throws IOException {
+		if (value == 0.0f) {
+			write('0');
+			return;
+		}
+		if (Float.isNaN(value)) {
+			write('N');
+			write('a');
+			write('N');
+			return;
+		}
+		if (Float.isInfinite(value)) {
+			if (value < 0) {
+				write('-');
+			}
+			write('I');
+			write('n');
+			write('f');
+			write('i');
+			write('n');
+			write('i');
+			write('t');
+			write('y');
+			return;
+		}
+
+		if (value < 0) {
+			value = -value;
+			write('-');
+		}
+
+	}
 }
