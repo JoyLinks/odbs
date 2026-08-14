@@ -128,10 +128,8 @@ public enum JSONName {
 			return true;
 		}
 		for (int i = 0; i < names.length; i++) {
-			if (i != format.ordinal()) {
-				if (same(names[i], name)) {
-					return true;
-				}
+			if (same(names[i], name)) {
+				return true;
 			}
 		}
 		return false;

@@ -11,7 +11,7 @@ class TestJSONName {
 
 	@Test
 	void test1() {
-		final String[] names = JSONName.precut("devID");
+		final String[] names = JSONName.precut("DevID");
 		assertEquals("DevID", names[JSONName.UPPER_CAMEL_CASE.ordinal()]);
 		assertEquals("devID", names[JSONName.LOWER_CAMEL_CASE.ordinal()]);
 		assertEquals("dev-id", names[JSONName.KEBAB_CASE.ordinal()]);
@@ -19,12 +19,13 @@ class TestJSONName {
 		assertEquals("devid", names[JSONName.LOWER_CASE.ordinal()]);
 		assertEquals("DEVID", names[JSONName.UPPER_CASE.ordinal()]);
 
-		assertTrue(JSONName.match(names, JSONName.UPPER_CASE, "dev-ID"));
+		assertTrue(JSONName.match(names, JSONName.SNAKE_CASE, "dev-ID"));
+		assertTrue(JSONName.match(names, JSONName.SNAKE_CASE, "dev_ID"));
 	}
 
 	@Test
 	void test2() {
-		final String[] names = JSONName.precut("partIDLst");
+		final String[] names = JSONName.precut("PartIDLst");
 		assertEquals("PartIDLst", names[JSONName.UPPER_CAMEL_CASE.ordinal()]);
 		assertEquals("partIDLst", names[JSONName.LOWER_CAMEL_CASE.ordinal()]);
 		assertEquals("part-id-lst", names[JSONName.KEBAB_CASE.ordinal()]);
