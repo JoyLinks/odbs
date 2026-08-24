@@ -23,7 +23,8 @@ class TestXMLReader {
 				<greeting><![CDATA[<greeting>Hello, world!</greeting>]]> </greeting>
 				<!---->
 				<IMG align="left"
-					src="http://www.w3.org/Icons/WWW/w3c_home" />
+					src="http://www.w3.org/Icons/WWW/w3c_home"
+					hash="dsdfhgwert="/>
 				<br></br>
 				<br/>
 
@@ -102,9 +103,10 @@ class TestXMLReader {
 		assertEquals(reader.type(), XMLElementType.NORMAL);
 		assertEquals(reader.depth(), 2);
 		assertTrue(reader.isEnd());
-		assertEquals(reader.getAttributeCount(), 2);
+		assertEquals(reader.getAttributeCount(), 3);
 		assertEquals(reader.getAttributeValue("align"), "left");
 		assertEquals(reader.getAttributeValue("src"), "http://www.w3.org/Icons/WWW/w3c_home");
+		assertEquals(reader.getAttributeValue("hash"), "dsdfhgwert=");
 		assertFalse(reader.hasContent());
 
 		// <br></br>

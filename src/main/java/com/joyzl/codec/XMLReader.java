@@ -278,9 +278,12 @@ public class XMLReader {
 			}
 			if (value == '=') {
 				// name
-				segments[segmentSize++] = buffer.length();
-				valueChars = true;
-				continue;
+				if (skipWhitespace) {
+					// 忽略属性值中的=
+					segments[segmentSize++] = buffer.length();
+					valueChars = true;
+					continue;
+				}
 			}
 			if (value == '\'' || value == '\"') {
 				if (skipWhitespace) {
